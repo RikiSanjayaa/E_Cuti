@@ -3,6 +3,7 @@ uvicorn
 sqlalchemy
 pydantic
 python-multipart
+holidays
 python-jose[cryptography]
 passlib[bcrypt]
 pandas
