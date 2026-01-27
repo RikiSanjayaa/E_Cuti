@@ -1,9 +1,10 @@
-import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2 } from 'lucide-react';
+import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
 import ConfirmationModal from '../../components/ConfirmationModal';
 import ImportDetailsModal from '../../components/ImportDetailsModal';
+import AddPersonnelModal from '../../components/AddPersonnelModal';
 
 export default function Personel() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,6 +16,9 @@ export default function Personel() {
   const fileInputRef = useRef(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  
+  // Add Personnel State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Notification Modal State (for errors/info)
   const [modal, setModal] = useState({
@@ -131,6 +135,15 @@ export default function Personel() {
             />
           </div>
           <div className="flex gap-2">
+            <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm hover:bg-slate-800 flex items-center gap-2 cursor-pointer shadow-sm"
+            >
+                <div className="bg-white/20 p-0.5 rounded">
+                    <Plus className="w-3 h-3" />
+                </div>
+                Tambah
+            </button>
             <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -140,7 +153,7 @@ export default function Personel() {
             />
             <button 
                 onClick={() => fileInputRef.current.click()}
-                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
                 disabled={importLoading}
             >
               {importLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
@@ -344,6 +357,21 @@ export default function Personel() {
         onClose={() => setImportResult(null)}
         data={importResult}
       />
+
+      {/* Add Personnel Modal */}
+        <AddPersonnelModal 
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onSuccess={(msg) => {
+                fetchPersonnel();
+                setModal({
+                    isOpen: true,
+                    type: 'success',
+                    title: 'Berhasil',
+                    message: msg
+                });
+            }}
+        />
     </div>
   );
 }

@@ -30,6 +30,43 @@ async def get_all_personnel(
         
     return q.offset(skip).limit(limit).all()
 
+@router.post("/", response_model=schemas.Personnel, status_code=status.HTTP_201_CREATED)
+async def create_personnel(
+    personnel: schemas.PersonnelCreate,
+    current_user: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(database.get_db)
+):
+    # Check if NRP already exists
+    existing = db.query(models.Personnel).filter(models.Personnel.nrp == personnel.nrp).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="NRP already exists")
+    
+    new_personnel = models.Personnel(
+        nrp=personnel.nrp,
+        nama=personnel.nama,
+        pangkat=personnel.pangkat,
+        jabatan=personnel.jabatan,
+        satker=personnel.satker
+    )
+    
+    db.add(new_personnel)
+    db.commit()
+    db.refresh(new_personnel)
+    
+    # Log audit
+    auth.log_audit(
+        db,
+        current_user.id,
+        "CREATE_PERSONNEL",
+        "Personnel Management",
+        new_personnel.nrp,
+        "Personnel",
+        f"Created new personnel: {new_personnel.nama}",
+        status="success"
+    )
+    
+    return new_personnel
+
 @router.get("/{nrp}", response_model=schemas.Personnel)
 async def get_personnel_by_nrp(nrp: str, current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
     personnel = db.query(models.Personnel).filter(models.Personnel.nrp == nrp).first()

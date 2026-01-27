@@ -18,6 +18,7 @@ const AdminLayout = () => {
     <div className="flex h-screen bg-muted/30">
       <Sidebar
         isCollapsed={isSidebarCollapsed}
+        role={userRole.toLowerCase()}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header userRole={userRole} onToggleSidebar={toggleSidebar} />

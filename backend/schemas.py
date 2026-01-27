@@ -49,6 +49,9 @@ class PersonnelBase(BaseModel):
     jabatan: str
     satker: str
 
+class PersonnelCreate(PersonnelBase):
+    pass
+
 class Personnel(PersonnelBase):
     id: int
     sisa_cuti: Optional[int] = 12
