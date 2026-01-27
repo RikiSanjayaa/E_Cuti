@@ -1,14 +1,23 @@
-import { Search, Filter, Download, MoreVertical, Eye, Edit, Trash2 } from 'lucide-react';
+import { Search, Filter, Download, MoreVertical, Eye, Edit, Trash2, AlertTriangle, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
+import { AddLeaveModal } from '@/components/AddLeaveModal';
+import { LeaveDetailModal } from '@/components/LeaveDetailModal';
 
 export default function LeaveRecords() {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // States for Modals
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedLeave, setSelectedLeave] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     fetchLeaves();
@@ -20,11 +29,9 @@ export default function LeaveRecords() {
       const response = await axios.get('/api/leaves/', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log("Leave Records Response:", response.data);
       if (Array.isArray(response.data)) {
         setLeaves(response.data);
       } else {
-        console.error("Expected array but got:", response.data);
         setLeaves([]);
       }
     } catch (error) {
@@ -32,6 +39,47 @@ export default function LeaveRecords() {
       setLeaves([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = (leave) => {
+    setSelectedLeave(leave);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEdit = () => {
+    setSelectedLeave(null);
+    setIsEditModalOpen(false);
+    fetchLeaves(); // Refresh data after edit
+  };
+
+  const handleView = (leave) => {
+    setSelectedLeave(leave);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleDeleteClick = (leave) => {
+    setSelectedLeave(leave);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedLeave) return;
+    setDeleteLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`/api/leaves/${selectedLeave.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Refresh list
+      fetchLeaves();
+      setIsDeleteModalOpen(false);
+      setSelectedLeave(null);
+    } catch (error) {
+      console.error("Failed to delete leave:", error);
+      alert("Gagal menghapus data cuti.");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -185,13 +233,25 @@ export default function LeaveRecords() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button className="p-1 hover:bg-accent rounded cursor-pointer" title="Lihat detail">
+                        <button
+                          onClick={() => handleView(leave)}
+                          className="p-1 hover:bg-accent rounded cursor-pointer"
+                          title="Lihat detail"
+                        >
                           <Eye className="w-4 h-4 text-muted-foreground" />
                         </button>
-                        <button className="p-1 hover:bg-blue-50 rounded cursor-pointer" title="Edit">
+                        <button
+                          onClick={() => handleEdit(leave)}
+                          className="p-1 hover:bg-blue-50 rounded cursor-pointer"
+                          title="Edit"
+                        >
                           <Edit className="w-4 h-4 text-blue-600" />
                         </button>
-                        <button className="p-1 hover:bg-red-50 rounded cursor-pointer" title="Hapus">
+                        <button
+                          onClick={() => handleDeleteClick(leave)}
+                          className="p-1 hover:bg-red-50 rounded cursor-pointer"
+                          title="Hapus"
+                        >
                           <Trash2 className="w-4 h-4 text-red-600" />
                         </button>
                         <button className="p-1 hover:bg-accent rounded cursor-pointer">
@@ -225,6 +285,60 @@ export default function LeaveRecords() {
           </div>
         </div>
       </div>
+
+      {/* Modals and Dialogs */}
+      {/* Edit Modal (reuses Add Modal) */}
+      <AddLeaveModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEdit}
+        initialData={selectedLeave}
+      />
+
+      {/* Detail Modal */}
+      <LeaveDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        leave={selectedLeave}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      {isDeleteModalOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
+            onClick={() => !deleteLoading && setIsDeleteModalOpen(false)}
+          />
+          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-lg shadow-xl z-50 p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="bg-red-100 p-3 rounded-full">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Hapus Data Cuti?</h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Apakah Anda yakin ingin menghapus data cuti ini? Tindakan ini tidak dapat dibatalkan.
+                </p>
+              </div>
+              <div className="flex gap-3 w-full pt-2">
+                <button
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  disabled={deleteLoading}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  disabled={deleteLoading}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {deleteLoading ? 'Menghapus...' : 'Hapus'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
