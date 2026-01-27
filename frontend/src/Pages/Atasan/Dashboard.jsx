@@ -1,113 +1,193 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  CheckCircle,
+  TrendingUp,
+  Users,
+  FileText,
+  Database
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Users, FileText, Activity } from 'lucide-react';
-
-const API_URL = 'http://localhost:8000/api';
 
 export default function AtasanDashboard() {
-  const [stats, setStats] = useState(null);
+  const [statsData, setStatsData] = useState({
+    total_leave_entries: 0,
+    leaves_this_month: 0,
+    total_personel: 0,
+    average_duration: 0,
+    recent_activity: [],
+    top_frequent: []
+  });
   const [loading, setLoading] = useState(true);
 
-  const fetchStats = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/dashboard/stats`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setStats(res.data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/dashboard/stats', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setStatsData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchStats();
-    // Auto refresh every 5 seconds (Real-time feeling)
-    const interval = setInterval(fetchStats, 5000);
+    // Auto refresh every 30 seconds
+    const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Memuat Dashboard...</div>;
+  const stats = [
+    {
+      label: 'Total Pengajuan Cuti',
+      value: statsData.total_leave_entries.toLocaleString(),
+      change: 'Total catatan',
+      icon: Database,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+    },
+    {
+      label: 'Tercatat Bulan Ini',
+      value: statsData.leaves_this_month.toLocaleString(),
+      change: 'Entri baru',
+      icon: FileText,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+    },
+    {
+      label: 'Total Personel',
+      value: statsData.total_personel.toLocaleString(),
+      change: 'Personel aktif',
+      icon: Users,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+    },
+    {
+      label: 'Rata-rata Durasi Cuti',
+      value: `${statsData.average_duration} hari`,
+      change: 'per pengajuan',
+      icon: TrendingUp,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+    },
+  ];
+
+  if (loading) {
+    return <div className="p-6">Loading dashboard data...</div>;
+  }
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard Monitoring</h2>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="bg-blue-600 text-white">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-100">Personel Izin Hari Ini</CardTitle>
-            <Users className="h-4 w-4 text-blue-100" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold">{stats?.total_leaves_today || 0}</div>
-            <p className="text-xs text-blue-100 mt-1">Personel sedang tidak di tempat</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Aktivitas (Recents)</CardTitle>
-            <Activity className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.recent_activity?.length || 0}</div>
-            <p className="text-xs text-muted-foreground">Data terbaru ditampilkan</p>
-          </CardContent>
-        </Card>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Dashboard Monitoring</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Ringkasan manajemen cuti dan absensi personel
+          </p>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {/* Top 10 Chart */}
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Top 10 Personel Paling Sering Izin</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats?.top_frequent} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="nama" type="category" width={100} tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#1e293b" radius={[0, 4, 4, 0]}>
-                    {stats?.top_frequent?.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index < 3 ? '#ef4444' : '#3b82f6'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={index}
+              className="bg-white border border-border rounded-lg p-6 shadow-sm"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  <p className="text-3xl font-semibold mt-2 text-foreground">
+                    {stat.value}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {stat.change}
+                  </p>
+                </div>
+                <div className={`${stat.bgColor} p-3 rounded-lg`}>
+                  <Icon className={`w-6 h-6 ${stat.color}`} />
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          );
+        })}
+      </div>
 
-        {/* Recent Activity Feed */}
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Aktivitas Terbaru</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {stats?.recent_activity?.length === 0 ? <p className="text-center text-sm text-gray-500">Belum ada data.</p> : null}
-              {stats?.recent_activity?.slice(0, 7).map((log) => ( // Show top 7 to fit
-                <div key={log.id} className="flex items-center">
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">{log.personnel?.nama || 'Loading...'}</p>
-                    <p className="text-xs text-muted-foreground">{log.jenis_izin} - {log.jumlah_hari} Hari</p>
+      {/* Recent Activity */}
+      <div className="bg-white border border-border rounded-lg shadow-sm">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">Aktivitas Terbaru</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Riwayat pengajuan cuti terbaru
+          </p>
+        </div>
+        <div className="divide-y divide-border">
+          {statsData.recent_activity.length === 0 ? (
+            <div className="p-6 text-center text-muted-foreground">Tidak ada aktivitas terbaru.</div>
+          ) : (
+            statsData.recent_activity.map((activity, index) => {
+              const user = activity.creator ? (activity.creator.full_name || activity.creator.username) : 'System';
+              const action = `${activity.jenis_izin} - ${activity.personnel.nama}`;
+              const dateStr = formatDistanceToNow(new Date(activity.created_at), { addSuffix: true });
+
+              return (
+                <div
+                  key={activity.id || index}
+                  className="px-6 py-4 flex items-center justify-between hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="text-green-600">
+                      <CheckCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {user}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {action}
+                      </p>
+                    </div>
                   </div>
-                  <div className="ml-auto font-medium text-xs text-gray-500">
-                    {new Date(log.created_at).toLocaleDateString()}
+                  <div className="text-sm text-muted-foreground">
+                    {dateStr}
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-border rounded-lg p-6 shadow-sm col-span-2">
+          <h3 className="font-semibold text-foreground mb-4">Top 10 Personel Paling Sering Izin</h3>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={statsData.top_frequent} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                <XAxis type="number" hide />
+                <YAxis dataKey="nama" type="category" width={100} tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Bar dataKey="count" fill="#1e293b" radius={[0, 4, 4, 0]}>
+                  {statsData.top_frequent?.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={index < 3 ? '#ef4444' : '#3b82f6'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
     </div>
   );

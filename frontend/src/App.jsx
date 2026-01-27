@@ -42,6 +42,9 @@ function App() {
         {/* Atasan Routes */}
         <Route element={<ProtectedRoute role="atasan"><AtasanLayout /></ProtectedRoute>}>
           <Route path="/atasan" element={<AtasanDashboard />} />
+          <Route path="/atasan/leaves" element={<LeaveRecords />} />
+          <Route path="/atasan/personel" element={<Personel />} />
+          <Route path="/atasan/analytics" element={<Analytics />} />
           <Route path="/atasan/reports" element={<Reports />} />
         </Route>
       </Routes>
