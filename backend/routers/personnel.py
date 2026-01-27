@@ -19,55 +19,59 @@ async def get_personnel_by_nrp(nrp: str, current_user: models.User = Depends(aut
 
 @router.post("/import", status_code=status.HTTP_201_CREATED)
 async def import_personnel(file: UploadFile = File(...), current_user: models.User = Depends(auth.get_current_admin), db: Session = Depends(database.get_db)):
-    # Supported formats: JSON or CSV (via pandas)
     content_type = file.content_type
     
     try:
-        if "json" in content_type:
+        # Custom Excel Parser for Polda Format
+        if "excel" in content_type or file.filename.endswith(".xlsx") or file.filename.endswith(".xls"):
+            import shutil
+            import tempfile
+            import os
+            from .. import import_utils
+            
+            # Save to temp file because import_utils needs path (and excel reading is complex)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+                shutil.copyfileobj(file.file, tmp)
+                tmp_path = tmp.name
+                
+            try:
+                count = import_utils.process_excel_file(tmp_path, db)
+                return {"message": f"Successfully imported {count} personnel records from Excel"}
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Excel parsing error: {str(e)}")
+            finally:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+
+        # Fallback for simple JSON
+        elif "json" in content_type:
             content = await file.read()
             data = json.loads(content)
-            # Expecting detailed list of dicts
-        elif "csv" in content_type or "excel" in content_type or file.filename.endswith(".xlsx"):
-            # For excel/csv, stick to pandas
-            contents = await file.read()
-            # Save to temp file to read with pandas? Or BytesIO
-            from io import BytesIO
-            if file.filename.endswith(".csv"):
-                df = pd.read_csv(BytesIO(contents))
-            else:
-                df = pd.read_excel(BytesIO(contents))
-            data = df.to_dict(orient="records")
-        else:
-            raise HTTPException(status_code=400, detail="Invalid file format. Use JSON, CSV or Excel.")
-            
-        count = 0
-        for item in data:
-            # Map columns to model. Ideally validate with Pydantic first.
-            # Simple mapping: nrp, nama, pangkat, jabatan, satker
-            nrp = str(item.get("nrp") or item.get("NRP"))
-            if not nrp:
-                continue
+            count = 0
+            for item in data:
+                nrp = str(item.get("nrp") or item.get("NRP"))
+                if not nrp: continue
                 
-            existing = db.query(models.Personnel).filter(models.Personnel.nrp == nrp).first()
-            if existing:
-                # Update? Or skip. Let's update.
-                existing.nama = item.get("nama") or item.get("NAMA")
-                existing.pangkat = item.get("pangkat") or item.get("PANGKAT")
-                existing.jabatan = item.get("jabatan") or item.get("JABATAN")
-                existing.satker = item.get("satker") or item.get("SATKER")
-            else:
-                new_personnel = models.Personnel(
-                    nrp=nrp,
-                    nama=item.get("nama") or item.get("NAMA"),
-                    pangkat=item.get("pangkat") or item.get("PANGKAT"),
-                    jabatan=item.get("jabatan") or item.get("JABATAN"),
-                    satker=item.get("satker") or item.get("SATKER")
-                )
-                db.add(new_personnel)
-            count += 1
-        
-        db.commit()
-        return {"message": f"Successfully imported/updated {count} personnel records"}
-        
+                existing = db.query(models.Personnel).filter(models.Personnel.nrp == nrp).first()
+                if existing:
+                    existing.nama = item.get("nama")
+                    existing.pangkat = item.get("pangkat")
+                    existing.jabatan = item.get("jabatan")
+                else:
+                    new_p = models.Personnel(
+                        nrp=nrp,
+                        nama=item.get("nama"),
+                        pangkat=item.get("pangkat"),
+                        jabatan=item.get("jabatan"),
+                        satker="Polda NTB"
+                    )
+                    db.add(new_p)
+                count += 1
+            db.commit()
+            return {"message": f"Imported {count} records from JSON"}
+            
+        else:
+            raise HTTPException(status_code=400, detail="Invalid format. Use the provided Excel format or JSON.")
+            
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

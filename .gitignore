@@ -26,3 +26,8 @@ backend/uploads/evidence/*
 # IDEs
 .vscode/
 .idea/
+
+# Excel Files
+*.xlsx
+*.xls
+ABSEN ROLOG 2026.xlsx
