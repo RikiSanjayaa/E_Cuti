@@ -2,6 +2,9 @@ import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp,
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
+import ConfirmationModal from '../../components/ConfirmationModal';
+import ImportDetailsModal from '../../components/ImportDetailsModal';
+
 export default function Personel() {
   const [searchQuery, setSearchQuery] = useState('');
   const [personnel, setPersonnel] = useState([]);
@@ -11,6 +14,15 @@ export default function Personel() {
   // Import State
   const fileInputRef = useRef(null);
   const [importLoading, setImportLoading] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+
+  // Notification Modal State (for errors/info)
+  const [modal, setModal] = useState({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
 
   useEffect(() => {
     fetchPersonnel();
@@ -49,11 +61,18 @@ export default function Personel() {
               }
           });
           
-         alert(response.data.message);
-         fetchPersonnel();
+          // Use ImportDetailsModal for detailed success report
+          setImportResult(response.data.data);
+          
+          fetchPersonnel();
           
       } catch (error) {
-          alert('Gagal mengimport data: ' + (error.response?.data?.detail || error.message));
+          setModal({
+            isOpen: true,
+            type: 'danger',
+            title: 'Import Gagal',
+            message: error.response?.data?.detail || error.message
+          });
       } finally {
           setImportLoading(false);
           if (fileInputRef.current) fileInputRef.current.value = '';
@@ -306,6 +325,25 @@ export default function Personel() {
           </div>
         </>
       )}
+      
+      {/* Import Notification Modal */}
+      <ConfirmationModal
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        onConfirm={() => setModal({ ...modal, isOpen: false })}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        confirmText="Tutup"
+        cancelText={null}
+      />
+      
+      {/* Detailed Import Result Modal */}
+      <ImportDetailsModal
+        isOpen={!!importResult}
+        onClose={() => setImportResult(null)}
+        data={importResult}
+      />
     </div>
   );
 }

@@ -61,7 +61,7 @@ export default function ConfirmationModal({
             {title}
           </h3>
           
-          <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+          <p className="text-sm text-gray-500 mb-6 leading-relaxed whitespace-pre-line">
             {message}
           </p>
 

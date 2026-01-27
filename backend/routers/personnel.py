@@ -70,8 +70,12 @@ async def import_personnel(file: UploadFile = File(...), current_user: models.Us
                 tmp_path = tmp.name
                 
             try:
-                count = import_utils.process_excel_file(tmp_path, db)
-                return {"message": f"Successfully imported {count} personnel records from Excel"}
+                result = import_utils.process_excel_file(tmp_path, db)
+                stats = result["stats"]
+                return {
+                    "message": f"Process complete. Total: {stats['total']}, Added: {stats['added']}, Updated: {stats['updated']}, Skipped: {stats['skipped']}",
+                    "data": result
+                }
             except Exception as e:
                 raise HTTPException(status_code=400, detail=f"Excel parsing error: {str(e)}")
             finally:
