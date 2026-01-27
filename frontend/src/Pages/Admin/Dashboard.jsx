@@ -1,323 +1,229 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Upload } from 'lucide-react';
+import {
+  CheckCircle,
+  Clock,
+  TrendingUp,
+  Users,
+  AlertCircle,
+  FileText,
+  Database
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
 
-const API_URL = 'http://localhost:8000/api';
-
-export default function AdminDashboard() {
-  const [nrp, setNrp] = useState('');
-  const [personnel, setPersonnel] = useState(null);
-  const [loadingPersonnel, setLoadingPersonnel] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    jenis_izin: '',
-    jumlah_hari: '',
-    tanggal_mulai: '',
-    alasan: ''
+export default function Dashboard() {
+  const [statsData, setStatsData] = useState({
+    total_leave_entries: 0,
+    leaves_this_month: 0,
+    total_personel: 0,
+    average_duration: 0,
+    recent_activity: []
   });
-  const [file, setFile] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [recentInputs, setRecentInputs] = useState([]);
-  const [message, setMessage] = useState(null); // { type: 'success'|'error', text: '' }
-
-  // Auto-fill Logic
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      if (nrp.length >= 4) {
-        setLoadingPersonnel(true);
-        try {
-          const token = localStorage.getItem('token');
-          const res = await axios.get(`${API_URL}/personnel/${nrp}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          setPersonnel(res.data);
-        } catch (err) {
-          setPersonnel(null);
-        } finally {
-          setLoadingPersonnel(false);
-        }
-      } else {
-        setPersonnel(null);
-      }
-    }, 500);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [nrp]);
-
-  const handleInputChange = (e) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
-  };
-
-  const handleSelectChange = (val) => {
-    setFormData(prev => ({ ...prev, jenis_izin: val }));
-  };
-
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!personnel) {
-        setMessage({ type: 'error', text: 'NRP Invalid / Data Personel Tidak Ditemukan' });
-        return;
-    }
-    setSubmitting(true);
-    
-    try {
-      const data = new FormData();
-      data.append('nrp', nrp);
-      data.append('jenis_izin', formData.jenis_izin);
-      data.append('jumlah_hari', formData.jumlah_hari);
-      data.append('tanggal_mulai', formData.tanggal_mulai);
-      data.append('alasan', formData.alasan);
-      if (file) {
-        data.append('file', file);
-      }
-
-      const token = localStorage.getItem('token');
-      const res = await axios.post(`${API_URL}/leaves/`, data, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-      setMessage({ type: 'success', text: 'Data Izin Berhasil Disimpan' });
-      
-      // Reset Form
-      setFormData({ jenis_izin: '', jumlah_hari: '', tanggal_mulai: '', alasan: '' });
-      setFile(null);
-      setNrp('');
-      setPersonnel(null);
-      fetchRecents(); // Refresh list
-
-    } catch (err) {
-      setMessage({ type: 'error', text: err.response?.data?.detail || 'Gagal menyimpan data' });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  
-  const fetchRecents = async () => {
-    try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`${API_URL}/leaves/recent`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const mappedLogs = res.data.map(item => ({
-            id: item.id,
-            nama: item.personnel.nama,
-            jenis_izin: item.jenis_izin,
-            tanggal: new Date(item.created_at).toLocaleDateString() + ' ' + new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-        }));
-        setRecentInputs(mappedLogs);
-    } catch(err) {
-        console.error("Failed to fetch recents", err);
-    }
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-      fetchRecents();
-      
-      // Poll every 5 seconds to keep the log updated real-time
-      const interval = setInterval(fetchRecents, 5000);
-      return () => clearInterval(interval);
-  }, []);
-
-  const handleImport = async (e) => {
-      const importFile = e.target.files[0];
-      if (!importFile) return;
-
-      const data = new FormData();
-      data.append('file', importFile);
-      
+    const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        await axios.post(`${API_URL}/personnel/import`, data, {
-            headers: { Authorization: `Bearer ${token}` }
+        const response = await fetch('/api/dashboard/stats', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         });
-        alert('Import Berhasil!');
-      } catch (err) {
-        alert('Import Gagal: ' + (err.response?.data?.detail || err.message));
+        if (response.ok) {
+          const data = await response.json();
+          setStatsData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+      } finally {
+        setLoading(false);
       }
+    };
+
+    fetchStats();
+  }, []);
+
+  const stats = [
+    {
+      label: 'Total Pengajuan Cuti',
+      value: statsData.total_leave_entries.toLocaleString(),
+      change: 'Total catatan',
+      icon: Database,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+    },
+    {
+      label: 'Tercatat Bulan Ini',
+      value: statsData.leaves_this_month.toLocaleString(),
+      change: 'Entri baru',
+      icon: FileText,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+    },
+    {
+      label: 'Total Personel',
+      value: statsData.total_personel.toLocaleString(),
+      change: 'Personel aktif',
+      icon: Users,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+    },
+    {
+      label: 'Rata-rata Durasi Cuti',
+      value: `${statsData.average_duration} hari`,
+      change: 'per pengajuan',
+      icon: TrendingUp,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+    },
+  ];
+
+  const getStatusColor = (type) => {
+    // Basic mapping based on leave type or status if available
+    // For now using consistently green for created
+    return 'text-green-600';
   };
+
+  const getStatusIcon = (type) => {
+    return CheckCircle;
+  };
+
+  if (loading) {
+    return <div className="p-6">Loading dashboard data...</div>;
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Input Izin Personel</h2>
-        <div className="flex gap-2">
-            <Label htmlFor="import-file" className="bg-slate-900 text-white px-4 py-2 rounded cursor-pointer hover:bg-slate-800 text-sm">
-                Import Data Personel (JSON/Excel)
-            </Label>
-            <Input id="import-file" type="file" className="hidden" onChange={handleImport} accept=".json,.csv,.xlsx" />
+      <div>
+        <h1 className="text-2xl font-semibold text-foreground">Dasbor</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Ringkasan manajemen cuti dan absensi
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={index}
+              className="bg-white border border-border rounded-lg p-6 shadow-sm"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  <p className="text-3xl font-semibold mt-2 text-foreground">
+                    {stat.value}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {stat.change}
+                  </p>
+                </div>
+                <div className={`${stat.bgColor} p-3 rounded-lg`}>
+                  <Icon className={`w-6 h-6 ${stat.color}`} />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Recent Activity */}
+      <div className="bg-white border border-border rounded-lg shadow-sm">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">Aktivitas Terbaru</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Tindakan sistem dan pembaruan terbaru
+          </p>
+        </div>
+        <div className="divide-y divide-border">
+          {statsData.recent_activity.length === 0 ? (
+            <div className="p-6 text-center text-muted-foreground">Tidak ada aktivitas terbaru.</div>
+          ) : (
+            statsData.recent_activity.map((activity, index) => {
+              const user = activity.creator ? (activity.creator.full_name || activity.creator.username) : 'System';
+              const action = `${activity.jenis_izin} - ${activity.personnel.nama}`;
+              const dateStr = formatDistanceToNow(new Date(activity.created_at), { addSuffix: true });
+
+              return (
+                <div
+                  key={activity.id || index}
+                  className="px-6 py-4 flex items-center justify-between hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="text-green-600">
+                      <CheckCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {user}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {action}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {dateStr}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Form Input */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Formulir Pengajuan</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="nrp">NRP / NIP</Label>
-                <div className="relative">
-                    <Input 
-                      id="nrp" 
-                      placeholder="Masukkan NRP..." 
-                      value={nrp} 
-                      onChange={(e) => setNrp(e.target.value)} 
-                      autoComplete="off"
-                    />
-                    {loadingPersonnel && <span className="absolute right-3 top-2 text-xs text-gray-500">Searching...</span>}
+      {/* Quick Stats - Hardcoded for demo visualization as backend doesn't provide this yet */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-border rounded-lg p-6 shadow-sm">
+          <h3 className="font-semibold text-foreground mb-4">Distribusi Jenis Cuti (Data Demo)</h3>
+          <div className="space-y-3">
+            {[
+              { type: 'Cuti Tahunan', count: 542, total: 1247, color: 'bg-blue-500' },
+              { type: 'Sakit', count: 385, total: 1247, color: 'bg-red-500' },
+              { type: 'Alasan Penting', count: 198, total: 1247, color: 'bg-purple-500' },
+              { type: 'Melahirkan', count: 122, total: 1247, color: 'bg-green-500' },
+            ].map((item, index) => (
+              <div key={index}>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-sm text-foreground">{item.type}</span>
+                  <span className="text-sm text-muted-foreground">{item.count}</span>
+                </div>
+                <div className="w-full bg-secondary rounded-full h-2">
+                  <div
+                    className={`${item.color} h-2 rounded-full`}
+                    style={{ width: `${(item.count / item.total) * 100}%` }}
+                  ></div>
                 </div>
               </div>
-              
-              {/* Personnel Preview Card inside Form */}
-              {personnel && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-md text-sm space-y-1">
-                    <p><strong>Nama:</strong> {personnel.nama}</p>
-                    <p><strong>Pangkat:</strong> {personnel.pangkat}</p>
-                    <p><strong>Jabatan:</strong> {personnel.jabatan}</p>
-                    <p><strong>Satker:</strong> {personnel.satker}</p>
-                </div>
-              )}
+            ))}
+          </div>
+        </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Jenis Izin</Label>
-                    <Select onValueChange={handleSelectChange} value={formData.jenis_izin}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih Jenis" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Cuti Tahunan">Cuti Tahunan</SelectItem>
-                        <SelectItem value="Sakit">Sakit</SelectItem>
-                        <SelectItem value="Istimewa">Istimewa</SelectItem>
-                        <SelectItem value="Keagamaan">Keagamaan</SelectItem>
-                        <SelectItem value="Melahirkan">Melahirkan</SelectItem>
-                        <SelectItem value="Di Luar Tanggungan Negara">Di Luar Tanggungan</SelectItem>
-                        <SelectItem value="Alasan Penting">Alasan Penting</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="jumlah_hari">Jumlah Hari</Label>
-                    <Input 
-                        id="jumlah_hari" 
-                        type="number" 
-                        value={formData.jumlah_hari}
-                        onChange={handleInputChange}
-                        min="1"
-                    />
-                  </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="tanggal_mulai">Tanggal Mulai</Label>
-                <Input 
-                    id="tanggal_mulai" 
-                    type="date" 
-                    value={formData.tanggal_mulai} 
-                    onChange={handleInputChange}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="alasan">Alasan / Keterangan</Label>
-                <Textarea 
-                    id="alasan" 
-                    placeholder="Jelaskan alasan izin..." 
-                    value={formData.alasan}
-                    onChange={handleInputChange}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="file">Dokumen Pendukung (Opsional)</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 transition cursor-pointer relative">
-                    <Input 
-                        id="file" 
-                        type="file" 
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        onChange={handleFileChange}
-                        accept=".jpg,.png,.pdf"
-                    />
-                    <Upload className="mx-auto h-8 w-8 text-gray-400" />
-                    <span className="text-sm text-gray-500">{file ? file.name : "Click to upload or drag file"}</span>
+        <div className="bg-white border border-border rounded-lg p-6 shadow-sm">
+          <h3 className="font-semibold text-foreground mb-4">Ringkasan Departemen (Data Demo)</h3>
+          <div className="space-y-4">
+            {[
+              { dept: 'Human Resources', entries: 245, personel: 42 },
+              { dept: 'Finance', entries: 198, personel: 38 },
+              { dept: 'Operations', entries: 412, personel: 156 },
+              { dept: 'IT Services', entries: 268, personel: 89 },
+              { dept: 'Administration', entries: 124, personel: 52 },
+            ].map((dept, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <span className="text-sm text-foreground">{dept.dept}</span>
+                <div className="flex gap-4">
+                  <span className="text-sm text-muted-foreground">
+                    <span className="text-blue-600">{dept.entries}</span> entries
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    <span className="text-purple-600">{dept.personel}</span> personel
+                  </span>
                 </div>
               </div>
-
-              {message && (
-                  <div className={`p-3 rounded text-sm ${message.type === 'error' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                      {message.text}
-                  </div>
-              )}
-
-              <Button type="submit" className="w-full bg-slate-900" disabled={submitting || !personnel}>
-                {submitting ? 'Menyimpan...' : 'Simpan Data'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Right Side: Logs / Info */}
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>5 Input Terakhir Anda</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Nama</TableHead>
-                                <TableHead>Jenis</TableHead>
-                                <TableHead>Waktu</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {recentInputs.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={3} className="text-center text-gray-500">Belum ada data input sesi ini.</TableCell>
-                                </TableRow>
-                            ) : (
-                                recentInputs.map((log) => (
-                                    <TableRow key={log.id}>
-                                        <TableCell>{log.nama}</TableCell>
-                                        <TableCell>{log.jenis_izin}</TableCell>
-                                        <TableCell>{log.tanggal}</TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-
-            <Card className="bg-blue-900 text-white border-none">
-                <CardHeader>
-                    <CardTitle className="text-white">Petunjuk Penggunaan</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm space-y-2 opacity-90">
-                    <p>1. Ketik NRP anggota, data akan muncul otomatis.</p>
-                    <p>2. Pastikan file bukti (surat sakit/ijin) sudah disiapkan dalam format JPG/PDF.</p>
-                    <p>3. Jika data personel tidak ditemukan, gunakan fitur <strong>Import Data</strong> di pojok kanan atas.</p>
-                </CardContent>
-            </Card>
+            ))}
+          </div>
         </div>
       </div>
     </div>

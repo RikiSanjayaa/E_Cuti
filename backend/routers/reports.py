@@ -15,6 +15,38 @@ router = APIRouter(
     tags=["Reports"]
 )
 
+@router.get("/summary")
+async def get_analytics_summary(
+    start_date: date = Query(None),
+    end_date: date = Query(None),
+    department: str = Query(None),
+    leave_type: str = Query(None),
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    query = db.query(models.LeaveHistory).join(models.Personnel)
+    
+    if start_date:
+        query = query.filter(models.LeaveHistory.tanggal_mulai >= start_date)
+    if end_date:
+        query = query.filter(models.LeaveHistory.tanggal_mulai <= end_date)
+    if department and department != 'all':
+        query = query.filter(models.Personnel.satker == department)
+    if leave_type and leave_type != 'all':
+        query = query.filter(models.LeaveHistory.jenis_izin == leave_type)
+        
+    leaves = query.all()
+    
+    total_days = sum(l.jumlah_hari for l in leaves)
+    unique_personel = len(set(l.personnel_id for l in leaves))
+    
+    return {
+        "total_records": len(leaves),
+        "total_days": total_days,
+        "unique_personel": unique_personel,
+        "data": leaves
+    }
+
 @router.get("/export")
 async def export_report(
     format: str = Query(..., regex="^(pdf|excel)$"),

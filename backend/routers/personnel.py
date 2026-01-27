@@ -10,6 +10,26 @@ router = APIRouter(
     tags=["Personnel"]
 )
 
+@router.get("/", response_model=List[schemas.Personnel])
+async def get_all_personnel(
+    skip: int = 0,
+    limit: int = 100,
+    query: str = None,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    q = db.query(models.Personnel)
+    
+    if query:
+        search = f"%{query}%"
+        q = q.filter(
+            (models.Personnel.nama.ilike(search)) |
+            (models.Personnel.nrp.ilike(search)) |
+            (models.Personnel.jabatan.ilike(search))
+        )
+        
+    return q.offset(skip).limit(limit).all()
+
 @router.get("/{nrp}", response_model=schemas.Personnel)
 async def get_personnel_by_nrp(nrp: str, current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
     personnel = db.query(models.Personnel).filter(models.Personnel.nrp == nrp).first()
