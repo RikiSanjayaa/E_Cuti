@@ -128,7 +128,7 @@ async def update_user(
 async def reset_password(
     request: Request,
     user_id: int,
-    request: schemas.PasswordResetRequest,
+    reset_data: schemas.PasswordResetRequest,
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
@@ -136,7 +136,7 @@ async def reset_password(
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
         
-    db_user.password_hash = get_password_hash(request.new_password)
+    db_user.password_hash = get_password_hash(reset_data.new_password)
     db.commit()
     
     # Log action
@@ -152,7 +152,7 @@ async def reset_password(
         user_agent=request.headers.get("user-agent")
     )
     
-    return {"message": "Password reset successfully", "temporary_password": request.new_password}
+    return {"message": "Password reset successfully", "temporary_password": reset_data.new_password}
 
 import pandas as pd
 import io

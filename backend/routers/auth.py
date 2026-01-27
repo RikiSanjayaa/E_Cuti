@@ -20,8 +20,14 @@ async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequ
         )
     
     # Update last_active
-    user.last_active = datetime.now()
-    db.commit()
+    try:
+        user.last_active = datetime.now()
+        db.commit()
+        db.refresh(user)
+    except Exception as e:
+        print(f"Error updating last_active: {e}")
+        # Build token anyway even if last_active fails
+        pass
 
     access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = auth.create_access_token(
