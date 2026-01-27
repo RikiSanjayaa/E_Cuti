@@ -1,5 +1,5 @@
 import { X, Search, Calendar, FileText, User, AlertCircle, CheckCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 export function AddLeaveModal({ isOpen, onClose }) {
@@ -17,33 +17,40 @@ export function AddLeaveModal({ isOpen, onClose }) {
 
   // Handle personnel search
   const handleEmployeeSearch = async () => {
-    if (!nrp) return;
+    if (!nrp || nrp.length < 4) {
+        setEmployee(null);
+        return;
+    }
 
     try {
       setSearchError('');
-      // In a real app we'd have a search endpoint. For now assuming we just validate NRP exists 
-      // via a separate call or just let the leave submission fail if not found.
-      // However, to show details we probably need a dedicated endpoint or search list.
-      // Let's assume we can fetch basic info. Since we don't have a dedicated search API yet,
-      // we might skip the detailed preview OR we could implement a quick search endpoint.
-      // For this step, let's just allow proceeding if NRP is entered, maybe showing a "Verifying..." state on submit.
-      // Or better: Let's assume the user knows the NRP.
-
-      // Temporary: Just set a mock employee so UI feedback works, 
-      // effectively trusting the user input until submission.
-      // Ideally: Fetch from /api/personnel/{nrp} if it exists.
-
+      const token = localStorage.getItem('token');
+      // Use relatively absolute path to avoid proxy issues if any, but /api is proxied
+      const res = await axios.get(`/api/personnel/${nrp}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
       setEmployee({
-        name: "Personnel Found",
-        nrp: nrp,
-        position: "Verifying on Submit..."
+        name: res.data.nama,
+        nrp: res.data.nrp,
+        position: `${res.data.pangkat} - ${res.data.jabatan} (${res.data.satker})`
       });
 
     } catch (error) {
       setEmployee(null);
-      setSearchError('Employee not found.');
+      // Only show error if NRP is long enough to be a real attempt
+      if (nrp.length >= 4) setSearchError('Personel tidak ditemukan.');
     }
   };
+
+  // Auto-search effect
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      handleEmployeeSearch();
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [nrp]);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {

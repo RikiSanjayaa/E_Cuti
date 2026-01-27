@@ -22,7 +22,8 @@ export default function Login() {
       formData.append('username', username);
       formData.append('password', password);
 
-      const response = await axios.post('http://localhost:8000/token', formData, {
+      // Use relative path to leverage Vite proxy and avoid CORS issues
+      const response = await axios.post('/api/token', formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       });
 

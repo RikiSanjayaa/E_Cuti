@@ -5,6 +5,7 @@ from datetime import timedelta
 from .. import database, models, auth, schemas
 
 router = APIRouter(
+    prefix="/api",
     tags=["Authentication"]
 )
 
