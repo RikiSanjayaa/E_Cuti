@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, StreamingResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import date, timedelta
 import pandas as pd
 from io import BytesIO
@@ -8,14 +8,14 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from .. import database, models, auth
+from .. import database, models, auth, schemas
 
 router = APIRouter(
     prefix="/api/reports",
     tags=["Reports"]
 )
 
-@router.get("/summary")
+@router.get("/summary", response_model=schemas.AnalyticsSummary)
 async def get_analytics_summary(
     start_date: date = Query(None),
     end_date: date = Query(None),
@@ -24,7 +24,7 @@ async def get_analytics_summary(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
-    query = db.query(models.LeaveHistory).join(models.Personnel)
+    query = db.query(models.LeaveHistory).options(joinedload(models.LeaveHistory.personnel)).join(models.Personnel)
     
     if start_date:
         query = query.filter(models.LeaveHistory.tanggal_mulai >= start_date)

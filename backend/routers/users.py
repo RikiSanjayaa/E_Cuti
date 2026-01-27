@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from passlib.context import CryptContext
@@ -44,6 +44,7 @@ async def get_users(
 
 @router.post("/", response_model=schemas.User)
 async def create_user(
+    request: Request,
     user: schemas.UserCreate,
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
@@ -68,12 +69,23 @@ async def create_user(
     db.refresh(db_user)
     
     # Log action
-    auth.log_audit(db, current_user.id, "CREATE_USER", "User Management", user.username, "User", "Created new user")
+    auth.log_audit(
+        db, 
+        current_user.id, 
+        "CREATE_USER", 
+        "User Management", 
+        user.username, 
+        "User", 
+        "Created new user",
+        ip_address=request.client.host,
+        user_agent=request.headers.get("user-agent")
+    )
     
     return db_user
 
 @router.put("/{user_id}", response_model=schemas.User)
 async def update_user(
+    request: Request,
     user_id: int,
     user_update: schemas.UserUpdate,
     current_user: models.User = Depends(auth.get_current_user),
@@ -98,12 +110,23 @@ async def update_user(
     db.refresh(db_user)
     
     # Log action
-    auth.log_audit(db, current_user.id, "UPDATE_USER", "User Management", db_user.username, "User", "Updated user profile")
+    auth.log_audit(
+        db, 
+        current_user.id, 
+        "UPDATE_USER", 
+        "User Management", 
+        db_user.username, 
+        "User", 
+        "Updated user profile",
+        ip_address=request.client.host,
+        user_agent=request.headers.get("user-agent")
+    )
     
     return db_user
 
 @router.post("/{user_id}/reset-password")
 async def reset_password(
+    request: Request,
     user_id: int,
     request: schemas.PasswordResetRequest,
     current_user: models.User = Depends(auth.get_current_user),
@@ -117,7 +140,17 @@ async def reset_password(
     db.commit()
     
     # Log action
-    auth.log_audit(db, current_user.id, "RESET_PASSWORD", "User Management", db_user.username, "User", "Reset user password")
+    auth.log_audit(
+        db, 
+        current_user.id, 
+        "RESET_PASSWORD", 
+        "User Management", 
+        db_user.username, 
+        "User", 
+        "Reset user password",
+        ip_address=request.client.host,
+        user_agent=request.headers.get("user-agent")
+    )
     
     return {"message": "Password reset successfully", "temporary_password": request.new_password}
 

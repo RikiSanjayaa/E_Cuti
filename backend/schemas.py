@@ -110,3 +110,9 @@ class AuditLog(AuditLogBase):
     
     class Config:
         from_attributes = True
+
+class AnalyticsSummary(BaseModel):
+    total_records: int
+    total_days: int
+    unique_personel: int
+    data: List[LeaveHistory]

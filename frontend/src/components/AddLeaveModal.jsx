@@ -18,18 +18,30 @@ export function AddLeaveModal({ isOpen, onClose }) {
   // Handle personnel search
   const handleEmployeeSearch = async () => {
     if (!nrp || nrp.length < 4) {
-        setEmployee(null);
-        return;
+      setEmployee(null);
+      return;
     }
 
     try {
       setSearchError('');
+      // In a real app we'd have a search endpoint. For now assuming we just validate NRP exists 
+      // via a separate call or just let the leave submission fail if not found.
+      // However, to show details we probably need a dedicated endpoint or search list.
+      // Let's assume we can fetch basic info. Since we don't have a dedicated search API yet,
+      // we might skip the detailed preview OR we could implement a quick search endpoint.
+      // For this step, let's just allow proceeding if NRP is entered, maybe showing a "Verifying..." state on submit.
+      // Or better: Let's assume the user knows the NRP.
+
+      // Temporary: Just set a mock employee so UI feedback works, 
+      // effectively trusting the user input until submission.
+      // Ideally: Fetch from /api/personnel/{nrp} if it exists.
+
+      // Fetch employee data
       const token = localStorage.getItem('token');
-      // Use relatively absolute path to avoid proxy issues if any, but /api is proxied
       const res = await axios.get(`/api/personnel/${nrp}`, {
-        headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       setEmployee({
         name: res.data.nama,
         nrp: res.data.nrp,
@@ -38,9 +50,9 @@ export function AddLeaveModal({ isOpen, onClose }) {
       });
 
     } catch (error) {
+      console.error("Error fetching employee:", error);
       setEmployee(null);
-      // Only show error if NRP is long enough to be a real attempt
-      if (nrp.length >= 4) setSearchError('Personel tidak ditemukan.');
+      setSearchError('Employee not found.');
     }
   };
 
@@ -178,6 +190,7 @@ export function AddLeaveModal({ isOpen, onClose }) {
                       required
                     />
                   </div>
+
                 </div>
                 {searchError && (
                     <p className="text-xs text-red-500 mt-1">{searchError}</p>

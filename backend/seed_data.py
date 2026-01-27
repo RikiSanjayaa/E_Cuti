@@ -93,6 +93,33 @@ def seed_data():
         db.commit()
         print("Leave History seeded.")
 
+    # 3. Seed Audit Logs
+    if db.query(models.AuditLog).count() > 0:
+        print("Audit logs already exist.")
+    else:
+        print("Seeding Audit Logs...")
+        actions = [
+            ("LOGIN", "Authentication", "admin", "User", "Successful login to system"),
+            ("CREATE_USER", "User Management", "atasan", "User", "Created new user"),
+            ("INPUT_IZIN", "Leave Management", "85011005", "Personnel", "Input izin for NRP 85011005"),
+            ("UPDATE_SETTING", "System Configuration", "System", "Config", "System security check"),
+        ]
+        
+        for action, cat, target, t_type, detail in actions:
+            log = models.AuditLog(
+                user_id=admin_id,
+                action=action,
+                category=cat,
+                target=target,
+                target_type=t_type,
+                details=detail,
+                status="success",
+                timestamp=datetime.now() - timedelta(minutes=random.randint(60, 10000))
+            )
+            db.add(log)
+        db.commit()
+        print("Audit Logs seeded.")
+
     db.close()
 
 if __name__ == "__main__":

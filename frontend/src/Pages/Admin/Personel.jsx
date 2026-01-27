@@ -93,7 +93,7 @@ export default function Personel() {
           <p className="text-3xl font-semibold text-foreground mt-2">-</p>
         </div>
         <div className="bg-white border border-border rounded-lg p-4">
-          <p className="text-sm text-muted-foreground">Pegawai Baru (Bulan Ini)</p>
+          <p className="text-sm text-muted-foreground">Personel Baru (Bulan Ini)</p>
           <p className="text-3xl font-semibold text-foreground mt-2">-</p>
         </div>
       </div>
