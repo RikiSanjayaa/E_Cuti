@@ -25,6 +25,11 @@ class User(Base):
     password_hash = Column(String)
     role = Column(Enum(Role))
     full_name = Column(String)
+    email = Column(String, unique=True, nullable=True)
+    status = Column(String, default="active")
+    last_active = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    login_attempts = Column(Integer, default=0)
 
 class Personnel(Base):
     __tablename__ = "personnel"
@@ -60,7 +65,13 @@ class AuditLog(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     action = Column(String)
+    category = Column(String)
+    target = Column(String)
+    target_type = Column(String)
     details = Column(String)
+    ip_address = Column(String)
+    user_agent = Column(String)
+    status = Column(String)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     
     user = relationship("User")

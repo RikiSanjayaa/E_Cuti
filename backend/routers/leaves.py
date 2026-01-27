@@ -26,6 +26,19 @@ async def get_recent_leaves(
         .limit(5)\
         .all()
 
+@router.get("/", response_model=list[schemas.LeaveHistory])
+async def get_all_leaves(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(database.get_db)
+):
+    return db.query(models.LeaveHistory)\
+        .order_by(models.LeaveHistory.created_at.desc())\
+        .offset(skip)\
+        .limit(limit)\
+        .all()
+
 @router.post("/", response_model=schemas.LeaveHistory)
 async def create_leave(
     nrp: str = Form(...),

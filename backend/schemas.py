@@ -17,9 +17,24 @@ class UserBase(BaseModel):
     username: str
     full_name: Optional[str] = None
     role: Role
+    email: Optional[str] = None
+    status: Optional[str] = "active"
+
+class UserCreate(UserBase):
+    password: str
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    role: Optional[Role] = None
+    email: Optional[str] = None
+    status: Optional[str] = None
+    password: Optional[str] = None
 
 class User(UserBase):
     id: int
+    last_active: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    login_attempts: int = 0
     
     class Config:
         from_attributes = True
@@ -55,12 +70,39 @@ class LeaveHistory(BaseModel):
     created_at: datetime
     created_by: int
     
-    personnel: Personnel
+    personnel: Optional[Personnel] = None
+    creator: Optional[User] = None
     
     class Config:
         from_attributes = True
 
 class DashboardStats(BaseModel):
     total_leaves_today: int
+    total_leave_entries: int
+    leaves_this_month: int
+    total_personel: int
+    average_duration: float
     top_frequent: List[dict]
     recent_activity: List[LeaveHistory]
+
+class AuditLogBase(BaseModel):
+    action: str
+    category: str
+    target: str
+    target_type: str
+    details: str
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    status: str
+
+class AuditLogCreate(AuditLogBase):
+    user_id: int
+
+class AuditLog(AuditLogBase):
+    id: int
+    user_id: int
+    timestamp: datetime
+    user: Optional[User] = None
+    
+    class Config:
+        from_attributes = True

@@ -4,6 +4,7 @@ from sqlalchemy import func, desc, text
 from datetime import date, timedelta
 from typing import List
 from .. import database, models, auth, schemas
+from datetime import datetime
 
 router = APIRouter(
     prefix="/api/dashboard",
@@ -13,17 +14,6 @@ router = APIRouter(
 @router.get("/stats", response_model=schemas.DashboardStats)
 async def get_dashboard_stats(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
     today = date.today()
-    
-    # 1. Total Leaves Today
-    # Logic: personnel is on leave if today is within [start_date, start_date + days - 1]
-    # Since sqlite doesn't support complex date math easily in SQL without extensions, we might fetch active leaves approx.
-    # Or fetch all recent leaves and filter in python, or use basic SQL date comparison string.
-    # SQLite stores dates as strings 'YYYY-MM-DD'.
-    # We can fetch leaves that started recently (e.g. last 365 days) and filter.
-    # Or simpler: count where tanggal_mulai <= today. Filtering end date is harder in pure SQL if we have to add 'jumlah_hari'.
-    # For now, let's fetch active leaves via Python filter to be accurate.
-    
-    # Heuristic: fetch leaves starting within last 90 days.
     cutoff = today - timedelta(days=90)
     recent_leaves = db.query(models.LeaveHistory).filter(models.LeaveHistory.tanggal_mulai >= cutoff).all()
     
@@ -54,8 +44,27 @@ async def get_dashboard_stats(current_user: models.User = Depends(auth.get_curre
     # 3. Recent Activity (15 latest)
     recent_activity = db.query(models.LeaveHistory).order_by(models.LeaveHistory.created_at.desc()).limit(15).all()
     
+    # 4. Total Leave Entries
+    total_leaves = db.query(models.LeaveHistory).count()
+
+    # 5. Recorded This Month
+    current_month_start = today.replace(day=1)
+    # Convert date to datetime for comparison with created_at
+    current_month_start_dt = datetime(current_month_start.year, current_month_start.month, 1)
+    leaves_this_month = db.query(models.LeaveHistory).filter(models.LeaveHistory.created_at >= current_month_start_dt).count()
+
+    # 6. Total Personel
+    total_personel = db.query(models.Personnel).count()
+
+    # 7. Average Duration
+    avg_duration = db.query(func.avg(models.LeaveHistory.jumlah_hari)).scalar() or 0.0
+
     return {
         "total_leaves_today": active_count,
+        "total_leave_entries": total_leaves,
+        "leaves_this_month": leaves_this_month,
+        "total_personel": total_personel,
+        "average_duration": round(avg_duration, 1),
         "top_frequent": top_frequent,
         "recent_activity": recent_activity
     }

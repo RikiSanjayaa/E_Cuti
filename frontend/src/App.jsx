@@ -1,6 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Login from './Pages/Auth/Login';
 import AdminDashboard from './Pages/Admin/Dashboard';
+import LeaveRecords from './Pages/Admin/LeaveRecords';
+import Personel from './Pages/Admin/Personel';
+import Analytics from './Pages/Admin/Analytics';
+import AuditLogs from './Pages/Admin/AuditLogs';
+import UserManagement from './Pages/Admin/UserManagement';
 import AtasanDashboard from './Pages/Atasan/Dashboard';
 import Reports from './Pages/Atasan/Reports';
 import AdminLayout from './Layouts/AdminLayout';
@@ -22,17 +27,22 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
-        
+
         {/* Admin Routes */}
         <Route element={<ProtectedRoute role="super_admin"><AdminLayout /></ProtectedRoute>}>
-           <Route path="/admin" element={<AdminDashboard />} />
-           <Route path="/" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/leaves" element={<LeaveRecords />} />
+          <Route path="/admin/personel" element={<Personel />} />
+          <Route path="/admin/analytics" element={<Analytics />} />
+          <Route path="/admin/audit" element={<AuditLogs />} />
+          <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/" element={<Navigate to="/admin" replace />} />
         </Route>
 
         {/* Atasan Routes */}
         <Route element={<ProtectedRoute role="atasan"><AtasanLayout /></ProtectedRoute>}>
-           <Route path="/atasan" element={<AtasanDashboard />} />
-           <Route path="/atasan/reports" element={<Reports />} />
+          <Route path="/atasan" element={<AtasanDashboard />} />
+          <Route path="/atasan/reports" element={<Reports />} />
         </Route>
       </Routes>
     </Router>
