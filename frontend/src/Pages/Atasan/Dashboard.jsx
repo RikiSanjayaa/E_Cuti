@@ -32,7 +32,7 @@ export default function AtasanDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Memuat Dasbor...</div>;
+  if (loading) return <div className="p-8 text-center text-gray-500">Memuat Dashboard...</div>;
 
   return (
     <div className="space-y-6">

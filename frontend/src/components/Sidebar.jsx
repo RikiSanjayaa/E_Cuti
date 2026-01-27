@@ -15,7 +15,7 @@ export function Sidebar({ isCollapsed }) {
   const currentPath = location.pathname;
 
   const navItems = [
-    { id: 'dashboard', label: 'Dasbor', icon: LayoutDashboard, path: '/admin' },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
     { id: 'requests', label: 'Riwayat Cuti', icon: Calendar, path: '/admin/leaves' },
     { id: 'personel', label: 'Personel', icon: Users, path: '/admin/personel' },
     { id: 'analytics', label: 'Analitik', icon: BarChart3, path: '/admin/analytics' },
