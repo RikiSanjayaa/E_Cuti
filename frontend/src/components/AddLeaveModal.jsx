@@ -18,8 +18,8 @@ export function AddLeaveModal({ isOpen, onClose }) {
   // Handle personnel search
   const handleEmployeeSearch = async () => {
     if (!nrp || nrp.length < 4) {
-        setEmployee(null);
-        return;
+      setEmployee(null);
+      return;
     }
 
     try {
