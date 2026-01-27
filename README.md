@@ -23,7 +23,7 @@ Ikuti langkah-langkah berikut untuk menjalankan aplikasi di komputer lokal Anda.
 
 ### 1. Clone Repository (Jika dari GitHub)
 ```bash
-git clone https://github.com/username/project-ini.git
+git clone https://github.com/msaririzki/E_Cuti.git
 cd project-ini
 # Jika folder Anda bernama "E-cuti polda", sesuaikan.
 ```
