@@ -5,10 +5,12 @@ import {
   Users,
   AlertCircle,
   FileText,
-  Database
+  Database,
+  Plus
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { AddLeaveModal } from '../../components/AddLeaveModal';
 
 export default function Dashboard() {
   const [statsData, setStatsData] = useState({
@@ -19,6 +21,7 @@ export default function Dashboard() {
     recent_activity: []
   });
   const [loading, setLoading] = useState(true);
+  const [isAddLeaveModalOpen, setIsAddLeaveModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -94,11 +97,20 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Dasbor</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Ringkasan manajemen cuti dan absensi
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Ringkasan manajemen cuti dan absensi
+          </p>
+        </div>
+        <button
+          onClick={() => setIsAddLeaveModalOpen(true)}
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm text-sm font-medium w-full sm:w-auto justify-center cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          Tambah Izin Cuti
+        </button>
       </div>
 
       {/* Stats Grid */}
@@ -226,6 +238,11 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      <AddLeaveModal
+        isOpen={isAddLeaveModalOpen}
+        onClose={() => setIsAddLeaveModalOpen(false)}
+      />
     </div>
   );
 }
