@@ -30,6 +30,9 @@ class UserUpdate(BaseModel):
     status: Optional[str] = None
     password: Optional[str] = None
 
+class PasswordResetRequest(BaseModel):
+    new_password: str
+
 class User(UserBase):
     id: int
     last_active: Optional[datetime] = None
@@ -48,6 +51,7 @@ class PersonnelBase(BaseModel):
 
 class Personnel(PersonnelBase):
     id: int
+    sisa_cuti: Optional[int] = 12
     
     class Config:
         from_attributes = True

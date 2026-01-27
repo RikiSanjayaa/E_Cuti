@@ -33,7 +33,8 @@ export function AddLeaveModal({ isOpen, onClose }) {
       setEmployee({
         name: res.data.nama,
         nrp: res.data.nrp,
-        position: `${res.data.pangkat} - ${res.data.jabatan} (${res.data.satker})`
+        position: `${res.data.pangkat} - ${res.data.jabatan} (${res.data.satker})`,
+        quota: res.data.sisa_cuti
       });
 
     } catch (error) {
@@ -177,16 +178,34 @@ export function AddLeaveModal({ isOpen, onClose }) {
                       required
                     />
                   </div>
-                  {/* <button
-                    type="button"
-                    onClick={handleEmployeeSearch}
-                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 flex items-center gap-2"
-                    disabled={isSubmitting}
-                  >
-                    <Search className="w-4 h-4" />
-                    Search
-                  </button> */}
                 </div>
+                {searchError && (
+                    <p className="text-xs text-red-500 mt-1">{searchError}</p>
+                )}
+                
+                {/* Employee Preview Card */}
+                {employee && (
+                    <div className="mt-4 bg-primary/5 border border-primary/10 rounded-lg p-4 flex items-start gap-4 animate-in fade-in slide-in-from-top-2">
+                        <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold shrink-0">
+                            {employee.name ? employee.name.charAt(0) : 'P'}
+                        </div>
+                        <div className="space-y-1 flex-1">
+                            <p className="font-semibold text-foreground">{employee.name}</p>
+                            <p className="text-xs text-muted-foreground">NRP: {employee.nrp}</p>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                                <p className="text-xs text-muted-foreground bg-white/50 px-2 py-0.5 rounded-full border border-border">
+                                    {employee.position}
+                                </p>
+                                <p className={`text-xs px-2 py-0.5 rounded-full border ${employee.quota > 0 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+                                    Sisa Cuti: {employee.quota} Hari
+                                </p>
+                            </div>
+                        </div>
+                        <div className="ml-auto">
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                        </div>
+                    </div>
+                )}
               </div>
             </div>
 

@@ -55,9 +55,34 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 async def get_current_admin(current_user: User = Depends(get_current_user)):
-    if current_user.role != "super_admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
-        )
+    if current_user.role != "super_admin" and current_user.role != "admin": # Allow admin too? No, super_admin specific usually.
+        # But wait, Role enum has super_admin, admin, atasan.
+        # If user is admin, should they be able to manage users? Usually yes.
+        # But simpler to stick to existing logic.
+        if current_user.role != "super_admin":
+             raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions"
+            )
     return current_user
+
+from .models import AuditLog
+
+def log_audit(db: Session, user_id: int, action: str, category: str, target: str, target_type: str, details: str):
+    try:
+        new_log = AuditLog(
+            user_id=user_id,
+            action=action,
+            category=category,
+            target=target,
+            target_type=target_type,
+            details=details,
+            status="Success",
+            timestamp=datetime.now()
+        )
+        db.add(new_log)
+        db.commit()
+    except Exception as e:
+        print(f"Failed to create audit log: {e}")
+        db.rollback()
+

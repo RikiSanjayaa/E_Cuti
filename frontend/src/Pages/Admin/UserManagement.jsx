@@ -1,8 +1,10 @@
-import { Search, UserPlus, Shield, Lock, Unlock, Key, Mail, MoreVertical, AlertCircle, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Search, UserPlus, Shield, Lock, Unlock, Key, Mail, MoreVertical, AlertCircle, CheckCircle, XCircle, Loader2, Eye, EyeOff, Briefcase, UserX } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
+import ResetPasswordModal from '../../components/ResetPasswordModal';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -11,28 +13,135 @@ export default function UserManagement() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Confirmation Modal State (for Status & Success Messages)
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'warning',
+    confirmText: 'Konfirmasi',
+    onConfirm: () => {},
+    isLoading: false
+  });
+
+  // Reset Password Modal State
+  const [resetModal, setResetModal] = useState({
+    isOpen: false,
+    userId: null,
+    username: '',
+    isLoading: false
+  });
+
+  /* ... useEffect and fetch logic unchanged ... */
+
+  // ... fetchUsers ...
+
+  /* Handlers */
+
+  const handleResetPasswordClick = (user) => {
+    setResetModal({
+      isOpen: true,
+      userId: user.id,
+      username: user.username,
+      isLoading: false
+    });
+  };
+
+  const executeResetPassword = async (newPassword) => {
+    setResetModal(prev => ({ ...prev, isLoading: true }));
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`/api/users/${resetModal.userId}/reset-password`, 
+        { new_password: newPassword }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      setResetModal({ isOpen: false, userId: null, username: '', isLoading: false });
+      
+      // Show Success Modal
+      setConfirmModal({
+        isOpen: true,
+        type: 'success',
+        title: 'Berhasil',
+        message: 'Password berhasil diubah sesuai inputan baru.',
+        confirmText: 'Tutup',
+        cancelText: '', 
+        onConfirm: () => setConfirmModal({ isOpen: false }),
+        onClose: () => setConfirmModal({ isOpen: false })
+      });
+      
+    } catch (error) {
+      setResetModal(prev => ({ ...prev, isLoading: false }));
+      alert('Gagal mereset password: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+  
+  // Status Toggle Logic (unchanged except using confirmModal)
+  const executeToggleStatus = async (user) => {
+    /* ... same logic ... */
+    const newStatus = user.status === 'active' ? 'inactive' : 'active';
+    setConfirmModal(prev => ({ ...prev, isLoading: true }));
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`/api/users/${user.id}`, 
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      setUsers(users.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
+      setConfirmModal({ isOpen: false });
+      
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      setConfirmModal({ isOpen: false });
+      alert('Gagal mengubah status pengguna');
+    }
+  };
+  
+  const handleToggleStatus = (user) => {
+    /* ... same logic ... */
+    const newStatus = user.status === 'active' ? 'inactive' : 'active';
+    const isDeactivating = newStatus === 'inactive';
+    
+    setConfirmModal({
+      isOpen: true,
+      type: isDeactivating ? 'danger' : 'success',
+      title: isDeactivating ? 'Non-aktifkan Pengguna' : 'Aktifkan Pengguna',
+      message: `Apakah Anda yakin ingin mengubah status pengguna ini menjadi ${isDeactivating ? 'Non-Aktif' : 'Aktif'}? ${isDeactivating ? 'Pengguna tidak akan bisa login lagi.' : 'Pengguna akan dapat mengakses sistem kembali.'}`,
+      confirmText: isDeactivating ? 'Non-aktifkan' : 'Aktifkan',
+      cancelText: 'Batal',
+      onConfirm: () => executeToggleStatus(user),
+      onClose: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+    });
+  };
+
   // Form State
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     full_name: '',
-    email: '',
     role: 'admin',
     password: '',
     status: 'active'
   });
   const [formLoading, setFormLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
+      const token = localStorage.getItem('token');
       const params = {};
       if (searchQuery) params.search = searchQuery;
       if (roleFilter !== 'all') params.role = roleFilter;
       if (statusFilter !== 'all') params.status = statusFilter;
 
-      const response = await axios.get('/api/users/', { params });
+      const response = await axios.get('/api/users/', { 
+          params,
+          headers: { Authorization: `Bearer ${token}` }
+      });
       setUsers(response.data);
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -51,10 +160,13 @@ export default function UserManagement() {
     setMessage({ type: '', text: '' });
 
     try {
-      await axios.post('/api/users/', formData);
+      const token = localStorage.getItem('token');
+      await axios.post('/api/users/', formData, {
+          headers: { Authorization: `Bearer ${token}` }
+      });
       setMessage({ type: 'success', text: 'Pengguna berhasil ditambahkan' });
       setShowForm(false);
-      setFormData({ username: '', full_name: '', email: '', role: 'admin', password: '', status: 'active' });
+      setFormData({ username: '', full_name: '', role: 'admin', password: '', status: 'active' });
       fetchUsers();
     } catch (error) {
       setMessage({ type: 'error', text: error.response?.data?.detail || 'Gagal menambahkan pengguna' });
@@ -62,17 +174,8 @@ export default function UserManagement() {
       setFormLoading(false);
     }
   };
+  
 
-  const handleResetPassword = async (userId) => {
-    if (!window.confirm('Apakah Anda yakin ingin mereset password pengguna ini?')) return;
-
-    try {
-      const response = await axios.post(`/api/users/${userId}/reset-password`);
-      alert(`Password berhasil direset. Password sementara: ${response.data.temporary_password}`);
-    } catch (error) {
-      alert('Gagal mereset password');
-    }
-  };
 
   const getStatusBadge = (status) => {
     if (status === 'active') return 'bg-green-50 text-green-700 border-green-200';
@@ -95,8 +198,9 @@ export default function UserManagement() {
     return 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
+  const totalAdmins = users.filter(u => ['admin', 'super_admin'].includes(u.role)).length;
+  const totalAtasan = users.filter(u => u.role === 'atasan').length;
   const activeUsers = users.filter(u => u.status === 'active').length;
-  const lockedUsers = users.filter(u => u.status === 'locked').length;
   const inactiveUsers = users.filter(u => u.status === 'inactive').length;
 
   return (
@@ -146,24 +250,25 @@ export default function UserManagement() {
                 className="w-full px-3 py-2 border rounded-md"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-3 py-2 border rounded-md"
-              />
-            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Password</label>
-              <input
-                required
-                type="password"
-                value={formData.password}
-                onChange={e => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-3 py-2 border rounded-md"
-              />
+              <div className="relative">
+                <input
+                  required
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={e => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Peran</label>
@@ -199,48 +304,56 @@ export default function UserManagement() {
       )}
 
       {/* Summary Cards */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Total Admin */}
         <div className="bg-white border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="bg-blue-50 p-3 rounded-lg">
               <Shield className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Pengguna</p>
-              <p className="text-2xl font-semibold text-foreground">{users.length}</p>
+              <p className="text-sm text-muted-foreground">Total Admin</p>
+              <p className="text-2xl font-semibold text-foreground">{totalAdmins}</p>
             </div>
           </div>
         </div>
+
+        {/* Total Atasan */}
+        <div className="bg-white border border-border rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-orange-50 p-3 rounded-lg">
+              <Briefcase className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Total Atasan</p>
+              <p className="text-2xl font-semibold text-foreground">{totalAtasan}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Active Users */}
         <div className="bg-white border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="bg-green-50 p-3 rounded-lg">
               <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Aktif</p>
+              <p className="text-sm text-muted-foreground">Pengguna Aktif</p>
               <p className="text-2xl font-semibold text-foreground">{activeUsers}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white border border-border rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <XCircle className="w-5 h-5 text-gray-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Tidak Aktif</p>
-              <p className="text-2xl font-semibold text-foreground">{inactiveUsers}</p>
-            </div>
-          </div>
-        </div>
+
+        {/* Inactive Users */}
         <div className="bg-white border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="bg-red-50 p-3 rounded-lg">
               <Lock className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Terkunci</p>
-              <p className="text-2xl font-semibold text-foreground">{lockedUsers}</p>
+              <p className="text-sm text-muted-foreground">Tidak Aktif</p>
+              <p className="text-2xl font-semibold text-foreground">{inactiveUsers}</p>
             </div>
           </div>
         </div>
@@ -253,7 +366,7 @@ export default function UserManagement() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Cari berdasarkan nama, email, atau username..."
+              placeholder="Cari berdasarkan nama atau username..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -278,7 +391,7 @@ export default function UserManagement() {
               <option value="all">Semua Status</option>
               <option value="active">Aktif</option>
               <option value="inactive">Tidak Aktif</option>
-              <option value="locked">Terkunci</option>
+
             </select>
           </div>
         </div>
@@ -307,7 +420,7 @@ export default function UserManagement() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-foreground">{user.full_name || user.username}</p>
-                        <p className="text-xs text-muted-foreground">{user.email || '-'}</p>
+
                         <p className="text-xs text-muted-foreground mt-0.5">@{user.username}</p>
                       </div>
                     </div>
@@ -336,11 +449,26 @@ export default function UserManagement() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleResetPassword(user.id)}
+                        onClick={() => handleResetPasswordClick(user)}
                         className="p-1.5 hover:bg-blue-50 rounded text-blue-600 border border-blue-200"
                         title="Reset Password"
                       >
                         <Key className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleToggleStatus(user)}
+                        className={`p-1.5 rounded-md border transition-colors ${
+                            user.status === 'active' 
+                            ? 'hover:bg-red-50 text-red-600 border-red-200' 
+                            : 'hover:bg-green-50 text-green-600 border-green-200'
+                        }`}
+                        title={user.status === 'active' ? "Non-aktifkan Pengguna" : "Aktifkan Pengguna"}
+                      >
+                        {user.status === 'active' ? (
+                            <Unlock className="w-4 h-4" />
+                        ) : (
+                            <Lock className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </td>
@@ -350,6 +478,26 @@ export default function UserManagement() {
           </table>
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={confirmModal.onClose}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        isLoading={confirmModal.isLoading}
+      />
+
+      <ResetPasswordModal 
+        isOpen={resetModal.isOpen}
+        username={resetModal.username}
+        onClose={() => setResetModal({ ...resetModal, isOpen: false })}
+        onConfirm={executeResetPassword}
+        isLoading={resetModal.isLoading}
+      />
     </div>
   );
 }

@@ -1,5 +1,5 @@
-import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
 export default function Personel() {
@@ -7,6 +7,10 @@ export default function Personel() {
   const [personnel, setPersonnel] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  
+  // Import State
+  const fileInputRef = useRef(null);
+  const [importLoading, setImportLoading] = useState(false);
 
   useEffect(() => {
     fetchPersonnel();
@@ -25,6 +29,35 @@ export default function Personel() {
     } finally {
       setLoading(false);
     }
+  };
+  
+  const handleImport = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      setImportLoading(true);
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      try {
+          const token = localStorage.getItem('token');
+          const response = await axios.post('/api/personnel/import', formData, {
+              headers: { 
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'multipart/form-data' 
+              }
+          });
+          
+         alert(response.data.message);
+         fetchPersonnel();
+          
+      } catch (error) {
+          alert('Gagal mengimport data: ' + (error.response?.data?.detail || error.message));
+      } finally {
+          setImportLoading(false);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+      }
   };
 
   const filteredPersonnel = personnel.filter(p => {
@@ -79,9 +112,20 @@ export default function Personel() {
             />
           </div>
           <div className="flex gap-2">
-            <button className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer">
-              <Filter className="w-4 h-4" />
-              Filter Lainnya
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleImport} 
+                className="hidden" 
+                accept=".xlsx, .xls" 
+            />
+            <button 
+                onClick={() => fileInputRef.current.click()}
+                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                disabled={importLoading}
+            >
+              {importLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              Import Excel
             </button>
             <button className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer">
               <Download className="w-4 h-4" />

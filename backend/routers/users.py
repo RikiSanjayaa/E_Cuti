@@ -105,6 +105,7 @@ async def update_user(
 @router.post("/{user_id}/reset-password")
 async def reset_password(
     user_id: int,
+    request: schemas.PasswordResetRequest,
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
@@ -112,12 +113,76 @@ async def reset_password(
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
         
-    # Reset to default password (e.g., 'password123') - in prod should be random email
-    default_password = "password123"
-    db_user.password_hash = get_password_hash(default_password)
+    db_user.password_hash = get_password_hash(request.new_password)
     db.commit()
     
     # Log action
     auth.log_audit(db, current_user.id, "RESET_PASSWORD", "User Management", db_user.username, "User", "Reset user password")
     
-    return {"message": "Password reset successfully", "temporary_password": default_password}
+    return {"message": "Password reset successfully", "temporary_password": request.new_password}
+
+import pandas as pd
+import io
+from fastapi import UploadFile, File
+
+@router.post("/import", response_model=dict)
+async def import_users(
+    file: UploadFile = File(...),
+    current_user: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(database.get_db)
+):
+    try:
+        contents = await file.read()
+        df = pd.read_excel(io.BytesIO(contents))
+        
+        # Expected columns validation
+        required_columns = ['username', 'password', 'full_name', 'role', 'email']
+        # Normalize column names to lowercase for checking
+        df.columns = [c.lower().strip() for c in df.columns]
+        
+        missing_cols = [col for col in required_columns if col not in df.columns]
+        if missing_cols:
+             raise HTTPException(status_code=400, detail=f"Missing columns: {', '.join(missing_cols)}")
+             
+        success_count = 0
+        errors = []
+        
+        for index, row in df.iterrows():
+            try:
+                username = str(row['username']).strip()
+                if pd.isna(username) or not username:
+                    continue
+                    
+                # Check duplicate
+                if db.query(models.User).filter(models.User.username == username).first():
+                    errors.append(f"Row {index+2}: Username '{username}' already exists")
+                    continue
+                
+                # Create user
+                new_user = models.User(
+                    username=username,
+                    password_hash=get_password_hash(str(row['password'])),
+                    full_name=str(row['full_name']) if not pd.isna(row['full_name']) else None,
+                    role=str(row['role']).lower() if not pd.isna(row['role']) else 'admin',
+                    email=str(row['email']) if not pd.isna(row['email']) else None,
+                    status='active'
+                )
+                db.add(new_user)
+                success_count += 1
+                
+            except Exception as e:
+                errors.append(f"Row {index+2}: {str(e)}")
+                
+        db.commit()
+        
+        # Log action
+        auth.log_audit(db, current_user.id, "IMPORT_USERS", "User Management", "Batch Import", "User", f"Imported {success_count} users")
+
+        return {
+            "message": f"Successfully imported {success_count} users",
+            "errors": errors,
+            "total_processed": len(df)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

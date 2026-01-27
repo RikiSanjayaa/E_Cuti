@@ -35,6 +35,21 @@ async def get_personnel_by_nrp(nrp: str, current_user: models.User = Depends(aut
     personnel = db.query(models.Personnel).filter(models.Personnel.nrp == nrp).first()
     if not personnel:
         raise HTTPException(status_code=404, detail="Personnel not found")
+        
+    # Calculate Leave Quota (Assuming 12 days/year)
+    from datetime import datetime
+    from sqlalchemy import extract
+    current_year = datetime.now().year
+    
+    used_leave = db.query(models.LeaveHistory)\
+        .filter(models.LeaveHistory.personnel_id == personnel.id)\
+        .filter(extract('year', models.LeaveHistory.tanggal_mulai) == current_year)\
+        .filter(models.LeaveHistory.jenis_izin == models.LeaveType.cuti_tahunan)\
+        .all()
+        
+    total_used = sum([l.jumlah_hari for l in used_leave])
+    personnel.sisa_cuti = 12 - total_used
+    
     return personnel
 
 @router.post("/import", status_code=status.HTTP_201_CREATED)
