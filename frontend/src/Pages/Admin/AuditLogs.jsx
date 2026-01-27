@@ -24,7 +24,11 @@ export default function AuditLogs() {
       if (categoryFilter !== 'all') params.category = categoryFilter;
       if (statusFilter !== 'all') params.status = statusFilter;
 
-      const response = await axios.get('/api/audit/', { params });
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/audit/', {
+        params,
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setLogs(response.data);
     } catch (error) {
       console.error('Failed to fetch audit logs:', error);
@@ -75,7 +79,7 @@ export default function AuditLogs() {
           className="flex items-center gap-2 px-4 py-2 border border-input rounded-md text-sm hover:bg-accent"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Segarkan
+          Refresh
         </button>
       </div>
 

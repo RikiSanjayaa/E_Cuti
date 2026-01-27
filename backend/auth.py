@@ -61,3 +61,20 @@ async def get_current_admin(current_user: User = Depends(get_current_user)):
             detail="Not enough permissions"
         )
     return current_user
+
+def log_audit(db: Session, user_id: int, action: str, category: str, target: str, target_type: str, details: str, status: str = "success", ip_address: str = None, user_agent: str = None):
+    from .models import AuditLog
+    db_log = AuditLog(
+        user_id=user_id,
+        action=action,
+        category=category,
+        target=target,
+        target_type=target_type,
+        details=details,
+        status=status,
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
+    db.add(db_log)
+    db.commit()
+

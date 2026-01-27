@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from .. import database, models, schemas, auth
 
@@ -20,7 +20,7 @@ async def get_audit_logs(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
-    query = db.query(models.AuditLog).join(models.User)
+    query = db.query(models.AuditLog).options(joinedload(models.AuditLog.user)).join(models.User)
     
     if search:
         search_term = f"%{search}%"

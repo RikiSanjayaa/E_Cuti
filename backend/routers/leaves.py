@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
 from sqlalchemy.orm import Session
 from datetime import date
 import shutil
@@ -41,6 +41,7 @@ async def get_all_leaves(
 
 @router.post("/", response_model=schemas.LeaveHistory)
 async def create_leave(
+    request: Request,
     nrp: str = Form(...),
     jenis_izin: str = Form(...),
     jumlah_hari: int = Form(...),
@@ -85,12 +86,16 @@ async def create_leave(
     db.refresh(new_leave)
     
     # 4. Audit Log
-    audit_log = models.AuditLog(
-        user_id=current_user.id,
-        action="INPUT_IZIN",
-        details=f"Input izin for NRP {nrp}: {jenis_izin} ({jumlah_hari} days)"
+    auth.log_audit(
+        db, 
+        current_user.id, 
+        "INPUT_IZIN", 
+        "Leave Management", 
+        nrp, 
+        "Personnel", 
+        f"Input izin for NRP {nrp}: {jenis_izin} ({jumlah_hari} days)",
+        ip_address=request.client.host,
+        user_agent=request.headers.get("user-agent")
     )
-    db.add(audit_log)
-    db.commit()
     
     return new_leave
