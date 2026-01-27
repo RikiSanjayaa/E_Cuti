@@ -20,7 +20,7 @@ export function Sidebar({ isCollapsed, role = 'admin' }) {
     { id: 'personel', label: 'Personel', icon: Users, path: role === 'atasan' ? '/atasan/personel' : '/admin/personel', roles: ['admin', 'super_admin', 'atasan'] },
     { id: 'analytics', label: 'Analitik', icon: BarChart3, path: role === 'atasan' ? '/atasan/analytics' : '/admin/analytics', roles: ['admin', 'super_admin', 'atasan'] },
     { id: 'audit', label: 'Log Audit', icon: Shield, path: '/admin/audit', roles: ['admin', 'super_admin'] },
-    { id: 'users', label: 'Manajemen Pengguna', icon: UserCog, path: '/admin/users', roles: ['super_admin'] },
+    { id: 'users', label: 'Manajemen Pengguna', icon: UserCog, path: '/admin/users', roles: ['admin', 'super_admin'] },
   ];
 
   // Filter items based on role
