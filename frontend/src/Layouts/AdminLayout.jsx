@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
@@ -7,8 +7,26 @@ import { Plus } from 'lucide-react';
 
 const AdminLayout = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [isAddLeaveModalOpen, setIsAddLeaveModalOpen] = useState(false);
   const userRole = localStorage.getItem('role') || 'Admin';
+
+  // Handle screen resize
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024; // lg breakpoint
+      setIsMobile(mobile);
+      if (mobile) {
+        setIsSidebarCollapsed(true); // Default closed on mobile
+      } else {
+        setIsSidebarCollapsed(false); // Default open on desktop
+      }
+    };
+
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -19,6 +37,8 @@ const AdminLayout = () => {
       <Sidebar
         isCollapsed={isSidebarCollapsed}
         role={userRole.toLowerCase()}
+        isMobile={isMobile}
+        onClose={() => setIsSidebarCollapsed(true)}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header userRole={userRole} onToggleSidebar={toggleSidebar} />
