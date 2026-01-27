@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+python-multipart
+python-jose[cryptography]
+passlib[bcrypt]
+pandas
+reportlab
+openpyxl
+aiofiles
+bcrypt==3.2.2

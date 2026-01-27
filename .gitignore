@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# SQLite
+*.db
+*.sqlite3
+
+# Node.js / Frontend
+node_modules/
+dist/
+build/
+.DS_Store
+Thumbs.db
+
+# Project Specific
+backend/uploads/
+# Keep the folder structure but ignore content (optional, or just ignore the whole folder)
+# If you want to keep the folder 'uploads/evidence' but ignore files inside:
+backend/uploads/evidence/*
+!backend/uploads/evidence/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
