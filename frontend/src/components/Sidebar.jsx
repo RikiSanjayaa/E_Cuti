@@ -9,19 +9,31 @@ import {
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-export function Sidebar({ isCollapsed }) {
+export function Sidebar({ isCollapsed, role = 'admin' }) {
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
 
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
-    { id: 'requests', label: 'Riwayat Cuti', icon: Calendar, path: '/admin/leaves' },
-    { id: 'personel', label: 'Personel', icon: Users, path: '/admin/personel' },
-    { id: 'analytics', label: 'Analitik', icon: BarChart3, path: '/admin/analytics' },
-    { id: 'audit', label: 'Log Audit', icon: Shield, path: '/admin/audit' },
-    { id: 'users', label: 'Manajemen Pengguna', icon: UserCog, path: '/admin/users' },
+  const allNavItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: role === 'atasan' ? '/atasan' : '/admin', roles: ['admin', 'super_admin', 'atasan'] },
+    { id: 'requests', label: 'Riwayat Cuti', icon: Calendar, path: role === 'atasan' ? '/atasan/leaves' : '/admin/leaves', roles: ['admin', 'super_admin', 'atasan'] },
+    { id: 'personel', label: 'Personel', icon: Users, path: role === 'atasan' ? '/atasan/personel' : '/admin/personel', roles: ['admin', 'super_admin', 'atasan'] },
+    { id: 'analytics', label: 'Analitik', icon: BarChart3, path: role === 'atasan' ? '/atasan/analytics' : '/admin/analytics', roles: ['admin', 'super_admin', 'atasan'] },
+    { id: 'audit', label: 'Log Audit', icon: Shield, path: '/admin/audit', roles: ['admin', 'super_admin'] },
+    { id: 'users', label: 'Manajemen Pengguna', icon: UserCog, path: '/admin/users', roles: ['super_admin'] },
   ];
+
+  // Filter items based on role
+  const navItems = allNavItems.filter(item => {
+    if (role === 'atasan') {
+      return ['dashboard', 'requests', 'personel', 'analytics'].includes(item.id);
+    }
+    // Default admin/super_admin logic (show all usually, or filter based on item.roles)
+    // For now assuming admin sees everything except maybe explicit super_admin only if defined
+    // But original code showed all. I'll stick to original behavior for admin.
+    if (item.roles) return item.roles.includes(role) || item.roles.includes('admin');
+    return true;
+  });
 
   const handleNavigation = (path) => {
     navigate(path);
@@ -32,7 +44,9 @@ export function Sidebar({ isCollapsed }) {
       <div className={`${isCollapsed ? 'p-4' : 'p-6'} border-b border-border`}>
         {!isCollapsed ? (
           <>
-            <h1 className="font-semibold text-lg text-foreground">Manajemen Cuti</h1>
+            <h1 className="font-semibold text-lg text-foreground">
+              {role === 'atasan' ? 'Monitoring Atasan' : 'Manajemen Cuti'}
+            </h1>
             <p className="text-xs text-muted-foreground mt-1">Portal Pemerintah</p>
           </>
         ) : (
@@ -67,11 +81,12 @@ export function Sidebar({ isCollapsed }) {
         </ul>
       </nav>
 
+
       {!isCollapsed && (
         <div className="p-4 border-t border-border">
           <p className="text-xs text-muted-foreground">v1.0.0</p>
         </div>
       )}
-    </aside>
+    </aside >
   );
 }
