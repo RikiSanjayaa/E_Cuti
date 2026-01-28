@@ -1,12 +1,15 @@
-import { Search, Download, Shield, Filter, Calendar, RefreshCw, Lock, AlertTriangle, Eye, ChevronDown } from 'lucide-react';
+import { Search, Download, Shield, Filter, Calendar, RefreshCw, Lock, AlertTriangle, Eye, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
+import { Pagination } from '../../components/Pagination';
 
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Filters
   const [actionFilter, setActionFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -14,10 +17,24 @@ export default function AuditLogs() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  // Pagination & Sorting
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [sortBy, setSortBy] = useState('timestamp');
+  const [sortOrder, setSortOrder] = useState('desc');
+
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const params = {};
+      const params = {
+        skip: (currentPage - 1) * itemsPerPage,
+        limit: itemsPerPage,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      };
+
       if (actionFilter !== 'all') params.action = actionFilter;
       if (roleFilter !== 'all') params.role = roleFilter;
       if (categoryFilter !== 'all') params.category = categoryFilter;
@@ -30,7 +47,14 @@ export default function AuditLogs() {
         params,
         headers: { Authorization: `Bearer ${token}` }
       });
+
       setLogs(response.data);
+
+      // Handle Pagination Headers
+      const total = parseInt(response.headers['x-total-count'] || '0', 10);
+      setTotalItems(total);
+      setTotalPages(Math.ceil(total / itemsPerPage));
+
     } catch (error) {
       console.error('Failed to fetch audit logs:', error);
     } finally {
@@ -39,8 +63,29 @@ export default function AuditLogs() {
   };
 
   useEffect(() => {
-    fetchLogs();
+    // Reset to page 1 when filters change (except pagination/sort dependencies)
+    setCurrentPage(1);
   }, [actionFilter, roleFilter, categoryFilter, statusFilter, startDate, endDate]);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [actionFilter, roleFilter, categoryFilter, statusFilter, startDate, endDate, currentPage, sortBy, sortOrder]);
+
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc'); // Default to asc for new field
+    }
+  };
+
+  const SortIcon = ({ field }) => {
+    if (sortBy !== field) return <ArrowUpDown className="w-3 h-3 ml-1 text-muted-foreground/50" />;
+    return sortOrder === 'asc'
+      ? <ArrowUp className="w-3 h-3 ml-1 text-primary" />
+      : <ArrowDown className="w-3 h-3 ml-1 text-primary" />;
+  };
 
   const getActionBadge = (action) => {
     if (action.includes('CREATE')) return 'bg-green-50 text-green-700 border-green-200';
@@ -252,14 +297,70 @@ export default function AuditLogs() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Waktu</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Pengguna</th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('timestamp')}
+                >
+                  <div className="flex items-center">
+                    Waktu
+                    <SortIcon field="timestamp" />
+                  </div>
+                </th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('user')}
+                >
+                  <div className="flex items-center">
+                    Pengguna
+                    <SortIcon field="user" />
+                  </div>
+                </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Peran</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Tindakan</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Kategori</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Target</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">IP Address</th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('action')}
+                >
+                  <div className="flex items-center">
+                    Tindakan
+                    <SortIcon field="action" />
+                  </div>
+                </th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('category')}
+                >
+                  <div className="flex items-center">
+                    Kategori
+                    <SortIcon field="category" />
+                  </div>
+                </th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('target')}
+                >
+                  <div className="flex items-center">
+                    Target
+                    <SortIcon field="target" />
+                  </div>
+                </th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('status')}
+                >
+                  <div className="flex items-center">
+                    Status
+                    <SortIcon field="status" />
+                  </div>
+                </th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('ip_address')}
+                >
+                  <div className="flex items-center">
+                    IP Address
+                    <SortIcon field="ip_address" />
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -313,6 +414,15 @@ export default function AuditLogs() {
               )}
             </tbody>
           </table>
+        </div>
+        <div className="border-t border-border bg-white">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+          />
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request, Response
 from sqlalchemy.orm import Session, joinedload
 from datetime import date
 import shutil
@@ -30,17 +30,53 @@ async def get_recent_leaves(
 
 @router.get("/", response_model=list[schemas.LeaveHistory])
 async def get_all_leaves(
+    response: Response,
     skip: int = 0,
     limit: int = 100,
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
+    search: Optional[str] = None,
+    type_filter: Optional[str] = None,
     current_user: models.User = Depends(auth.get_current_admin),
     db: Session = Depends(database.get_db)
 ):
-    leaves = db.query(models.LeaveHistory)\
-        .options(joinedload(models.LeaveHistory.personnel))\
-        .order_by(models.LeaveHistory.created_at.desc())\
-        .offset(skip)\
-        .limit(limit)\
-        .all()
+    query = db.query(models.LeaveHistory).join(models.Personnel).options(joinedload(models.LeaveHistory.personnel))
+    
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (models.Personnel.nama.ilike(search_term)) |
+            (models.Personnel.nrp.ilike(search_term))
+        )
+        
+    if type_filter and type_filter != 'all':
+        query = query.filter(models.LeaveHistory.jenis_izin == type_filter)
+    
+    # Total Count
+    total = query.count()
+    response.headers["X-Total-Count"] = str(total)
+    
+    # Sorting
+    if sort_by:
+        valid_sort_fields = {
+            "created_at": models.LeaveHistory.created_at,
+            "tanggal_mulai": models.LeaveHistory.tanggal_mulai,
+            "jenis_izin": models.LeaveHistory.jenis_izin,
+            "jumlah_hari": models.LeaveHistory.jumlah_hari,
+            "nama": models.Personnel.nama,
+            "nrp": models.Personnel.nrp
+        }
+        
+        sort_column = valid_sort_fields.get(sort_by, models.LeaveHistory.created_at)
+        
+        if sort_order == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+    else:
+        query = query.order_by(models.LeaveHistory.created_at.desc())
+
+    leaves = query.offset(skip).limit(limit).all()
 
     # Calculate Progressive Sisa Cuti (Snapshot) for each leave record
     if leaves:

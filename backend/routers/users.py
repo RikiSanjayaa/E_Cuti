@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from passlib.context import CryptContext
@@ -17,31 +17,58 @@ def get_password_hash(password):
 
 @router.get("/", response_model=List[schemas.User])
 async def get_users(
+    response: Response,
     skip: int = 0,
     limit: int = 100,
     search: Optional[str] = None,
     role: Optional[str] = None,
     status: Optional[str] = None,
-    current_user: models.User = Depends(auth.get_current_user),
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
+    current_user: models.User = Depends(auth.get_current_admin),
     db: Session = Depends(database.get_db)
 ):
     query = db.query(models.User)
-    
+
     if search:
-        search_term = f"%{search}%"
+        search_filter = f"%{search}%"
         query = query.filter(
-            (models.User.username.ilike(search_term)) |
-            (models.User.full_name.ilike(search_term)) |
-            (models.User.email.ilike(search_term))
+            (models.User.username.ilike(search_filter)) |
+            (models.User.email.ilike(search_filter)) |
+            (models.User.full_name.ilike(search_filter))
         )
-        
-    if role and role != 'all':
+    
+    if role and role != "all":
         query = query.filter(models.User.role == role)
         
-    if status and status != 'all':
-        query = query.filter(models.User.status == status)
+    if status and status != "all":
+        query = query.filter(models.User.is_active == (status == "active"))
         
-    return query.offset(skip).limit(limit).all()
+    # Total Count
+    total = query.count()
+    response.headers["X-Total-Count"] = str(total)
+    
+    # Sorting
+    if sort_by:
+        valid_sort_fields = {
+            "username": models.User.username,
+            "full_name": models.User.full_name,
+            "email": models.User.email,
+            "role": models.User.role,
+            "created_at": models.User.created_at
+        }
+        
+        sort_column = valid_sort_fields.get(sort_by, models.User.created_at)
+        
+        if sort_order == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+    else:
+        query = query.order_by(models.User.created_at.desc())
+
+    users = query.offset(skip).limit(limit).all()
+    return users
 
 @router.post("/", response_model=schemas.User)
 async def create_user(

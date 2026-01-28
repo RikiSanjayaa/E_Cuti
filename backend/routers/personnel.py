@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Response
 from sqlalchemy.orm import Session
 from typing import List
 import json
@@ -13,9 +13,12 @@ router = APIRouter(
 
 @router.get("/", response_model=List[schemas.Personnel])
 async def get_all_personnel(
+    response: Response,
     skip: int = 0,
     limit: int = 100,
     query: str = None,
+    sort_by: str = "nama",
+    sort_order: str = "asc",
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
@@ -29,6 +32,29 @@ async def get_all_personnel(
             (models.Personnel.jabatan.ilike(search))
         )
         
+    # Total Count
+    total = q.count()
+    response.headers["X-Total-Count"] = str(total)
+    
+    # Sorting
+    if sort_by:
+        valid_sort_fields = {
+            "nama": models.Personnel.nama,
+            "nrp": models.Personnel.nrp,
+            "jabatan": models.Personnel.jabatan,
+            "pangkat": models.Personnel.pangkat,
+            "satker": models.Personnel.satker
+        }
+        
+        sort_column = valid_sort_fields.get(sort_by, models.Personnel.nama)
+        
+        if sort_order == "desc":
+            q = q.order_by(sort_column.desc())
+        else:
+            q = q.order_by(sort_column.asc())
+    else:
+        q = q.order_by(models.Personnel.nama.asc())
+
     personnel_list = q.offset(skip).limit(limit).all()
     
     # Calculate Sisa Cuti for each personnel in specific page
@@ -46,7 +72,6 @@ async def get_all_personnel(
         ).filter(
             models.LeaveHistory.personnel_id.in_(personnel_ids),
             extract('year', models.LeaveHistory.tanggal_mulai) == current_year
-            # models.LeaveHistory.jenis_izin == models.LeaveType.cuti_tahunan  <-- REMOVED to include all types
         ).group_by(models.LeaveHistory.personnel_id).all()
         
         usage_map = {res[0]: res[1] for res in usage_query}

@@ -1,4 +1,5 @@
-import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus } from 'lucide-react';
+import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Pagination } from '../../components/Pagination';
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
@@ -29,23 +30,52 @@ export default function Personel() {
     message: ''
   });
 
+  // Pagination & Sorting State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [sortBy, setSortBy] = useState('nama');
+  const [sortOrder, setSortOrder] = useState('asc');
+
   useEffect(() => {
     fetchPersonnel();
-  }, []);
+  }, [currentPage, sortBy, sortOrder, searchQuery]);
 
   const fetchPersonnel = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
+      const params = {
+        skip: (currentPage - 1) * itemsPerPage,
+        limit: itemsPerPage,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      };
+
+      if (searchQuery) params.query = searchQuery;
+
       const response = await axios.get('/api/personnel/', {
+        params,
         headers: { Authorization: `Bearer ${token}` }
       });
+
       setPersonnel(response.data);
+
+      const total = parseInt(response.headers['x-total-count'] || '0', 10);
+      setTotalItems(total);
+      setTotalPages(Math.ceil(total / itemsPerPage));
+
     } catch (error) {
       console.error("Failed to fetch personnel:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const handleImport = async (e) => {
     const file = e.target.files[0];
@@ -83,14 +113,23 @@ export default function Personel() {
     }
   };
 
-  const filteredPersonnel = personnel.filter(p => {
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      p.nama?.toLowerCase().includes(searchLower) ||
-      p.nrp?.toLowerCase().includes(searchLower) ||
-      p.jabatan?.toLowerCase().includes(searchLower)
-    );
-  });
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const SortIcon = ({ field }) => {
+    if (sortBy !== field) return <ArrowUpDown className="w-3 h-3 ml-1 text-muted-foreground/50" />;
+    return sortOrder === 'asc'
+      ? <ArrowUp className="w-3 h-3 ml-1 text-primary" />
+      : <ArrowDown className="w-3 h-3 ml-1 text-primary" />;
+  };
+
+  const filteredPersonnel = personnel; // Direct assignment as filtering is server-side now
 
   return (
     <div className="relative">
@@ -174,20 +213,50 @@ export default function Personel() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    NRP
+                  <th
+                    className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                    onClick={() => handleSort('nrp')}
+                  >
+                    <div className="flex items-center">
+                      NRP
+                      <SortIcon field="nrp" />
+                    </div>
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Nama
+                  <th
+                    className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                    onClick={() => handleSort('nama')}
+                  >
+                    <div className="flex items-center">
+                      Nama
+                      <SortIcon field="nama" />
+                    </div>
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Pangkat
+                  <th
+                    className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                    onClick={() => handleSort('pangkat')}
+                  >
+                    <div className="flex items-center">
+                      Pangkat
+                      <SortIcon field="pangkat" />
+                    </div>
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Jabatan
+                  <th
+                    className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                    onClick={() => handleSort('jabatan')}
+                  >
+                    <div className="flex items-center">
+                      Jabatan
+                      <SortIcon field="jabatan" />
+                    </div>
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Satker
+                  <th
+                    className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                    onClick={() => handleSort('satker')}
+                  >
+                    <div className="flex items-center">
+                      Satker
+                      <SortIcon field="satker" />
+                    </div>
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Sisa Cuti
@@ -239,6 +308,15 @@ export default function Personel() {
                 )}
               </tbody>
             </table>
+          </div>
+          <div className="border-t border-border bg-white px-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+            />
           </div>
         </div>
 

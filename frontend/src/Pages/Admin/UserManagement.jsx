@@ -1,4 +1,5 @@
-import { Search, UserPlus, Shield, Lock, Unlock, Key, Mail, MoreVertical, AlertCircle, CheckCircle, XCircle, Loader2, Eye, EyeOff, Briefcase, UserX } from 'lucide-react';
+import { Search, UserPlus, Shield, Lock, Unlock, Key, Mail, MoreVertical, AlertCircle, CheckCircle, XCircle, Loader2, Eye, EyeOff, Briefcase, UserX, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Pagination } from '../../components/Pagination';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
@@ -12,6 +13,14 @@ export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Pagination & Sorting State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   // Confirmation Modal State (for Status & Success Messages)
   const [confirmModal, setConfirmModal] = useState({
@@ -32,11 +41,18 @@ export default function UserManagement() {
     isLoading: false
   });
 
-  /* ... useEffect and fetch logic unchanged ... */
-
-  // ... fetchUsers ...
-
-  /* Handlers */
+  // Form State
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    username: '',
+    full_name: '',
+    role: 'admin',
+    password: '',
+    status: 'active'
+  });
+  const [formLoading, setFormLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
 
   const handleResetPasswordClick = (user) => {
     setResetModal({
@@ -78,7 +94,6 @@ export default function UserManagement() {
 
   // Status Toggle Logic (unchanged except using confirmModal)
   const executeToggleStatus = async (user) => {
-    /* ... same logic ... */
     const newStatus = user.status === 'active' ? 'inactive' : 'active';
     setConfirmModal(prev => ({ ...prev, isLoading: true }));
 
@@ -100,7 +115,6 @@ export default function UserManagement() {
   };
 
   const handleToggleStatus = (user) => {
-    /* ... same logic ... */
     const newStatus = user.status === 'active' ? 'inactive' : 'active';
     const isDeactivating = newStatus === 'inactive';
 
@@ -116,24 +130,17 @@ export default function UserManagement() {
     });
   };
 
-  // Form State
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    username: '',
-    full_name: '',
-    role: 'admin',
-    password: '',
-    status: 'active'
-  });
-  const [formLoading, setFormLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-
   const fetchUsers = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const params = {};
+      const params = {
+        skip: (currentPage - 1) * itemsPerPage,
+        limit: itemsPerPage,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      };
+
       if (searchQuery) params.search = searchQuery;
       if (roleFilter !== 'all') params.role = roleFilter;
       if (statusFilter !== 'all') params.status = statusFilter;
@@ -143,6 +150,9 @@ export default function UserManagement() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(response.data);
+      const total = parseInt(response.headers['x-total-count'] || '0', 10);
+      setTotalItems(total);
+      setTotalPages(Math.ceil(total / itemsPerPage));
     } catch (error) {
       console.error('Failed to fetch users:', error);
     } finally {
@@ -152,7 +162,27 @@ export default function UserManagement() {
 
   useEffect(() => {
     fetchUsers();
+  }, [searchQuery, roleFilter, statusFilter, currentPage, sortBy, sortOrder]);
+
+  useEffect(() => {
+    setCurrentPage(1);
   }, [searchQuery, roleFilter, statusFilter]);
+
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const SortIcon = ({ field }) => {
+    if (sortBy !== field) return <ArrowUpDown className="w-3 h-3 ml-1 text-muted-foreground/50" />;
+    return sortOrder === 'asc'
+      ? <ArrowUp className="w-3 h-3 ml-1 text-primary" />
+      : <ArrowDown className="w-3 h-3 ml-1 text-primary" />;
+  };
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
@@ -405,10 +435,42 @@ export default function UserManagement() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Pengguna</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Peran</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Terakhir Aktif</th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('username')}
+                >
+                  <div className="flex items-center">
+                    Pengguna
+                    <SortIcon field="username" />
+                  </div>
+                </th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('role')}
+                >
+                  <div className="flex items-center">
+                    Peran
+                    <SortIcon field="role" />
+                  </div>
+                </th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('status')}
+                >
+                  <div className="flex items-center">
+                    Status
+                    <SortIcon field="status" />
+                  </div>
+                </th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('last_active')}
+                >
+                  <div className="flex items-center">
+                    Terakhir Aktif
+                    <SortIcon field="last_active" />
+                  </div>
+                </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Aksi</th>
               </tr>
             </thead>
@@ -460,8 +522,8 @@ export default function UserManagement() {
                       <button
                         onClick={() => handleToggleStatus(user)}
                         className={`p-1.5 rounded-md border transition-colors ${user.status === 'active'
-                            ? 'hover:bg-red-50 text-red-600 border-red-200'
-                            : 'hover:bg-green-50 text-green-600 border-green-200'
+                          ? 'hover:bg-red-50 text-red-600 border-red-200'
+                          : 'hover:bg-green-50 text-green-600 border-green-200'
                           }`}
                         title={user.status === 'active' ? "Non-aktifkan Pengguna" : "Aktifkan Pengguna"}
                       >
@@ -477,6 +539,15 @@ export default function UserManagement() {
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="border-t border-border bg-white px-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+          />
         </div>
       </div>
 

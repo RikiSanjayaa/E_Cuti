@@ -1,4 +1,5 @@
-import { Search, Filter, Download, Eye, Edit, Trash2, AlertTriangle, X } from 'lucide-react';
+import { Search, Filter, Download, Eye, Edit, Trash2, AlertTriangle, X, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Pagination } from '../../components/Pagination';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format, addDays } from 'date-fns';
@@ -19,20 +20,49 @@ export default function LeaveRecords() {
   const [selectedLeave, setSelectedLeave] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Pagination & Sorting State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState('desc');
+
   useEffect(() => {
     fetchLeaves();
-  }, []);
+  }, [currentPage, sortBy, sortOrder, searchQuery, typeFilter]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, typeFilter]);
 
   const fetchLeaves = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
+      const params = {
+        skip: (currentPage - 1) * itemsPerPage,
+        limit: itemsPerPage,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      };
+
+      if (searchQuery) params.search = searchQuery;
+      if (typeFilter !== 'all') params.type_filter = typeFilter;
+
       const response = await axios.get('/api/leaves/', {
+        params,
         headers: { Authorization: `Bearer ${token}` }
       });
       if (Array.isArray(response.data)) {
         setLeaves(response.data);
+        const total = parseInt(response.headers['x-total-count'] || '0', 10);
+        setTotalItems(total);
+        setTotalPages(Math.ceil(total / itemsPerPage));
       } else {
         setLeaves([]);
+        setTotalItems(0);
+        setTotalPages(0);
       }
     } catch (error) {
       console.error("Failed to fetch leaves:", error);
@@ -103,16 +133,24 @@ export default function LeaveRecords() {
     return `${format(start, 'd MMM yyyy', { locale: localeId })} - ${format(end, 'd MMM yyyy', { locale: localeId })}`;
   };
 
-  const filteredLeaves = leaves.filter(leave => {
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch =
-      leave.personnel?.nama?.toLowerCase().includes(searchLower) ||
-      leave.personnel?.nrp?.toLowerCase().includes(searchLower);
+  // Sort Helpers
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
 
-    const matchesType = typeFilter === 'all' || leave.jenis_izin === typeFilter;
+  const SortIcon = ({ field }) => {
+    if (sortBy !== field) return <ArrowUpDown className="w-3 h-3 ml-1 text-muted-foreground/50" />;
+    return sortOrder === 'asc'
+      ? <ArrowUp className="w-3 h-3 ml-1 text-primary" />
+      : <ArrowDown className="w-3 h-3 ml-1 text-primary" />;
+  };
 
-    return matchesSearch && matchesType;
-  });
+  const filteredLeaves = leaves; // Server-side filtering now
 
   return (
     <div className="space-y-6">
@@ -169,23 +207,53 @@ export default function LeaveRecords() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  NRP
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('nrp')}
+                >
+                  <div className="flex items-center">
+                    NRP
+                    <SortIcon field="nrp" />
+                  </div>
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Personel
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('nama')}
+                >
+                  <div className="flex items-center">
+                    Personel
+                    <SortIcon field="nama" />
+                  </div>
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Satker
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Tanggal (Mulai - Selesai)
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('tanggal_mulai')}
+                >
+                  <div className="flex items-center">
+                    Tanggal (Mulai - Selesai)
+                    <SortIcon field="tanggal_mulai" />
+                  </div>
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Durasi & Sisa
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('jumlah_hari')}
+                >
+                  <div className="flex items-center">
+                    Durasi & Sisa
+                    <SortIcon field="jumlah_hari" />
+                  </div>
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Jenis Cuti
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('jenis_izin')}
+                >
+                  <div className="flex items-center">
+                    Jenis Cuti
+                    <SortIcon field="jenis_izin" />
+                  </div>
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Dicatat Oleh
@@ -275,25 +343,17 @@ export default function LeaveRecords() {
           </table>
         </div>
 
-        {/* Pagination - Placeholder for now */}
-        <div className="px-6 py-4 border-t border-border flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Menampilkan {filteredLeaves.length} hasil
-          </p>
-          <div className="flex gap-2">
-            <button className="px-3 py-1 border border-input rounded text-sm hover:bg-accent disabled:opacity-50 cursor-pointer" disabled>
-              Sebelumnya
-            </button>
-            <button className="px-3 py-1 bg-primary text-primary-foreground rounded text-sm cursor-pointer">
-              1
-            </button>
-            {/* Pagination Logic to be implemented */}
-            <button className="px-3 py-1 border border-input rounded text-sm hover:bg-accent disabled:opacity-50 cursor-pointer" disabled>
-              Selanjutnya
-            </button>
-          </div>
+        {/* Pagination */}
+        <div className="border-t border-border bg-white px-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+          />
         </div>
-      </div>
+      </div >
 
       {/* Modals and Dialogs */}
       {/* Edit Modal (reuses Add Modal) */}
@@ -311,43 +371,45 @@ export default function LeaveRecords() {
       />
 
       {/* Delete Confirmation Dialog */}
-      {isDeleteModalOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
-            onClick={() => !deleteLoading && setIsDeleteModalOpen(false)}
-          />
-          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-lg shadow-xl z-50 p-6 animate-in zoom-in-95 duration-200">
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="bg-red-100 p-3 rounded-full">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">Hapus Data Cuti?</h3>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Apakah Anda yakin ingin menghapus data cuti ini? Tindakan ini tidak dapat dibatalkan.
-                </p>
-              </div>
-              <div className="flex gap-3 w-full pt-2">
-                <button
-                  onClick={() => setIsDeleteModalOpen(false)}
-                  disabled={deleteLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  disabled={deleteLoading}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
-                >
-                  {deleteLoading ? 'Menghapus...' : 'Hapus'}
-                </button>
+      {
+        isDeleteModalOpen && (
+          <>
+            <div
+              className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
+              onClick={() => !deleteLoading && setIsDeleteModalOpen(false)}
+            />
+            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-lg shadow-xl z-50 p-6 animate-in zoom-in-95 duration-200">
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="bg-red-100 p-3 rounded-full">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Hapus Data Cuti?</h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Apakah Anda yakin ingin menghapus data cuti ini? Tindakan ini tidak dapat dibatalkan.
+                  </p>
+                </div>
+                <div className="flex gap-3 w-full pt-2">
+                  <button
+                    onClick={() => setIsDeleteModalOpen(false)}
+                    disabled={deleteLoading}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleConfirmDelete}
+                    disabled={deleteLoading}
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+                  >
+                    {deleteLoading ? 'Menghapus...' : 'Hapus'}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </>
-      )}
-    </div>
+          </>
+        )
+      }
+    </div >
   );
 }

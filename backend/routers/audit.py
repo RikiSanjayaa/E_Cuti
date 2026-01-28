@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from backend.core import database, auth
@@ -11,6 +11,7 @@ router = APIRouter(
 
 @router.get("/", response_model=List[schemas.AuditLog])
 async def get_audit_logs(
+    response: Response,
     skip: int = 0,
     limit: int = 100,
     search: Optional[str] = None,
@@ -20,6 +21,8 @@ async def get_audit_logs(
     status: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
+    sort_by: str = "timestamp",
+    sort_order: str = "desc",
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
@@ -38,10 +41,6 @@ async def get_audit_logs(
         
     if end_date:
         # Assuming end_date is just YYYY-MM-DD, we want to include the whole day
-        # So we can filter < end_date + 1 day OR check date part.
-        # Simplest if passing full ISO string is letting frontend handle "end of day"
-        # BUT if passing '2023-01-01', we usually mean '2023-01-01 23:59:59'.
-        # Let's assume standard date string and add 1 day for proper < comparison
         from datetime import datetime, timedelta
         try:
             # If format is YYYY-MM-DD
@@ -49,7 +48,6 @@ async def get_audit_logs(
             dt_end_next = dt_end + timedelta(days=1)
             query = query.filter(models.AuditLog.timestamp < dt_end_next)
         except ValueError:
-            # Fallback if format is different or just ignore
             pass
 
     if action and action != 'all':
@@ -64,7 +62,32 @@ async def get_audit_logs(
     if role and role != 'all':
         query = query.filter(models.User.role == role)
         
-    # Sort by timestamp desc
-    query = query.order_by(models.AuditLog.timestamp.desc())
+    # Get total count before pagination
+    total = query.count()
+    response.headers["X-Total-Count"] = str(total)
+
+    # Sort
+    if sort_by:
+        # Validate sort field to prevent injection (basic check)
+        valid_sort_fields = {
+            "timestamp": models.AuditLog.timestamp,
+            "user": models.User.username,
+            "action": models.AuditLog.action,
+            "category": models.AuditLog.category,
+            "target": models.AuditLog.target,
+            "status": models.AuditLog.status,
+            "ip_address": models.AuditLog.ip_address
+        }
+        
+        sort_column = valid_sort_fields.get(sort_by, models.AuditLog.timestamp)
+        
+        if sort_order == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+    else:
+        # Default
+        query = query.order_by(models.AuditLog.timestamp.desc())
     
     return query.offset(skip).limit(limit).all()
+
