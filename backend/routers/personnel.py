@@ -29,7 +29,33 @@ async def get_all_personnel(
             (models.Personnel.jabatan.ilike(search))
         )
         
-    return q.offset(skip).limit(limit).all()
+    personnel_list = q.offset(skip).limit(limit).all()
+    
+    # Calculate Sisa Cuti for each personnel in specific page
+    if personnel_list:
+        from datetime import datetime
+        from sqlalchemy import extract, func
+        
+        current_year = datetime.now().year
+        personnel_ids = [p.id for p in personnel_list]
+        
+        # Query total used days for ALL leave types in current year
+        usage_query = db.query(
+            models.LeaveHistory.personnel_id,
+            func.sum(models.LeaveHistory.jumlah_hari).label('total_days')
+        ).filter(
+            models.LeaveHistory.personnel_id.in_(personnel_ids),
+            extract('year', models.LeaveHistory.tanggal_mulai) == current_year
+            # models.LeaveHistory.jenis_izin == models.LeaveType.cuti_tahunan  <-- REMOVED to include all types
+        ).group_by(models.LeaveHistory.personnel_id).all()
+        
+        usage_map = {res[0]: res[1] for res in usage_query}
+        
+        for p in personnel_list:
+            used = usage_map.get(p.id, 0) or 0 # Handle None if sum returns None
+            p.sisa_cuti = max(0, 12 - used)
+            
+    return personnel_list
 
 @router.post("/", response_model=schemas.Personnel, status_code=status.HTTP_201_CREATED)
 async def create_personnel(
@@ -74,7 +100,7 @@ async def get_personnel_by_nrp(nrp: str, current_user: models.User = Depends(aut
     if not personnel:
         raise HTTPException(status_code=404, detail="Personnel not found")
         
-    # Calculate Leave Quota (Assuming 12 days/year)
+    # Calculate Leave Quota (Assuming 12 days/year) - ALL TYPES INCLUDED
     from datetime import datetime
     from sqlalchemy import extract
     current_year = datetime.now().year
@@ -82,7 +108,6 @@ async def get_personnel_by_nrp(nrp: str, current_user: models.User = Depends(aut
     used_leave = db.query(models.LeaveHistory)\
         .filter(models.LeaveHistory.personnel_id == personnel.id)\
         .filter(extract('year', models.LeaveHistory.tanggal_mulai) == current_year)\
-        .filter(models.LeaveHistory.jenis_izin == models.LeaveType.cuti_tahunan)\
         .all()
         
     total_used = sum([l.jumlah_hari for l in used_leave])

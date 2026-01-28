@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import date
 import shutil
 import uuid
@@ -22,6 +22,7 @@ async def get_recent_leaves(
     db: Session = Depends(database.get_db)
 ):
     return db.query(models.LeaveHistory)\
+        .options(joinedload(models.LeaveHistory.personnel))\
         .filter(models.LeaveHistory.created_by == current_user.id)\
         .order_by(models.LeaveHistory.created_at.desc())\
         .limit(5)\
@@ -34,11 +35,41 @@ async def get_all_leaves(
     current_user: models.User = Depends(auth.get_current_admin),
     db: Session = Depends(database.get_db)
 ):
-    return db.query(models.LeaveHistory)\
+    leaves = db.query(models.LeaveHistory)\
+        .options(joinedload(models.LeaveHistory.personnel))\
         .order_by(models.LeaveHistory.created_at.desc())\
         .offset(skip)\
         .limit(limit)\
         .all()
+
+    # Calculate Progressive Sisa Cuti (Snapshot) for each leave record
+    if leaves:
+        from sqlalchemy import extract, func, or_, and_
+        from datetime import datetime
+        
+        for leave in leaves:
+            current_year = leave.tanggal_mulai.year
+            
+            # Query TOTAL usage for this personnel in this year UP TO this specific leave
+            # Condition: (Same year) AND (start_date < this_start OR (start_date == this_start AND created_at <= this_created))
+            
+            usage_up_to_now = db.query(func.sum(models.LeaveHistory.jumlah_hari))\
+                .filter(
+                    models.LeaveHistory.personnel_id == leave.personnel_id,
+                    extract('year', models.LeaveHistory.tanggal_mulai) == current_year,
+                    or_(
+                        models.LeaveHistory.tanggal_mulai < leave.tanggal_mulai,
+                        and_(
+                            models.LeaveHistory.tanggal_mulai == leave.tanggal_mulai,
+                            models.LeaveHistory.created_at <= leave.created_at
+                        )
+                    )
+                ).scalar()
+            
+            used = usage_up_to_now or 0
+            leave.sisa_cuti = max(0, 12 - used)
+
+    return leaves
 
 @router.post("/", response_model=schemas.LeaveHistory)
 async def create_leave(
@@ -56,6 +87,23 @@ async def create_leave(
     personnel = db.query(models.Personnel).filter(models.Personnel.nrp == nrp).first()
     if not personnel:
         raise HTTPException(status_code=404, detail="Personnel with this NRP not found")
+
+    # 1.5 Calculate Quota for ALL leave types (Universal 12 Days Rule)
+    # Note: Removed "if jenis_izin == models.LeaveType.cuti_tahunan" check
+    from sqlalchemy import extract, func
+    from datetime import datetime
+    current_year = datetime.now().year
+    
+    used_q = db.query(func.sum(models.LeaveHistory.jumlah_hari))\
+        .filter(
+            models.LeaveHistory.personnel_id == personnel.id,
+            extract('year', models.LeaveHistory.tanggal_mulai) == current_year
+        ).scalar()
+        
+    used = used_q or 0
+    remaining = 12 - used
+    if remaining < jumlah_hari:
+            raise HTTPException(status_code=400, detail=f"Sisa cuti tidak mencukupi. Sisa: {remaining} hari, Pengajuan: {jumlah_hari} hari.")
 
     # 2. File Handling
     file_path = None
@@ -100,3 +148,113 @@ async def create_leave(
     )
     
     return new_leave
+
+@router.put("/{leave_id}", response_model=schemas.LeaveHistory)
+async def update_leave(
+    request: Request,
+    leave_id: int,
+    nrp: str = Form(...),
+    jenis_izin: str = Form(...),
+    jumlah_hari: int = Form(...),
+    tanggal_mulai: date = Form(...),
+    alasan: str = Form(...),
+    file: Optional[UploadFile] = File(None),
+    current_user: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(database.get_db)
+):
+    leave = db.query(models.LeaveHistory).filter(models.LeaveHistory.id == leave_id).first()
+    if not leave:
+        raise HTTPException(status_code=404, detail="Leave record not found")
+        
+    # Verify Personnel if changed (optional logic, but good for consistency)
+    personnel = db.query(models.Personnel).filter(models.Personnel.nrp == nrp).first()
+    if not personnel:
+        raise HTTPException(status_code=404, detail="Personnel with this NRP not found")
+
+    # Validate Quota on Update (Universal 12 Days Rule)
+    # Note: Removed "if jenis_izin == models.LeaveType.cuti_tahunan" check
+    from sqlalchemy import extract, func
+    from datetime import datetime
+    current_year = datetime.now().year
+    
+    used_q = db.query(func.sum(models.LeaveHistory.jumlah_hari))\
+        .filter(
+            models.LeaveHistory.personnel_id == personnel.id,
+            extract('year', models.LeaveHistory.tanggal_mulai) == current_year,
+            models.LeaveHistory.id != leave_id  # Exclude self
+        ).scalar()
+        
+    used = used_q or 0
+    remaining = 12 - used
+    if remaining < jumlah_hari:
+            raise HTTPException(status_code=400, detail=f"Sisa cuti tidak mencukupi untuk update. Sisa: {remaining} hari, Pengajuan baru: {jumlah_hari} hari.")
+
+    # Update fields
+    leave.personnel_id = personnel.id
+    leave.jenis_izin = jenis_izin
+    leave.jumlah_hari = jumlah_hari
+    leave.tanggal_mulai = tanggal_mulai
+    leave.alasan = alasan
+    
+    # Handle File Update
+    if file:
+        if file.content_type not in VALID_FILE_TYPES:
+            raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPG, PNG, PDF")
+        
+        # Delete old file if exists (optional but recommended to save space)
+        # if leave.file_path and os.path.exists(leave.file_path):
+        #     os.remove(leave.file_path)
+
+        extension = file.filename.split(".")[-1]
+        unique_filename = f"{uuid.uuid4()}.{extension}"
+        file_path = f"{UPLOAD_DIR}/{unique_filename}"
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        leave.file_path = file_path
+
+    db.commit()
+    db.refresh(leave)
+
+    auth.log_audit(
+        db, 
+        current_user.id, 
+        "UPDATE_IZIN", 
+        "Leave Management", 
+        str(leave_id), 
+        "LeaveHistory", 
+        f"Updated leave for NRP {nrp}",
+        ip_address=request.client.host,
+        user_agent=request.headers.get("user-agent")
+    )
+
+    return leave
+
+@router.delete("/{leave_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_leave(
+    request: Request,
+    leave_id: int,
+    current_user: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(database.get_db)
+):
+    leave = db.query(models.LeaveHistory).filter(models.LeaveHistory.id == leave_id).first()
+    if not leave:
+        raise HTTPException(status_code=404, detail="Leave record not found")
+    
+    db.delete(leave)
+    db.commit()
+    
+    auth.log_audit(
+        db, 
+        current_user.id, 
+        "DELETE_IZIN", 
+        "Leave Management", 
+        str(leave_id), 
+        "LeaveHistory", 
+        f"Deleted leave record ID {leave_id}",
+        ip_address=request.client.host,
+        user_agent=request.headers.get("user-agent")
+    )
+    
+    return None

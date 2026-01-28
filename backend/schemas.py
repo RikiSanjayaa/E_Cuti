@@ -79,6 +79,7 @@ class LeaveHistory(BaseModel):
     
     personnel: Optional[Personnel] = None
     creator: Optional[User] = None
+    sisa_cuti: Optional[int] = None # Allow computed field
     
     class Config:
         from_attributes = True

@@ -29,9 +29,6 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
     if (role === 'atasan') {
       return ['dashboard', 'requests', 'personel', 'analytics'].includes(item.id);
     }
-    // Default admin/super_admin logic (show all usually, or filter based on item.roles)
-    // For now assuming admin sees everything except maybe explicit super_admin only if defined
-    // But original code showed all. I'll stick to original behavior for admin.
     if (item.roles) return item.roles.includes(role) || item.roles.includes('admin');
     return true;
   });
@@ -121,7 +118,7 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
             </div>
             <div>
               <p className="text-xs font-semibold text-slate-700">Versi 1.0.0</p>
-              <p className="text-[10px] text-slate-400">© 2024 Polda NTB</p>
+              <p className="text-[10px] text-slate-400">© 2026 Polda NTB</p>
             </div>
           </div>
         </div>
