@@ -50,7 +50,7 @@ async def get_analytics_summary(
 
 @router.get("/export")
 async def export_report(
-    format: str = Query(..., regex="^(pdf|excel)$"),
+    format: str = Query(..., pattern="^(pdf|excel)$"),
     month: int = Query(None, ge=1, le=12),
     year: int = Query(None, ge=2000),
     current_user: models.User = Depends(auth.get_current_user),
