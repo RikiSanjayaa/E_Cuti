@@ -32,8 +32,11 @@ backend/uploads/evidence/*
 *.xls
 ABSEN ROLOG 2026.xlsx
 
-# Design Resources
-Government Dashboard Design/
+# Temporary Scripts
+generate_excel.py
+inspect_excel.py
+migrate_data.py
+check_duplicates.py
 
 # upload
 uploads/

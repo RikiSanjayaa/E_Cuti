@@ -41,6 +41,7 @@ class Personnel(Base):
     pangkat = Column(String)
     jabatan = Column(String)
     satker = Column(String)
+    jenis_kelamin = Column(String, nullable=True)
 
     leaves = relationship("LeaveHistory", back_populates="personnel")
 
