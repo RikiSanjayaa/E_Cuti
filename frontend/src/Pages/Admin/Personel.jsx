@@ -145,11 +145,11 @@ export default function Personel() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Total Personel</p>
-            <p className="text-3xl font-semibold text-foreground mt-2">{personnel.length}</p>
+            <p className="text-3xl font-semibold text-foreground mt-2">{totalItems}</p>
           </div>
           <div className="bg-white border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Personel Aktif</p>
-            <p className="text-3xl font-semibold text-foreground mt-2">{personnel.length}</p>
+            <p className="text-3xl font-semibold text-foreground mt-2">{totalItems}</p>
           </div>
           <div className="bg-white border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Sedang Cuti</p>
