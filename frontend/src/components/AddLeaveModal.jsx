@@ -2,7 +2,7 @@ import { X, Search, Calendar, FileText, User, AlertCircle, CheckCircle } from 'l
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-export function AddLeaveModal({ isOpen, onClose }) {
+export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [nrp, setNrp] = useState('');
   const [employee, setEmployee] = useState(null);
   const [searchError, setSearchError] = useState('');
@@ -15,6 +15,26 @@ export function AddLeaveModal({ isOpen, onClose }) {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
+  const isEditMode = !!initialData;
+
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setNrp(initialData.personnel?.nrp || '');
+      setLeaveType(initialData.jenis_izin || '');
+      setStartDate(initialData.tanggal_mulai || '');
+      setDays(initialData.jumlah_hari || '');
+      setContext(initialData.alasan || '');
+      setEmployee(initialData.personnel ? {
+        name: initialData.personnel.nama,
+        nrp: initialData.personnel.nrp,
+        position: initialData.personnel.jabatan ? `${initialData.personnel.pangkat} - ${initialData.personnel.jabatan} (${initialData.personnel.satker})` : '',
+        quota: initialData.personnel.sisa_cuti || 0
+      } : null);
+    } else if (!isOpen) {
+      resetForm();
+    }
+  }, [initialData, isOpen]);
+
   // Handle personnel search
   const handleEmployeeSearch = async () => {
     if (!nrp || nrp.length < 4) {
@@ -24,22 +44,16 @@ export function AddLeaveModal({ isOpen, onClose }) {
 
     try {
       setSearchError('');
-      // In a real app we'd have a search endpoint. For now assuming we just validate NRP exists 
-      // via a separate call or just let the leave submission fail if not found.
-      // However, to show details we probably need a dedicated endpoint or search list.
-      // Let's assume we can fetch basic info. Since we don't have a dedicated search API yet,
-      // we might skip the detailed preview OR we could implement a quick search endpoint.
-      // For this step, let's just allow proceeding if NRP is entered, maybe showing a "Verifying..." state on submit.
-      // Or better: Let's assume the user knows the NRP.
-
-      // Temporary: Just set a mock employee so UI feedback works, 
-      // effectively trusting the user input until submission.
-      // Ideally: Fetch from /api/personnel/{nrp} if it exists.
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`/api/personnel/${nrp}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
       setEmployee({
-        name: "Personnel Found",
-        nrp: nrp,
-        position: "Verifying on Submit..."
+        name: res.data.nama,
+        nrp: res.data.nrp,
+        position: `${res.data.pangkat} - ${res.data.jabatan} (${res.data.satker})`,
+        quota: res.data.sisa_cuti
       });
 
     } catch (error) {
@@ -49,10 +63,13 @@ export function AddLeaveModal({ isOpen, onClose }) {
     }
   };
 
-  // Auto-search effect
+  // Auto-search effect (only if not in edit mode or nrp changed manually)
   useEffect(() => {
+    // Avoid auto-search on initial load of edit mode if NRP is already set
+    if (isEditMode && nrp === initialData?.personnel?.nrp) return;
+
     const delayDebounceFn = setTimeout(() => {
-      handleEmployeeSearch();
+      if (nrp && nrp.length >= 4) handleEmployeeSearch();
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
@@ -81,12 +98,22 @@ export function AddLeaveModal({ isOpen, onClose }) {
       }
 
       const token = localStorage.getItem('token');
-      await axios.post('/api/leaves/', formData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+
+      if (isEditMode) {
+        await axios.put(`/api/leaves/${initialData.id}`, formData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      } else {
+        await axios.post('/api/leaves/', formData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      }
 
       setSubmitSuccess(true);
       setTimeout(() => {
@@ -131,8 +158,8 @@ export function AddLeaveModal({ isOpen, onClose }) {
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] bg-white rounded-lg shadow-2xl z-50 overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="sticky top-0 bg-primary text-primary-foreground px-6 py-4 flex items-center justify-between border-b border-border">
           <div>
-            <h2 className="text-xl font-semibold">Tambah Catatan Cuti</h2>
-            <p className="text-sm opacity-90 mt-1">Catat entri cuti baru untuk personel</p>
+            <h2 className="text-xl font-semibold">{isEditMode ? 'Edit Catatan Cuti' : 'Tambah Catatan Cuti'}</h2>
+            <p className="text-sm opacity-90 mt-1">{isEditMode ? 'Perbarui data cuti personel' : 'Catat entri cuti baru untuk personel'}</p>
           </div>
           <button
             onClick={handleClose}
@@ -183,28 +210,32 @@ export function AddLeaveModal({ isOpen, onClose }) {
                       required
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleEmployeeSearch}
-                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 flex items-center gap-2 cursor-pointer"
-                    disabled={isSubmitting || !nrp}
-                  >
-                    <Search className="w-4 h-4" />
-                    Cari
-                  </button>
+
                 </div>
                 {searchError && (
-                  <p className="text-sm text-red-600 mt-1">{searchError}</p>
+                  <p className="text-xs text-red-500 mt-1">{searchError}</p>
                 )}
+
+                {/* Employee Preview Card */}
                 {employee && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-2 flex items-start gap-3">
-                    <div className="bg-blue-100 p-2 rounded-full">
-                      <User className="w-4 h-4 text-blue-700" />
+                  <div className="mt-4 bg-primary/5 border border-primary/10 rounded-lg p-4 flex items-start gap-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold shrink-0">
+                      {employee.name ? employee.name.charAt(0) : 'P'}
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-blue-900">{employee.name}</p>
-                      <p className="text-xs text-blue-700">{employee.rank} - {employee.position}</p>
-                      <p className="text-xs text-blue-600">{employee.unit}</p>
+                    <div className="space-y-1 flex-1">
+                      <p className="font-semibold text-foreground">{employee.name}</p>
+                      <p className="text-xs text-muted-foreground">NRP: {employee.nrp}</p>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        <p className="text-xs text-muted-foreground bg-white/50 px-2 py-0.5 rounded-full border border-border">
+                          {employee.position}
+                        </p>
+                        <p className={`text-xs px-2 py-0.5 rounded-full border ${employee.quota > 0 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+                          Sisa Cuti: {employee.quota} Hari
+                        </p>
+                      </div>
+                    </div>
+                    <div className="ml-auto">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
                     </div>
                   </div>
                 )}

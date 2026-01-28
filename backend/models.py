@@ -6,6 +6,7 @@ from .database import Base
 
 class Role(str, enum.Enum):
     super_admin = "super_admin"
+    admin = "admin"
     atasan = "atasan"
 
 class LeaveType(str, enum.Enum):

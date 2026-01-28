@@ -73,7 +73,14 @@ def process_excel_file(file_path: str, db: Session):
     print(f"Column Mapping: {col_map}")
     
     seen_nrps = set()
-    count = 0
+    stats = {
+        "added": 0,
+        "updated": 0,
+        "skipped": 0,
+        "total": 0
+    }
+    
+    details = []
     
     for index, row in df.iterrows():
         # Filter rows where NO is empty or not a number (skip sub-headers)
@@ -99,15 +106,38 @@ def process_excel_file(file_path: str, db: Session):
             continue
         seen_nrps.add(nrp)
         
-        nama = row[col_map.get('nama')]
-        jabatan = row[col_map.get('jabatan')]
+        nama = str(row[col_map.get('nama')]).strip()
+        jabatan = str(row[col_map.get('jabatan')]).strip()
+        pangkat = str(pangkat).strip()
         
         existing = db.query(Personnel).filter(Personnel.nrp == nrp).first()
         if existing:
-            existing.nama = nama
-            existing.pangkat = pangkat
-            existing.jabatan = jabatan
-            existing.satker = "Polda NTB" 
+            # Check if any field is different
+            changes = []
+            if existing.nama != nama:
+                changes.append({"field": "Nama", "old": existing.nama, "new": nama})
+            if existing.pangkat != pangkat:
+                changes.append({"field": "Pangkat", "old": existing.pangkat, "new": pangkat})
+            if existing.jabatan != jabatan:
+                changes.append({"field": "Jabatan", "old": existing.jabatan, "new": jabatan})
+            
+            if changes:
+                print(f"[UPDATE] NRP {nrp}: {changes}")
+                
+                existing.nama = nama
+                existing.pangkat = pangkat
+                existing.jabatan = jabatan
+                existing.satker = "Polda NTB"
+                
+                stats["updated"] += 1
+                details.append({
+                    "type": "updated",
+                    "nrp": nrp,
+                    "nama": nama,
+                    "changes": changes
+                })
+            else:
+                stats["skipped"] += 1
         else:
             new_p = Personnel(
                 nrp=nrp,
@@ -117,10 +147,19 @@ def process_excel_file(file_path: str, db: Session):
                 satker="Polda NTB"
             )
             db.add(new_p)
-        count += 1
-        if count % 10 == 0:
-            print(f"Processed {count} records...")
+            stats["added"] += 1
+            details.append({
+                "type": "added",
+                "nrp": nrp,
+                "nama": nama,
+                "pangkat": pangkat,
+                "jabatan": jabatan
+            })
+            
+        stats["total"] += 1
+        if stats["total"] % 10 == 0:
+            print(f"Processed {stats['total']} records...")
         
     db.commit()
-    print(f"Commit successful. Total {count} records.")
-    return count
+    print(f"Commit successful. Stats: {stats}")
+    return {"stats": stats, "details": details}

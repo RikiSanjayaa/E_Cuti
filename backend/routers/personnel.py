@@ -30,11 +30,63 @@ async def get_all_personnel(
         
     return q.offset(skip).limit(limit).all()
 
+@router.post("/", response_model=schemas.Personnel, status_code=status.HTTP_201_CREATED)
+async def create_personnel(
+    personnel: schemas.PersonnelCreate,
+    current_user: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(database.get_db)
+):
+    # Check if NRP already exists
+    existing = db.query(models.Personnel).filter(models.Personnel.nrp == personnel.nrp).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="NRP already exists")
+    
+    new_personnel = models.Personnel(
+        nrp=personnel.nrp,
+        nama=personnel.nama,
+        pangkat=personnel.pangkat,
+        jabatan=personnel.jabatan,
+        satker=personnel.satker
+    )
+    
+    db.add(new_personnel)
+    db.commit()
+    db.refresh(new_personnel)
+    
+    # Log audit
+    auth.log_audit(
+        db,
+        current_user.id,
+        "CREATE_PERSONNEL",
+        "Personnel Management",
+        new_personnel.nrp,
+        "Personnel",
+        f"Created new personnel: {new_personnel.nama}",
+        status="success"
+    )
+    
+    return new_personnel
+
 @router.get("/{nrp}", response_model=schemas.Personnel)
 async def get_personnel_by_nrp(nrp: str, current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
     personnel = db.query(models.Personnel).filter(models.Personnel.nrp == nrp).first()
     if not personnel:
         raise HTTPException(status_code=404, detail="Personnel not found")
+        
+    # Calculate Leave Quota (Assuming 12 days/year)
+    from datetime import datetime
+    from sqlalchemy import extract
+    current_year = datetime.now().year
+    
+    used_leave = db.query(models.LeaveHistory)\
+        .filter(models.LeaveHistory.personnel_id == personnel.id)\
+        .filter(extract('year', models.LeaveHistory.tanggal_mulai) == current_year)\
+        .filter(models.LeaveHistory.jenis_izin == models.LeaveType.cuti_tahunan)\
+        .all()
+        
+    total_used = sum([l.jumlah_hari for l in used_leave])
+    personnel.sisa_cuti = 12 - total_used
+    
     return personnel
 
 @router.post("/import", status_code=status.HTTP_201_CREATED)
@@ -55,8 +107,12 @@ async def import_personnel(file: UploadFile = File(...), current_user: models.Us
                 tmp_path = tmp.name
                 
             try:
-                count = import_utils.process_excel_file(tmp_path, db)
-                return {"message": f"Successfully imported {count} personnel records from Excel"}
+                result = import_utils.process_excel_file(tmp_path, db)
+                stats = result["stats"]
+                return {
+                    "message": f"Process complete. Total: {stats['total']}, Added: {stats['added']}, Updated: {stats['updated']}, Skipped: {stats['skipped']}",
+                    "data": result
+                }
             except Exception as e:
                 raise HTTPException(status_code=400, detail=f"Excel parsing error: {str(e)}")
             finally:
