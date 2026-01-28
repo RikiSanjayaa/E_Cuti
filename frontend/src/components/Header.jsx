@@ -1,4 +1,4 @@
-import { Bell, User, ChevronDown, Menu, LogOut } from 'lucide-react';
+import { Bell, User, ChevronDown, PanelLeft, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,7 +20,7 @@ export function Header({ userRole, onToggleSidebar }) {
           className="p-2 hover:bg-accent rounded-md transition-colors lg:block cursor-pointer"
           aria-label="Toggle sidebar"
         >
-          <Menu className="w-5 h-5 text-muted-foreground" />
+          <PanelLeft className="w-5 h-5 text-muted-foreground" />
         </button>
         <h2 className="text-sm text-muted-foreground hidden sm:block">Selamat datang kembali</h2>
       </div>
