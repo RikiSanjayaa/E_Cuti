@@ -1,7 +1,7 @@
-import { Search, Filter, Download, MoreVertical, Eye, Edit, Trash2, AlertTriangle, X } from 'lucide-react';
+import { Search, Filter, Download, Eye, Edit, Trash2, AlertTriangle, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { AddLeaveModal } from '@/components/AddLeaveModal';
 import { LeaveDetailModal } from '@/components/LeaveDetailModal';
@@ -96,6 +96,13 @@ export default function LeaveRecords() {
     return styles[type] || 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
+  const formatLeaveDateRange = (startDate, days) => {
+    if (!startDate) return '-';
+    const start = new Date(startDate);
+    const end = addDays(start, days - 1); // Subtract 1 because start day is day 1
+    return `${format(start, 'd MMM yyyy', { locale: localeId })} - ${format(end, 'd MMM yyyy', { locale: localeId })}`;
+  };
+
   const filteredLeaves = leaves.filter(leave => {
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch =
@@ -172,10 +179,10 @@ export default function LeaveRecords() {
                   Satker
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Tanggal Mulai
+                  Tanggal (Mulai - Selesai)
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Durasi
+                  Durasi & Sisa
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Jenis Cuti
@@ -214,10 +221,15 @@ export default function LeaveRecords() {
                       {leave.personnel?.satker || '-'}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {format(new Date(leave.tanggal_mulai), 'd MMM yyyy', { locale: localeId })}
+                      {formatLeaveDateRange(leave.tanggal_mulai, leave.jumlah_hari)}
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
-                      {leave.jumlah_hari} Hari
+                      <div className="flex flex-col">
+                        <span className="font-medium">{leave.jumlah_hari} Hari</span>
+                        <span className="text-xs text-muted-foreground">
+                          Sisa: {leave.sisa_cuti !== undefined ? leave.sisa_cuti : '-'} Hari
+                        </span>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -253,9 +265,6 @@ export default function LeaveRecords() {
                           title="Hapus"
                         >
                           <Trash2 className="w-4 h-4 text-red-600" />
-                        </button>
-                        <button className="p-1 hover:bg-accent rounded cursor-pointer">
-                          <MoreVertical className="w-4 h-4 text-muted-foreground" />
                         </button>
                       </div>
                     </td>
