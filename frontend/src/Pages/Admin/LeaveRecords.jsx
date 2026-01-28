@@ -23,7 +23,7 @@ export default function LeaveRecords() {
 
   // Pagination & Sorting State
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [sortBy, setSortBy] = useState('created_at');
@@ -31,7 +31,7 @@ export default function LeaveRecords() {
 
   useEffect(() => {
     fetchLeaves();
-  }, [currentPage, sortBy, sortOrder, searchQuery, typeFilter]);
+  }, [currentPage, sortBy, sortOrder, searchQuery, typeFilter, itemsPerPage]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -352,6 +352,7 @@ export default function LeaveRecords() {
             onPageChange={setCurrentPage}
             totalItems={totalItems}
             itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
           />
         </div>
       </div >

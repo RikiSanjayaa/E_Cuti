@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
-export function Pagination({ currentPage, totalPages, onPageChange, totalItems, itemsPerPage }) {
+export function Pagination({ currentPage, totalPages, onPageChange, totalItems, itemsPerPage, onItemsPerPageChange }) {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
@@ -8,8 +8,22 @@ export function Pagination({ currentPage, totalPages, onPageChange, totalItems, 
 
   return (
     <div className="flex items-center justify-between px-2 py-4">
-      <div className="text-sm text-muted-foreground">
-        Menampilkan {startItem} hingga {endItem} dari {totalItems} data
+      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div>
+          Menampilkan {startItem} hingga {endItem} dari {totalItems} data
+        </div>
+        {onItemsPerPageChange && (
+          <select
+            value={itemsPerPage}
+            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+            className="border border-input rounded-md p-1 text-sm bg-background"
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <button

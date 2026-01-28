@@ -19,7 +19,7 @@ export default function AuditLogs() {
 
   // Pagination & Sorting
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [sortBy, setSortBy] = useState('timestamp');
@@ -69,7 +69,7 @@ export default function AuditLogs() {
 
   useEffect(() => {
     fetchLogs();
-  }, [actionFilter, roleFilter, categoryFilter, statusFilter, startDate, endDate, currentPage, sortBy, sortOrder]);
+  }, [actionFilter, roleFilter, categoryFilter, statusFilter, startDate, endDate, currentPage, sortBy, sortOrder, itemsPerPage]);
 
   const handleSort = (field) => {
     if (sortBy === field) {
@@ -109,6 +109,17 @@ export default function AuditLogs() {
     if (status === 'failure') return '✗';
     if (status === 'warning') return '⚠';
     return '•';
+  };
+
+  const getCategoryLabel = (category) => {
+    switch (category) {
+      case 'Authentication': return 'Autentikasi';
+      case 'Personnel Management': return 'Manajemen Personel';
+      case 'Leave Management': return 'Manajemen Cuti';
+      case 'User Management': return 'Manajemen Pengguna';
+      case 'Reporting': return 'Pelaporan';
+      default: return category;
+    }
   };
 
   return (
@@ -246,8 +257,9 @@ export default function AuditLogs() {
                 className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="all">Semua Kategori</option>
+                <option value="User Management">Manajemen Pengguna</option>
                 <option value="Leave Management">Manajemen Cuti</option>
-                <option value="Personel Management">Manajemen Personel</option>
+                <option value="Personnel Management">Manajemen Personel</option>
                 <option value="Reporting">Pelaporan</option>
                 <option value="Authentication">Autentikasi</option>
               </select>
@@ -385,7 +397,7 @@ export default function AuditLogs() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {log.category}
+                      {getCategoryLabel(log.category)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
@@ -422,6 +434,7 @@ export default function AuditLogs() {
             onPageChange={setCurrentPage}
             totalItems={totalItems}
             itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
           />
         </div>
       </div>

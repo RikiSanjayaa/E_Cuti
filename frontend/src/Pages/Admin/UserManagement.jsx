@@ -16,7 +16,7 @@ export default function UserManagement() {
 
   // Pagination & Sorting State
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [sortBy, setSortBy] = useState('created_at');
@@ -162,7 +162,7 @@ export default function UserManagement() {
 
   useEffect(() => {
     fetchUsers();
-  }, [searchQuery, roleFilter, statusFilter, currentPage, sortBy, sortOrder]);
+  }, [searchQuery, roleFilter, statusFilter, currentPage, sortBy, sortOrder, itemsPerPage]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -547,6 +547,7 @@ export default function UserManagement() {
             onPageChange={setCurrentPage}
             totalItems={totalItems}
             itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
           />
         </div>
       </div>

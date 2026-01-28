@@ -32,7 +32,7 @@ export default function Personel() {
 
   // Pagination & Sorting State
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [sortBy, setSortBy] = useState('nama');
@@ -40,7 +40,7 @@ export default function Personel() {
 
   useEffect(() => {
     fetchPersonnel();
-  }, [currentPage, sortBy, sortOrder, searchQuery]);
+  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage]);
 
   const fetchPersonnel = async () => {
     setLoading(true);
@@ -280,7 +280,7 @@ export default function Personel() {
                   filteredPersonnel.map((p) => (
                     <tr
                       key={p.id}
-                      className="hover:bg-muted/30 cursor-pointer transition-colors"
+                      className="hover:bg-muted cursor-pointer transition-colors"
                       onClick={() => setSelectedPersonnel(p)}
                     >
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
@@ -316,6 +316,7 @@ export default function Personel() {
               onPageChange={setCurrentPage}
               totalItems={totalItems}
               itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={setItemsPerPage}
             />
           </div>
         </div>

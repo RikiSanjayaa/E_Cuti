@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Response
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Response, Request
 from sqlalchemy.orm import Session
 from typing import List
 import json
@@ -85,6 +85,7 @@ async def get_all_personnel(
 
 @router.post("/", response_model=schemas.Personnel, status_code=status.HTTP_201_CREATED)
 async def create_personnel(
+    request: Request,
     personnel: schemas.PersonnelCreate,
     current_user: models.User = Depends(auth.get_current_admin),
     db: Session = Depends(database.get_db)
@@ -115,7 +116,9 @@ async def create_personnel(
         new_personnel.nrp,
         "Personnel",
         f"Created new personnel: {new_personnel.nama}",
-        status="success"
+        status="success",
+        ip_address=request.client.host,
+        user_agent=request.headers.get("user-agent")
     )
     
     return new_personnel
