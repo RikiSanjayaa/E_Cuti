@@ -1,5 +1,6 @@
 import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 
 import ConfirmationModal from '../../components/ConfirmationModal';
@@ -333,7 +334,7 @@ export default function Personel() {
         </div>
 
         {/* Detail Overlay & Panel */}
-        {selectedEmployee && (
+        {selectedEmployee && createPortal(
           <>
             <div
               className="fixed inset-0 bg-black/50 z-[100] animate-in fade-in duration-300"
@@ -402,7 +403,8 @@ export default function Personel() {
                 </div>
               </div>
             </div>
-          </>
+          </>,
+          document.body
         )}
 
         {/* Import Notification Modal */}

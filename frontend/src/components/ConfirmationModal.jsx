@@ -1,12 +1,13 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
 
-export default function ConfirmationModal({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  title, 
-  message, 
+export default function ConfirmationModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
   type = 'warning', // warning, danger, success, info
   confirmText = 'Konfirmasi',
   cancelText = 'Batal',
@@ -32,15 +33,15 @@ export default function ConfirmationModal({
     }
   };
 
-  return (
+  return createPortal(
     <>
-      <div 
+      <div
         className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 animate-in fade-in duration-200"
         onClick={onClose}
       />
-      
+
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-xl shadow-2xl z-50 p-6 animate-in zoom-in-95 slide-in-from-bottom-4 duration-200 border border-white/20">
-        <button 
+        <button
           onClick={onClose}
           className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
           disabled={isLoading}
@@ -49,18 +50,17 @@ export default function ConfirmationModal({
         </button>
 
         <div className="flex flex-col items-center text-center">
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${
-            type === 'danger' ? 'bg-red-50' : 
-            type === 'success' ? 'bg-green-50' : 
-            type === 'info' ? 'bg-blue-50' : 'bg-orange-50'
-          }`}>
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${type === 'danger' ? 'bg-red-50' :
+              type === 'success' ? 'bg-green-50' :
+                type === 'info' ? 'bg-blue-50' : 'bg-orange-50'
+            }`}>
             {getIcon()}
           </div>
 
           <h3 className="text-lg font-bold text-gray-900 mb-2">
             {title}
           </h3>
-          
+
           <p className="text-sm text-gray-500 mb-6 leading-relaxed whitespace-pre-line">
             {message}
           </p>
@@ -85,6 +85,7 @@ export default function ConfirmationModal({
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

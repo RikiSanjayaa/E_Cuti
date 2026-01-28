@@ -20,7 +20,7 @@ export default function UserManagement() {
     message: '',
     type: 'warning',
     confirmText: 'Konfirmasi',
-    onConfirm: () => {},
+    onConfirm: () => { },
     isLoading: false
   });
 
@@ -51,13 +51,13 @@ export default function UserManagement() {
     setResetModal(prev => ({ ...prev, isLoading: true }));
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`/api/users/${resetModal.userId}/reset-password`, 
-        { new_password: newPassword }, 
+      await axios.post(`/api/users/${resetModal.userId}/reset-password`,
+        { new_password: newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       setResetModal({ isOpen: false, userId: null, username: '', isLoading: false });
-      
+
       // Show Success Modal
       setConfirmModal({
         isOpen: true,
@@ -65,17 +65,17 @@ export default function UserManagement() {
         title: 'Berhasil',
         message: 'Password berhasil diubah sesuai inputan baru.',
         confirmText: 'Tutup',
-        cancelText: '', 
+        cancelText: '',
         onConfirm: () => setConfirmModal({ isOpen: false }),
         onClose: () => setConfirmModal({ isOpen: false })
       });
-      
+
     } catch (error) {
       setResetModal(prev => ({ ...prev, isLoading: false }));
       alert('Gagal mereset password: ' + (error.response?.data?.detail || error.message));
     }
   };
-  
+
   // Status Toggle Logic (unchanged except using confirmModal)
   const executeToggleStatus = async (user) => {
     /* ... same logic ... */
@@ -84,26 +84,26 @@ export default function UserManagement() {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`/api/users/${user.id}`, 
+      await axios.put(`/api/users/${user.id}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       setUsers(users.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
       setConfirmModal({ isOpen: false });
-      
+
     } catch (error) {
       console.error('Failed to update status:', error);
       setConfirmModal({ isOpen: false });
       alert('Gagal mengubah status pengguna');
     }
   };
-  
+
   const handleToggleStatus = (user) => {
     /* ... same logic ... */
     const newStatus = user.status === 'active' ? 'inactive' : 'active';
     const isDeactivating = newStatus === 'inactive';
-    
+
     setConfirmModal({
       isOpen: true,
       type: isDeactivating ? 'danger' : 'success',
@@ -138,9 +138,9 @@ export default function UserManagement() {
       if (roleFilter !== 'all') params.role = roleFilter;
       if (statusFilter !== 'all') params.status = statusFilter;
 
-      const response = await axios.get('/api/users/', { 
-          params,
-          headers: { Authorization: `Bearer ${token}` }
+      const response = await axios.get('/api/users/', {
+        params,
+        headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(response.data);
     } catch (error) {
@@ -162,7 +162,7 @@ export default function UserManagement() {
     try {
       const token = localStorage.getItem('token');
       await axios.post('/api/users/', formData, {
-          headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       setMessage({ type: 'success', text: 'Pengguna berhasil ditambahkan' });
       setShowForm(false);
@@ -174,7 +174,7 @@ export default function UserManagement() {
       setFormLoading(false);
     }
   };
-  
+
 
 
   const getStatusBadge = (status) => {
@@ -222,84 +222,86 @@ export default function UserManagement() {
       </div>
 
       {showForm && (
-        <div className="bg-white border border-border rounded-lg p-6 shadow-sm animate-in fade-in slide-in-from-top-4">
-          <h2 className="text-lg font-semibold mb-4">Tambah Pengguna Baru</h2>
-          {message.text && (
-            <div className={`p-3 mb-4 rounded-md text-sm ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-              {message.text}
-            </div>
-          )}
-          <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Username</label>
-              <input
-                required
-                type="text"
-                value={formData.username}
-                onChange={e => setFormData({ ...formData, username: e.target.value })}
-                className="w-full px-3 py-2 border rounded-md"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Nama Lengkap</label>
-              <input
-                required
-                type="text"
-                value={formData.full_name}
-                onChange={e => setFormData({ ...formData, full_name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-md"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Password</label>
-              <div className="relative">
+        <div className="relative">
+          <div className="bg-white border border-border rounded-lg p-6 shadow-sm animate-in fade-in slide-in-from-top-4">
+            <h2 className="text-lg font-semibold mb-4">Tambah Pengguna Baru</h2>
+            {message.text && (
+              <div className={`p-3 mb-4 rounded-md text-sm ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                {message.text}
+              </div>
+            )}
+            <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Username</label>
                 <input
                   required
-                  type={showPassword ? "text" : "password"}
-                  value={formData.password}
-                  onChange={e => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md pr-10"
+                  type="text"
+                  value={formData.username}
+                  onChange={e => setFormData({ ...formData, username: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md"
                 />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nama Lengkap</label>
+                <input
+                  required
+                  type="text"
+                  value={formData.full_name}
+                  onChange={e => setFormData({ ...formData, full_name: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Password</label>
+                <div className="relative">
+                  <input
+                    required
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-md pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Peran</label>
+                <select
+                  value={formData.role}
+                  onChange={e => setFormData({ ...formData, role: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md"
+                >
+                  <option value="admin">Admin</option>
+                  <option value="super_admin">Super Admin</option>
+                  <option value="atasan">Atasan</option>
+                </select>
+              </div>
+              <div className="md:col-span-2 flex justify-end gap-2 mt-4">
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowForm(false)}
+                  className="px-4 py-2 border rounded-md hover:bg-accent"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={formLoading}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 flex items-center gap-2"
+                >
+                  {formLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Simpan
                 </button>
               </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Peran</label>
-              <select
-                value={formData.role}
-                onChange={e => setFormData({ ...formData, role: e.target.value })}
-                className="w-full px-3 py-2 border rounded-md"
-              >
-                <option value="admin">Admin</option>
-                <option value="super_admin">Super Admin</option>
-                <option value="atasan">Atasan</option>
-              </select>
-            </div>
-            <div className="md:col-span-2 flex justify-end gap-2 mt-4">
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="px-4 py-2 border rounded-md hover:bg-accent"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={formLoading}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 flex items-center gap-2"
-              >
-                {formLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                Simpan
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       )}
 
@@ -457,17 +459,16 @@ export default function UserManagement() {
                       </button>
                       <button
                         onClick={() => handleToggleStatus(user)}
-                        className={`p-1.5 rounded-md border transition-colors ${
-                            user.status === 'active' 
-                            ? 'hover:bg-red-50 text-red-600 border-red-200' 
+                        className={`p-1.5 rounded-md border transition-colors ${user.status === 'active'
+                            ? 'hover:bg-red-50 text-red-600 border-red-200'
                             : 'hover:bg-green-50 text-green-600 border-green-200'
-                        }`}
+                          }`}
                         title={user.status === 'active' ? "Non-aktifkan Pengguna" : "Aktifkan Pengguna"}
                       >
                         {user.status === 'active' ? (
-                            <Unlock className="w-4 h-4" />
+                          <Unlock className="w-4 h-4" />
                         ) : (
-                            <Lock className="w-4 h-4" />
+                          <Lock className="w-4 h-4" />
                         )}
                       </button>
                     </div>
@@ -478,6 +479,7 @@ export default function UserManagement() {
           </table>
         </div>
       </div>
+
 
       <ConfirmationModal
         isOpen={confirmModal.isOpen}
@@ -491,7 +493,7 @@ export default function UserManagement() {
         isLoading={confirmModal.isLoading}
       />
 
-      <ResetPasswordModal 
+      <ResetPasswordModal
         isOpen={resetModal.isOpen}
         username={resetModal.username}
         onClose={() => setResetModal({ ...resetModal, isOpen: false })}

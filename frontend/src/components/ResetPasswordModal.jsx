@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Eye, EyeOff, X, Lock } from 'lucide-react';
 
-export default function ResetPasswordModal({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
+export default function ResetPasswordModal({
+  isOpen,
+  onClose,
+  onConfirm,
   username = '',
-  isLoading = false 
+  isLoading = false
 }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -40,15 +41,15 @@ export default function ResetPasswordModal({
     onClose();
   };
 
-  return (
+  return createPortal(
     <>
-      <div 
+      <div
         className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 animate-in fade-in duration-200"
         onClick={handleClose}
       />
-      
+
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-xl shadow-2xl z-50 p-6 animate-in zoom-in-95 slide-in-from-bottom-4 duration-200 border border-white/20">
-        <button 
+        <button
           onClick={handleClose}
           className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
           disabled={isLoading}
@@ -133,6 +134,7 @@ export default function ResetPasswordModal({
           </div>
         </form>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
