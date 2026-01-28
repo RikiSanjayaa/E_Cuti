@@ -27,7 +27,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       setEmployee(initialData.personnel ? {
         name: initialData.personnel.nama,
         nrp: initialData.personnel.nrp,
-        position: initialData.personnel.jabatan ? `${initialData.personnel.pangkat} - ${initialData.personnel.jabatan} (${initialData.personnel.satker})` : '',
+        position: initialData.personnel.jabatan ? `${initialData.personnel.pangkat} - ${initialData.personnel.jabatan}` : '',
         quota: initialData.personnel.sisa_cuti || 0
       } : null);
     } else if (!isOpen) {
@@ -52,7 +52,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       setEmployee({
         name: res.data.nama,
         nrp: res.data.nrp,
-        position: `${res.data.pangkat} - ${res.data.jabatan} (${res.data.satker})`,
+        position: `${res.data.pangkat} - ${res.data.jabatan}`,
         quota: res.data.sisa_cuti
       });
 

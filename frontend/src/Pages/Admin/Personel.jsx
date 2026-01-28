@@ -249,15 +249,6 @@ export default function Personel() {
                       <SortIcon field="jabatan" />
                     </div>
                   </th>
-                  <th
-                    className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
-                    onClick={() => handleSort('satker')}
-                  >
-                    <div className="flex items-center">
-                      Satker
-                      <SortIcon field="satker" />
-                    </div>
-                  </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Sisa Cuti
                   </th>
@@ -294,9 +285,6 @@ export default function Personel() {
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">
                         {p.jabatan}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-foreground">
-                        {p.satker}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
                         <span className={p.sisa_cuti < 5 ? 'text-red-600' : 'text-green-600'}>
@@ -355,13 +343,6 @@ export default function Personel() {
                       </div>
                     </div>
                     <div className="grid grid-cols-1 gap-3 pt-2">
-                      <div className="flex items-center gap-3">
-                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Satuan Kerja</p>
-                          <p className="text-sm text-foreground">{selectedEmployee.satker}</p>
-                        </div>
-                      </div>
                       <div className="flex items-center gap-3">
                         <TrendingUp className="w-4 h-4 text-muted-foreground" />
                         <div>

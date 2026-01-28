@@ -124,22 +124,7 @@ export default function Analytics() {
             </div>
           </div>
 
-          {/* Department Filter */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Satuan Kerja
-            </label>
-            <select
-              value={departmentFilter}
-              onChange={(e) => setDepartmentFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="all">Semua Satuan Kerja</option>
-              {/* Mock Depts - Ideally fetch from API */}
-              <option value="Polda NTB">Polda NTB</option>
-              <option value="Polres Mataram">Polres Mataram</option>
-            </select>
-          </div>
+
 
           {/* Leave Type Filter */}
           <div>
@@ -229,9 +214,6 @@ export default function Analytics() {
                   Nama
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Satuan Kerja
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Jenis Cuti
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -263,9 +245,6 @@ export default function Analytics() {
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
                       {record.personnel?.nama}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {record.personnel?.satker}
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
                       {record.jenis_izin}

@@ -240,9 +240,6 @@ export default function LeaveRecords() {
                     <SortIcon field="nama" />
                   </div>
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Satker
-                </th>
                 <th
                   className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => handleSort('tanggal_mulai')}
@@ -299,9 +296,6 @@ export default function LeaveRecords() {
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
                       {leave.personnel?.nama}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {leave.personnel?.satker || '-'}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
                       {formatLeaveDateRange(leave.tanggal_mulai, leave.jumlah_hari)}
