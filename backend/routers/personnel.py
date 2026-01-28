@@ -33,9 +33,13 @@ async def get_all_personnel(
             (models.Personnel.jabatan.ilike(search))
         )
         
-    # Total Count
+    # Total Count (Filtered)
     total = q.count()
     response.headers["X-Total-Count"] = str(total)
+    
+    # Global Count (Unfiltered)
+    global_total = db.query(models.Personnel).count()
+    response.headers["X-Global-Count"] = str(global_total)
     
     # Sorting
     if sort_by:
