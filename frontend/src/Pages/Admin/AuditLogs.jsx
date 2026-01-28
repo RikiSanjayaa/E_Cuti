@@ -247,7 +247,7 @@ export default function AuditLogs() {
               >
                 <option value="all">Semua Kategori</option>
                 <option value="Leave Management">Manajemen Cuti</option>
-                <option value="Employee Management">Manajemen Personel</option>
+                <option value="Personel Management">Manajemen Personel</option>
                 <option value="Reporting">Pelaporan</option>
                 <option value="Authentication">Autentikasi</option>
               </select>

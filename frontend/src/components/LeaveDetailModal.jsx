@@ -1,4 +1,5 @@
 import { X, User, Calendar, FileText, Clock, Shield } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 
@@ -23,7 +24,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
         return styles[type] || 'bg-gray-100 text-gray-800';
     };
 
-    return (
+    return createPortal(
         <>
             <div
                 className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
@@ -130,6 +131,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
                     </button>
                 </div>
             </div>
-        </>
+        </>,
+        document.body
     );
 }

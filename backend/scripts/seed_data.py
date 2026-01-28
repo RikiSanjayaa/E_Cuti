@@ -30,7 +30,8 @@ def seed_data():
                 nama=name,
                 pangkat=random.choice(ranks),
                 jabatan=f"{random.choice(jabatan_list)} {random.choice(satkers)}",
-                satker="Polda NTB"
+                satker="Polda NTB",
+                jenis_kelamin=random.choice(["Laki-laki", "Perempuan"])
             )
             db.add(p)
             personnels.append(p)

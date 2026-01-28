@@ -4,15 +4,15 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 
-import ConfirmationModal from '../../components/ConfirmationModal';
-import ImportDetailsModal from '../../components/ImportDetailsModal';
-import AddPersonnelModal from '../../components/AddPersonnelModal';
+import AddPersonnelModal from '@/components/AddPersonnelModal';
+import ImportDetailsModal from '@/components/ImportDetailsModal';
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 export default function Personel() {
   const [searchQuery, setSearchQuery] = useState('');
   const [personnel, setPersonnel] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedPersonnel, setSelectedPersonnel] = useState(null);
 
   // Import State
   const fileInputRef = useRef(null);
@@ -21,6 +21,7 @@ export default function Personel() {
 
   // Add Personnel State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // Notification Modal State (for errors/info)
   const [modal, setModal] = useState({
@@ -281,7 +282,7 @@ export default function Personel() {
                     <tr
                       key={p.id}
                       className="hover:bg-muted/30 cursor-pointer transition-colors"
-                      onClick={() => setSelectedEmployee(p)}
+                      onClick={() => setSelectedPersonnel(p)}
                     >
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
                         {p.nrp}
@@ -321,20 +322,20 @@ export default function Personel() {
         </div>
 
         {/* Detail Overlay & Panel */}
-        {selectedEmployee && createPortal(
+        {selectedPersonnel && createPortal(
           <>
             <div
               className="fixed inset-0 bg-black/50 z-[100] animate-in fade-in duration-300"
-              onClick={() => setSelectedEmployee(null)}
+              onClick={() => setSelectedPersonnel(null)}
             />
             <div className="fixed right-0 inset-y-0 w-full md:w-[600px] bg-white shadow-2xl z-[110] overflow-y-auto animate-in slide-in-from-right duration-300 flex flex-col">
               <div className="sticky top-0 bg-white border-b border-border px-6 py-4 flex items-center justify-between z-10">
                 <div>
                   <h2 className="text-xl font-semibold text-foreground">Detail Personel</h2>
-                  <p className="text-sm text-muted-foreground mt-1">{selectedEmployee.nrp}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{selectedPersonnel.nrp}</p>
                 </div>
                 <button
-                  onClick={() => setSelectedEmployee(null)}
+                  onClick={() => setSelectedPersonnel(null)}
                   className="p-2 hover:bg-accent rounded-md transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5 text-muted-foreground" />
@@ -347,11 +348,11 @@ export default function Personel() {
                   <div className="bg-muted/30 rounded-lg p-4 space-y-4">
                     <div className="flex items-center gap-4">
                       <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-semibold">
-                        {selectedEmployee.nama?.split(' ').slice(0, 2).map(n => n[0]).join('') || 'P'}
+                        {selectedPersonnel.nama?.split(' ').slice(0, 2).map(n => n[0]).join('') || 'P'}
                       </div>
                       <div>
-                        <p className="text-lg font-semibold text-foreground">{selectedEmployee.nama}</p>
-                        <p className="text-sm text-muted-foreground">{selectedEmployee.jabatan}</p>
+                        <p className="text-lg font-semibold text-foreground">{selectedPersonnel.nama}</p>
+                        <p className="text-sm text-muted-foreground">{selectedPersonnel.jabatan}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 gap-3 pt-2">
@@ -359,14 +360,14 @@ export default function Personel() {
                         <MapPin className="w-4 h-4 text-muted-foreground" />
                         <div>
                           <p className="text-xs text-muted-foreground">Satuan Kerja</p>
-                          <p className="text-sm text-foreground">{selectedEmployee.satker}</p>
+                          <p className="text-sm text-foreground">{selectedPersonnel.satker}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <TrendingUp className="w-4 h-4 text-muted-foreground" />
                         <div>
                           <p className="text-xs text-muted-foreground">Pangkat</p>
-                          <p className="text-sm text-foreground">{selectedEmployee.pangkat}</p>
+                          <p className="text-sm text-foreground">{selectedPersonnel.pangkat}</p>
                         </div>
                       </div>
                     </div>
@@ -378,7 +379,7 @@ export default function Personel() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                       <p className="text-xs text-blue-700 mb-1">Sisa Cuti Tahunan</p>
-                      <p className="text-2xl font-semibold text-blue-900">{selectedEmployee.sisa_cuti ?? 12}</p>
+                      <p className="text-2xl font-semibold text-blue-900">{selectedPersonnel.sisa_cuti ?? 12}</p>
                       <p className="text-xs text-blue-600 mt-1">hari tersisa dari 12 hari</p>
                     </div>
                     {/* Additional quota info could go here */}
