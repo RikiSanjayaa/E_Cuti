@@ -175,30 +175,34 @@ export default function Personel() {
               />
             </div>
             <div className="flex gap-2">
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm hover:bg-slate-800 flex items-center gap-2 cursor-pointer shadow-sm"
-              >
-                <div className="bg-white/20 p-0.5 rounded">
-                  <Plus className="w-3 h-3" />
-                </div>
-                Tambah
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImport}
-                className="hidden"
-                accept=".xlsx, .xls"
-              />
-              <button
-                onClick={() => fileInputRef.current.click()}
-                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
-                disabled={importLoading}
-              >
-                {importLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                Import Excel
-              </button>
+              {localStorage.getItem('role') !== 'atasan' && (
+                <>
+                  <button
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm hover:bg-slate-800 flex items-center gap-2 cursor-pointer shadow-sm"
+                  >
+                    <div className="bg-white/20 p-0.5 rounded">
+                      <Plus className="w-3 h-3" />
+                    </div>
+                    Tambah
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImport}
+                    className="hidden"
+                    accept=".xlsx, .xls"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current.click()}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
+                    disabled={importLoading}
+                  >
+                    {importLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    Import Excel
+                  </button>
+                </>
+              )}
               <button className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer">
                 <Download className="w-4 h-4" />
                 Ekspor

@@ -167,13 +167,15 @@ export default function LeaveRecords() {
             Lihat dan kelola riwayat cuti personel
           </p>
         </div>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm text-sm font-medium w-full sm:w-auto justify-center cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          Tambah Izin Cuti
-        </button>
+        {localStorage.getItem('role') !== 'atasan' && (
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm text-sm font-medium w-full sm:w-auto justify-center cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Tambah Izin Cuti
+          </button>
+        )}
       </div>
 
       {/* Filters and Actions */}
@@ -329,20 +331,24 @@ export default function LeaveRecords() {
                         >
                           <Eye className="w-4 h-4 text-muted-foreground" />
                         </button>
-                        <button
-                          onClick={() => handleEdit(leave)}
-                          className="p-1 hover:bg-blue-50 rounded cursor-pointer"
-                          title="Edit"
-                        >
-                          <Edit className="w-4 h-4 text-blue-600" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(leave)}
-                          className="p-1 hover:bg-red-50 rounded cursor-pointer"
-                          title="Hapus"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </button>
+                        {localStorage.getItem('role') !== 'atasan' && (
+                          <>
+                            <button
+                              onClick={() => handleEdit(leave)}
+                              className="p-1 hover:bg-blue-50 rounded cursor-pointer"
+                              title="Edit"
+                            >
+                              <Edit className="w-4 h-4 text-blue-600" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(leave)}
+                              className="p-1 hover:bg-red-50 rounded cursor-pointer"
+                              title="Hapus"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

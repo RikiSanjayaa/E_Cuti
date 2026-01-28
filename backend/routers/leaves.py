@@ -37,9 +37,12 @@ async def get_all_leaves(
     sort_order: str = "desc",
     search: Optional[str] = None,
     type_filter: Optional[str] = None,
-    current_user: models.User = Depends(auth.get_current_admin),
+    current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
+    if current_user.role not in ["super_admin", "atasan"]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+
     query = db.query(models.LeaveHistory).join(models.Personnel).options(joinedload(models.LeaveHistory.personnel))
     
     if search:
