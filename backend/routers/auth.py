@@ -12,8 +12,29 @@ router = APIRouter(
 
 @router.post("/token", response_model=schemas.Token)
 async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(database.get_db)):
+    # Capture context first
+    client_ip = request.client.host
+    user_agent = request.headers.get("user-agent")
+
     user = db.query(models.User).filter(models.User.username == form_data.username).first()
     if not user or not auth.verify_password(form_data.password, user.password_hash):
+        # Log failed attempt
+        try:
+            auth.log_audit(
+                db,
+                user.id if user else None,
+                "LOGIN_FAILED",
+                "Authentication",
+                form_data.username,
+                "User" if user else "Unknown User",
+                f"Failed login attempt for username: {form_data.username}",
+                ip_address=client_ip,
+                user_agent=user_agent,
+                status="failure"
+            )
+        except Exception as e:
+            print(f"Error logging failed login: {e}")
+
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",

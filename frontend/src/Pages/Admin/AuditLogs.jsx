@@ -7,22 +7,23 @@ import { id as idLocale } from 'date-fns/locale';
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [actionFilter, setActionFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const fetchLogs = async () => {
     setLoading(true);
     try {
       const params = {};
-      if (searchQuery) params.search = searchQuery;
       if (actionFilter !== 'all') params.action = actionFilter;
       if (roleFilter !== 'all') params.role = roleFilter;
       if (categoryFilter !== 'all') params.category = categoryFilter;
       if (statusFilter !== 'all') params.status = statusFilter;
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
 
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/audit/', {
@@ -39,7 +40,7 @@ export default function AuditLogs() {
 
   useEffect(() => {
     fetchLogs();
-  }, [searchQuery, actionFilter, roleFilter, categoryFilter, statusFilter]);
+  }, [actionFilter, roleFilter, categoryFilter, statusFilter, startDate, endDate]);
 
   const getActionBadge = (action) => {
     if (action.includes('CREATE')) return 'bg-green-50 text-green-700 border-green-200';
@@ -84,7 +85,7 @@ export default function AuditLogs() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="bg-blue-50 p-3 rounded-lg">
@@ -97,6 +98,43 @@ export default function AuditLogs() {
           </div>
         </div>
         {/* Placeholder stats - normally would come from API summary endpoint */}
+        {/* Card 2: Kegiatan Hari Ini */}
+        <div className="bg-white border border-border rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-green-50 p-3 rounded-lg">
+              <Calendar className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Kegiatan Hari Ini</p>
+              <p className="text-2xl font-semibold text-foreground">
+                {logs.filter(l => {
+                  const today = new Date();
+                  const logDate = new Date(l.timestamp);
+                  return logDate.getDate() === today.getDate() &&
+                    logDate.getMonth() === today.getMonth() &&
+                    logDate.getFullYear() === today.getFullYear();
+                }).length}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Aksi Gagal */}
+        <div className="bg-white border border-border rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-red-50 p-3 rounded-lg">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Aksi Gagal</p>
+              <p className="text-2xl font-semibold text-foreground">
+                {logs.filter(l => l.status === 'failure' || l.status === 'warning').length}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Autentikasi */}
         <div className="bg-white border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="bg-orange-50 p-3 rounded-lg">
@@ -112,108 +150,100 @@ export default function AuditLogs() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white border border-border rounded-lg p-4 space-y-4">
-        {/* Search and Quick Filters */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Cari berdasarkan pengguna, tindakan, target, atau detail..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+      {/* Filters in Header */}
+      <div className="bg-white border border-border rounded-lg p-4">
+        <div className="flex flex-col xl:flex-row gap-4">
+          {/* Date Filters */}
+          <div className="flex gap-2 flex-1 xl:flex-none">
+            <div className="flex-1">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Dari Tanggal</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Sampai Tanggal</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
           </div>
-          <div className="flex gap-2">
+
+          {/* Dropdown Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 flex-1">
+            {/* Role Filter */}
+            <div className="flex-1">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Peran</label>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="all">Semua Peran</option>
+                <option value="super_admin">Super Admin</option>
+                <option value="admin">Admin</option>
+                <option value="atasan">Atasan</option>
+              </select>
+            </div>
+
+            {/* Category Filter */}
+            <div className="flex-1">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Kategori</label>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="all">Semua Kategori</option>
+                <option value="Leave Management">Manajemen Cuti</option>
+                <option value="Employee Management">Manajemen Personel</option>
+                <option value="Reporting">Pelaporan</option>
+                <option value="Authentication">Autentikasi</option>
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex-1">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="all">Semua Status</option>
+                <option value="success">Berhasil</option>
+                <option value="failure">Gagal</option>
+                <option value="warning">Peringatan</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-end gap-2">
             <button
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2"
+              onClick={() => {
+                setRoleFilter('all');
+                setCategoryFilter('all');
+                setStatusFilter('all');
+                setStartDate('');
+                setEndDate('');
+              }}
+              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md h-[38px]"
             >
-              <Filter className="w-4 h-4" />
-              Filter Lanjutan
-              <ChevronDown className={`w-4 h-4 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
+              Reset
             </button>
-            <button className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2">
+            <button className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 h-[38px]">
               <Download className="w-4 h-4" />
-              Ekspor Log
+              Ekspor
             </button>
           </div>
         </div>
-
-        {/* Advanced Filters */}
-        {showAdvancedFilters && (
-          <div className="pt-4 border-t border-border">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Role Filter */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Peran Pengguna
-                </label>
-                <select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                >
-                  <option value="all">Semua Peran</option>
-                  <option value="super_admin">Super Admin</option>
-                  <option value="admin">Admin</option>
-                  <option value="atasan">Atasan</option>
-                </select>
-              </div>
-
-              {/* Category Filter */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Kategori
-                </label>
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                >
-                  <option value="all">Semua Kategori</option>
-                  <option value="Leave Management">Manajemen Cuti</option>
-                  <option value="Employee Management">Manajemen Personel</option>
-                  <option value="Reporting">Pelaporan</option>
-                  <option value="Authentication">Autentikasi</option>
-                </select>
-              </div>
-
-              {/* Status Filter */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Status
-                </label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                >
-                  <option value="all">Semua Status</option>
-                  <option value="success">Berhasil</option>
-                  <option value="failure">Gagal</option>
-                  <option value="warning">Peringatan</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 mt-4">
-              <button
-                onClick={() => {
-                  setActionFilter('all');
-                  setRoleFilter('all');
-                  setCategoryFilter('all');
-                  setStatusFilter('all');
-                }}
-                className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md"
-              >
-                Hapus Filter
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Table */}
