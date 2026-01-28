@@ -1,0 +1,16 @@
+{
+  "name": "e-cuti",
+  "version": "1.0.0",
+  "description": "Sistem Monitoring Izin Personel Polda NTB",
+  "scripts": {
+    "backend": "venv/bin/python3 -m uvicorn backend.main:app --reload --port ${PORT:-8000}",
+    "backend:prod": "venv/bin/python3 -m uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}",
+    "frontend": "npm run dev --prefix frontend",
+    "frontend:build": "npm run build --prefix frontend",
+    "dev": "npx concurrently \"npm run backend\" \"npm run frontend\"",
+    "start": "npm run backend:prod"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

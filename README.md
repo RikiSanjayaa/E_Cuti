@@ -9,6 +9,33 @@ Aplikasi internal (On-Premise) untuk mencatat dan memantau izin anggota kepolisi
 - **Database**: SQLite (File-based)
 - **Deployment**: On-Premise (Localhost)
 
+## Quick Run (Centralized)
+
+### Run Keduanya sekaligus (Backend & Frontend)
+```bash
+npm run dev
+```
+
+### Run Backend saja
+```bash
+npm run backend
+# Custom port:
+PORT=9000 npm run backend
+```
+
+### Run Frontend saja
+```bash
+npm run frontend
+```
+
+### Production Mode
+```bash
+npm run backend:prod
+# Custom port:
+PORT=9000 npm run backend:prod
+```
+---
+
 ## Prasyarat (Prerequisites)
 
 Sebelum menjalankan aplikasi, pastikan komputer Anda sudah terinstall:
@@ -19,100 +46,58 @@ Sebelum menjalankan aplikasi, pastikan komputer Anda sudah terinstall:
 
 ## Panduan Instalasi (Installation)
 
-Ikuti langkah-langkah berikut untuk menjalankan aplikasi di komputer lokal Anda.
+### 1. Setup Backend (Server)
 
-### 1. Clone Repository (Jika dari GitHub)
-```bash
-git clone https://github.com/msaririzki/E_Cuti.git
-cd project-ini
-# Jika folder Anda bernama "E-cuti polda", sesuaikan.
-```
-
-### 2. Setup Backend (Server)
-
-1.  Buka terminal/command prompt dan masuk ke folder proyek.
-2.  **Membuat Virtual Environment (venv)**:
-    Ini penting agar library Python terisolasi dan tidak mengganggu sistem komputer lain.
+1.  **Membuat Virtual Environment (venv)**:
     ```bash
-    # Windows
-    python -m venv venv
-    
-    # Mac/Linux
     python3 -m venv venv
     ```
 
-3.  **Mengaktifkan Virtual Environment**:
+2.  **Mengaktifkan Virtual Environment**:
     ```bash
-    # Windows (Command Prompt)
-    .\venv\Scripts\activate
-    
-    # Windows (PowerShell)
-    .\venv\Scripts\Activate.ps1
-    
-    # Mac/Linux
     source venv/bin/activate
     ```
-    *Jika berhasil, akan muncul tanda `(venv)` di awal baris terminal Anda.*
 
-4.  **Install Library Backend**:
+3.  **Install Library Backend**:
     ```bash
     pip install -r backend/requirements.txt
     ```
 
-5.  **Inisialisasi Database**:
-    Jalankan perintah ini untuk membuat database dan user default (Admin & Atasan):
+4.  **Inisialisasi Database**:
     ```bash
     python -m backend.init_db
     ```
 
-6.  **Menjalankan Server Backend**:
+5.  **Menjalankan Server Backend**:
     ```bash
     uvicorn backend.main:app --reload
     ```
-    Server akan berjalan di `http://localhost:8000`. 
-    *Biarkan terminal ini terbuka.*
 
-### 3. Setup Frontend (Tampilan)
+### 2. Setup Frontend (Tampilan)
 
-1.  Buka terminal **baru** (jangan tutup terminal backend).
-2.  Masuk ke folder `frontend`:
+1.  Masuk ke folder `frontend`:
     ```bash
     cd frontend
     ```
 
-3.  **Install Library Frontend**:
+2.  **Install Library Frontend**:
     ```bash
     npm install
     ```
 
-4.  **Menjalankan Frontend**:
+3.  **Menjalankan Frontend**:
     ```bash
     npm run dev
     ```
-    Aplikasi akan berjalan di `http://localhost:5173` (atau port lain yang muncul di terminal).
-    Buka link tersebut di browser (Chrome/Edge).
 
 ## Cara Penggunaan
 
 ### Login
 Gunakan akun default berikut untuk masuk:
 
-*   **Admin / Operator**:
-    *   Username: `admin`
-    *   Password: `admin123`
-    *   *Fitur: Input izin, upload bukti, kelola data personel.*
-
-*   **Atasan / Pimpinan**:
-    *   Username: `atasan`
-    *   Password: `atasan123`
-    *   *Fitur: Melihat dashboard statistik, grafik, dan download laporan (PDF/Excel).*
-
-### Fitur Import Data
-Jika ingin memasukkan data personel sekaligus:
-1.  Login sebagai Admin.
-2.  Klik tombol "Import Data".
-3.  Upload file Excel (.xlsx) atau CSV dengan kolom minimal: `NRP`, `NAMA`, `PANGKAT`, `JABATAN`, `SATKER`.
+*   **Admin / Operator**: `admin` / `admin123`
+*   **Atasan / Pimpinan**: `atasan` / `atasan123`
 
 ---
 **Catatan Keamanan**: 
-Aplikasi ini menyimpan file upload di folder `uploads/` secara lokal. Pastikan folder tersebut memiliki izin baca/tulis.
+Aplikasi ini menyimpan file upload di folder `uploads/` secara lokal.
