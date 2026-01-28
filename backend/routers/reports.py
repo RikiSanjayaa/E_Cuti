@@ -8,7 +8,8 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from .. import database, models, auth, schemas
+from backend.core import database, auth
+from backend import models, schemas
 
 router = APIRouter(
     prefix="/api/reports",

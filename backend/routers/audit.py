@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
-from .. import database, models, schemas, auth
+from backend.core import database, auth
+from backend import models, schemas
 
 router = APIRouter(
     prefix="/api/audit",

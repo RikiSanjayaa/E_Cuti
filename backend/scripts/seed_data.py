@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from .database import SessionLocal
-from . import models
+from backend.core.database import SessionLocal
+from backend import models
 import random
 from datetime import date, timedelta, datetime
 

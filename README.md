@@ -65,7 +65,11 @@ Sebelum menjalankan aplikasi, pastikan komputer Anda sudah terinstall:
 
 4.  **Inisialisasi Database**:
     ```bash
-    python -m backend.init_db
+    python -m backend.scripts.init_db
+    ```
+    *(Opsional)* Reset & Seed Ulang:
+    ```bash
+    python -m backend.scripts.refresh_db
     ```
 
 5.  **Menjalankan Server Backend**:

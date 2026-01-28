@@ -1,4 +1,4 @@
-from backend.database import SessionLocal
+from backend.core.database import SessionLocal
 from backend.models import User
 
 try:

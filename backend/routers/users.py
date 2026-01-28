@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from passlib.context import CryptContext
-from .. import database, models, schemas, auth
+from backend.core import database, auth
+from backend import models, schemas
 
 router = APIRouter(
     prefix="/api/users",

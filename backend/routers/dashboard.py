@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, text
 from datetime import date, timedelta
 from typing import List
-from .. import database, models, auth, schemas
+from backend.core import database, auth
+from backend import models, schemas
 from datetime import datetime
 
 router = APIRouter(

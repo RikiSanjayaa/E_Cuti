@@ -26,7 +26,7 @@ def run_db_refresh():
     # 4. Run initialization
     print("\n[*] Initializing database structure...")
     try:
-        subprocess.run([python_bin, "-m", "backend.init_db"], check=True)
+        subprocess.run([python_bin, "-m", "backend.scripts.init_db"], check=True)
     except subprocess.CalledProcessError:
         print("[!] Initialization failed!")
         return
@@ -34,7 +34,7 @@ def run_db_refresh():
     # 5. Run seeding
     print("\n[*] Seeding database with dummy data...")
     try:
-        subprocess.run([python_bin, "-m", "backend.seed_data"], check=True)
+        subprocess.run([python_bin, "-m", "backend.scripts.seed_data"], check=True)
     except subprocess.CalledProcessError:
         print("[!] Seeding failed!")
         return

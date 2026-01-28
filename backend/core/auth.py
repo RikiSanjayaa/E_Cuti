@@ -6,8 +6,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from .database import get_db
-from .models import User
-from . import schemas
+from backend.models import User
+from backend import schemas
 
 # SECRET KEY should be in env var in production
 SECRET_KEY = "polda-ntb-secret-key-change-me"
@@ -67,7 +67,7 @@ async def get_current_admin(current_user: User = Depends(get_current_user)):
     return current_user
 
 def log_audit(db: Session, user_id: int, action: str, category: str, target: str, target_type: str, details: str, status: str = "success", ip_address: str = None, user_agent: str = None):
-    from .models import AuditLog
+    from backend.models import AuditLog
     db_log = AuditLog(
         user_id=user_id,
         action=action,

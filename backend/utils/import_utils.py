@@ -1,6 +1,6 @@
 import pandas as pd
 import re
-from .models import Personnel
+from backend.models import Personnel
 from sqlalchemy.orm import Session
 
 def parse_pangkat_nrp(value):

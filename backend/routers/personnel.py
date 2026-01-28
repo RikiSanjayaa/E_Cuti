@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 import json
 import pandas as pd
-from .. import database, models, auth, schemas
+from backend.core import database, auth
+from backend import models, schemas
 
 router = APIRouter(
     prefix="/api/personnel",
@@ -99,7 +100,7 @@ async def import_personnel(file: UploadFile = File(...), current_user: models.Us
             import shutil
             import tempfile
             import os
-            from .. import import_utils
+
             
             # Save to temp file because import_utils needs path (and excel reading is complex)
             with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:

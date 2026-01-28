@@ -5,7 +5,8 @@ import shutil
 import uuid
 import os
 from typing import Optional
-from .. import database, models, auth, schemas
+from backend.core import database, auth
+from backend import models, schemas
 
 router = APIRouter(
     prefix="/api/leaves",

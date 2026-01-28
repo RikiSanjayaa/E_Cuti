@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from .database import SessionLocal, engine
-from . import models
+from backend.core.database import SessionLocal, engine
+from backend import models
 from sqlalchemy import text
 
 def reset_database():
