@@ -5,6 +5,7 @@ import json
 import pandas as pd
 from backend.core import database, auth
 from backend import models, schemas
+from backend.utils import import_utils
 
 router = APIRouter(
     prefix="/api/personnel",
