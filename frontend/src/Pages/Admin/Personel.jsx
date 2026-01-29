@@ -22,8 +22,8 @@ const CopyButton = ({ text }) => {
     <button
       onClick={handleCopy}
       className={`p-1.5 rounded-md transition-all duration-200 flex items-center justify-center ${copied
-          ? 'bg-green-100 text-green-600'
-          : 'text-muted-foreground hover:text-primary hover:bg-slate-100 opacity-0 group-hover:opacity-100'
+        ? 'bg-green-100 text-green-600'
+        : 'text-muted-foreground hover:text-primary hover:bg-slate-100 opacity-0 group-hover:opacity-100'
         }`}
       title={copied ? "Tersalin!" : "Salin NRP"}
     >
@@ -219,12 +219,24 @@ export default function Personel() {
   return (
     <div className="relative">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Personel</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Direktori personel dan informasi cuti
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Personel</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Direktori personel dan informasi cuti
+            </p>
+          </div>
+          {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm text-sm font-medium w-full sm:w-auto justify-center cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Tambah Personel
+            </button>
+          )}
         </div>
+
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -262,7 +274,7 @@ export default function Personel() {
             <div className="flex gap-2">
               {localStorage.getItem('role') !== 'atasan' && (
                 <>
-                  <button
+                  {/* <button
                     onClick={() => setIsAddModalOpen(true)}
                     className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm hover:bg-slate-800 flex items-center gap-2 cursor-pointer shadow-sm"
                   >
@@ -270,7 +282,7 @@ export default function Personel() {
                       <Plus className="w-3 h-3" />
                     </div>
                     Tambah
-                  </button>
+                  </button> */}
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -553,8 +565,8 @@ export default function Personel() {
                                       <div className="flex justify-between items-start mb-2">
                                         <div className="flex items-center gap-2">
                                           <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${leave.jenis_izin === 'Cuti Tahunan' ? 'bg-blue-50 text-blue-600' :
-                                              leave.jenis_izin === 'Sakit' ? 'bg-red-50 text-red-600' :
-                                                'bg-orange-50 text-orange-600'
+                                            leave.jenis_izin === 'Sakit' ? 'bg-red-50 text-red-600' :
+                                              'bg-orange-50 text-orange-600'
                                             }`}>
                                             {leave.jenis_izin}
                                           </span>
