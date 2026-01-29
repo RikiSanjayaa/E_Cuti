@@ -128,7 +128,7 @@ def seed_data():
                 tanggal_mulai=start_date,
                 alasan="Sedang Cuti (Active)",
                 created_by=admin_id,
-                created_at=datetime.now()
+                created_at=datetime.utcnow()
             )
             db.add(leave)
             

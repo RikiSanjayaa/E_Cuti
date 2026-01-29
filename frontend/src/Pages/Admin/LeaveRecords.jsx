@@ -171,6 +171,11 @@ export default function LeaveRecords() {
     return format(new Date(date), 'd MMM yyyy', { locale: localeId });
   };
 
+  const formatDateTime = (date) => {
+    if (!date) return '-';
+    return format(new Date(date), 'd MMM yyyy HH:mm', { locale: localeId });
+  };
+
   const getEndDate = (startDate, days) => {
     if (!startDate) return null;
     return addDays(new Date(startDate), days - 1);
@@ -381,6 +386,15 @@ export default function LeaveRecords() {
                 </th>
                 <th
                   className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('created_at')}
+                >
+                  <div className="flex items-center">
+                    Tgl Entry
+                    <SortIcon field="created_at" />
+                  </div>
+                </th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => handleSort('tanggal_mulai')}
                 >
                   <div className="flex items-center">
@@ -420,13 +434,13 @@ export default function LeaveRecords() {
             <tbody className="divide-y divide-border">
               {loading ? (
                 <tr>
-                  <td colSpan="8" className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan="9" className="px-6 py-8 text-center text-muted-foreground">
                     Memuat data...
                   </td>
                 </tr>
               ) : filteredLeaves.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan="9" className="px-6 py-8 text-center text-muted-foreground">
                     Tidak ada data ditemukan.
                   </td>
                 </tr>
@@ -438,6 +452,9 @@ export default function LeaveRecords() {
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
                       {leave.personnel?.nama}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      {formatDateTime(leave.created_at)}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
                       {formatSingleDate(leave.tanggal_mulai)}

@@ -1,5 +1,5 @@
 import { X, Calendar, FileText, User, AlertCircle, CheckCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { getLeaveColorClass } from '@/utils/leaveUtils';
@@ -117,6 +117,8 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     }
   };
 
+  const formRef = useRef(null);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -150,13 +152,31 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       }
 
       setSubmitSuccess(true);
+      // Scroll to top to see success message
+      if (formRef.current) {
+        formRef.current.parentElement.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
       setTimeout(() => {
         resetForm();
         onClose();
       }, 2000);
     } catch (error) {
       console.error("Submission error:", error);
-      setSubmitError(error.response?.data?.detail || 'Failed to submit leave record.');
+      const errorData = error.response?.data?.detail;
+      let errorMsg = 'Gagal menyimpan data cuti.';
+
+      if (typeof errorData === 'string') {
+        errorMsg = errorData;
+      } else if (Array.isArray(errorData)) {
+        errorMsg = errorData.map(err => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(', ');
+      }
+
+      setSubmitError(errorMsg);
+      // Scroll to top to see error message
+      if (formRef.current) {
+        formRef.current.parentElement.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -188,9 +208,20 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     if (!selectedType || !personel.balances) return null;
 
     const balance = personel.balances[selectedType.name];
-    if (balance === undefined || balance === null) return selectedType.default_quota;
+    let remaining = 0;
 
-    return typeof balance === 'object' ? balance.remaining : balance;
+    if (balance === undefined || balance === null) {
+      remaining = selectedType.default_quota;
+    } else {
+      remaining = typeof balance === 'object' ? balance.remaining : balance;
+    }
+
+    // If editing, add back the days of the current record to show actual available balance
+    if (isEditMode && initialData && parseInt(leaveTypeId) === initialData.leave_type_id) {
+      remaining += parseInt(initialData.jumlah_hari) || 0;
+    }
+
+    return remaining;
   };
 
   if (!isOpen) return null;
@@ -218,7 +249,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
         </div>
 
         <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form ref={formRef} onSubmit={handleSubmit} className="p-6 space-y-6">
             {submitSuccess && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3 animate-in slide-in-from-top duration-300">
                 <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
@@ -384,10 +415,19 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                     placeholder="Hari"
                     value={days}
                     onChange={(e) => setDays(e.target.value)}
-                    className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    className={`w-full px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring ${days && getSelectedTypeBalance() !== null && parseInt(days) > getSelectedTypeBalance()
+                      ? 'border-red-500 focus:ring-red-200'
+                      : 'border-input'
+                      }`}
                     required
                     disabled={isSubmitting}
                   />
+                  {days && getSelectedTypeBalance() !== null && parseInt(days) > getSelectedTypeBalance() && (
+                    <p className="text-[10px] text-red-500 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      Melebihi sisa kuota ({getSelectedTypeBalance()} hari)
+                    </p>
+                  )}
                 </div>
               </div>
 
