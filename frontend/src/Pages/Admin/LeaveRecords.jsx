@@ -533,45 +533,17 @@ export default function LeaveRecords() {
       />
 
       {/* Delete Confirmation Dialog */}
-      {
-        isDeleteModalOpen && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
-              onClick={() => !deleteLoading && setIsDeleteModalOpen(false)}
-            />
-            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-lg shadow-xl z-50 p-6 animate-in zoom-in-95 duration-200">
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="bg-red-100 p-3 rounded-full">
-                  <AlertTriangle className="w-6 h-6 text-red-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground">Hapus Data Cuti?</h3>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Apakah Anda yakin ingin menghapus data cuti ini? Tindakan ini tidak dapat dibatalkan.
-                  </p>
-                </div>
-                <div className="flex gap-3 w-full pt-2">
-                  <button
-                    onClick={() => setIsDeleteModalOpen(false)}
-                    disabled={deleteLoading}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    onClick={handleConfirmDelete}
-                    disabled={deleteLoading}
-                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
-                  >
-                    {deleteLoading ? 'Menghapus...' : 'Hapus'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </>
-        )
-      }
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => !deleteLoading && setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Data Cuti?"
+        message="Apakah Anda yakin ingin menghapus data cuti ini? Tindakan ini tidak dapat dibatalkan."
+        type="danger"
+        confirmText="Hapus"
+        isLoading={deleteLoading}
+      />
     </div >
   );
 }

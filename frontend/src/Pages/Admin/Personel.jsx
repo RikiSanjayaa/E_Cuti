@@ -342,15 +342,6 @@ export default function Personel() {
             <div className="flex gap-2">
               {localStorage.getItem('role') !== 'atasan' && (
                 <>
-                  <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm hover:bg-slate-800 flex items-center gap-2 cursor-pointer shadow-sm"
-                  >
-                    <div className="bg-white/20 p-0.5 rounded">
-                      <Plus className="w-3 h-3" />
-                    </div>
-                    Tambah
-                  </button>
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -496,78 +487,78 @@ export default function Personel() {
             />
             {/* Side Drawer Container - Fixed Right */}
             <div className="fixed right-0 inset-y-0 w-full md:w-[450px] bg-white shadow-2xl z-[110] overflow-y-auto animate-in slide-in-from-right duration-300 flex flex-col">
-                
-                {/* Simple Header */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-white sticky top-0 z-10">
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-900 leading-tight" title={selectedEmployee.nama}>
-                      {selectedEmployee.nama}
-                    </h2>
-                    <div className="flex items-center gap-2 mt-1 text-slate-500 text-sm font-medium">
-                      <Shield className="w-4 h-4" />
-                      {selectedEmployee.pangkat}
-                    </div>
+
+              {/* Simple Header */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-white sticky top-0 z-10">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 leading-tight" title={selectedPersonnel.nama}>
+                    {selectedPersonnel.nama}
+                  </h2>
+                  <div className="flex items-center gap-2 mt-1 text-slate-500 text-sm font-medium">
+                    <Shield className="w-4 h-4" />
+                    {selectedPersonnel.pangkat}
                   </div>
-                  <button
-                    onClick={() => setSelectedEmployee(null)}
-                    className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
                 </div>
+                <button
+                  onClick={() => setSelectedPersonnel(null)}
+                  className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-                {/* Content Grid (Clean Minimalist Design) */}
-                <div className="px-6 pb-6 mt-2">
-                  
-                  <div className="grid grid-cols-2 gap-y-6 gap-x-4">
-                    {/* NRP */}
-                    <div>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
-                          NRP
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm text-slate-800 tracking-wide">{selectedEmployee.nrp}</span>
-                          <CopyButton text={selectedEmployee.nrp} />
-                        </div>
-                    </div>
+              {/* Content Grid (Clean Minimalist Design) */}
+              <div className="px-6 pb-6 mt-2">
 
-                    {/* Gender */}
-                    <div>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
-                          Gender
-                        </p>
-                        <p className="font-semibold text-sm text-slate-800">
-                          {selectedEmployee.jenis_kelamin === 'L' ? 'Laki-laki' : selectedEmployee.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
-                        </p>
-                    </div>
-
-                    {/* Jabatan */}
-                    <div className="col-span-2">
-                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Jabatan</p>
-                         <p className="font-semibold text-sm text-slate-800 leading-snug">{selectedEmployee.jabatan}</p>
-                    </div>
-
-                    {/* Sisa Cuti (Clean Progress) */}
-                    <div className="col-span-2 pt-2 pb-2">
-                         <div className="flex justify-between items-end mb-2">
-                            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex items-center gap-1">
-                               <Calendar className="w-3 h-3" /> Sisa Cuti Tahunan
-                            </p>
-                             <div className="flex items-baseline gap-1">
-                                 <span className={`text-xl font-bold ${(selectedEmployee.sisa_cuti ?? 12) === 0 ? 'text-red-600' : 'text-slate-900'}`}>
-                                   {selectedEmployee.sisa_cuti ?? 12}
-                                 </span>
-                                 <span className="text-[10px] text-slate-400 font-medium">/ 12</span>
-                             </div>
-                         </div>
-                         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden w-full">
-                           <div 
-                              className="h-full bg-slate-800 rounded-full transition-all duration-500" 
-                              style={{ width: `${((selectedEmployee.sisa_cuti ?? 12) / 12) * 100}%` }}
-                           />
-                         </div>
+                <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+                  {/* NRP */}
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
+                      NRP
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-slate-800 tracking-wide">{selectedPersonnel.nrp}</span>
+                      <CopyButton text={selectedPersonnel.nrp} />
                     </div>
                   </div>
+
+                  {/* Gender */}
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
+                      Gender
+                    </p>
+                    <p className="font-semibold text-sm text-slate-800">
+                      {selectedPersonnel.jenis_kelamin === 'L' ? 'Laki-laki' : selectedPersonnel.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
+                    </p>
+                  </div>
+
+                  {/* Jabatan */}
+                  <div className="col-span-2">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Jabatan</p>
+                    <p className="font-semibold text-sm text-slate-800 leading-snug">{selectedPersonnel.jabatan}</p>
+                  </div>
+
+                  {/* Sisa Cuti (Clean Progress) */}
+                  <div className="col-span-2 pt-2 pb-2">
+                    <div className="flex justify-between items-end mb-2">
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex items-center gap-1">
+                        <Calendar className="w-3 h-3" /> Sisa Cuti Tahunan
+                      </p>
+                      <div className="flex items-baseline gap-1">
+                        <span className={`text-xl font-bold ${(selectedPersonnel.sisa_cuti ?? 12) === 0 ? 'text-red-600' : 'text-slate-900'}`}>
+                          {selectedPersonnel.sisa_cuti ?? 12}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium">/ 12</span>
+                      </div>
+                    </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden w-full">
+                      <div
+                        className="h-full bg-slate-800 rounded-full transition-all duration-500"
+                        style={{ width: `${((selectedPersonnel.sisa_cuti ?? 12) / 12) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
 
                 {/* Leave History Section */}
                 <div className="mt-4">
@@ -601,18 +592,18 @@ export default function Personel() {
                           const totalDays = leaves.reduce((sum, item) => sum + item.jumlah_hari, 0);
                           const totalCount = leaves.length;
 
-                             return (
-                               <div key={year} className="space-y-3 animate-in slide-in-from-bottom-2 duration-500">
-                                  {/* Year Header */}
-                                  <div className="flex items-center gap-3 px-1"> 
-                                     <h4 className="text-lg font-bold text-slate-900">{year}</h4>
-                                     <div className="h-px bg-slate-200 flex-1" />
-                                     <div className="flex gap-3 text-[10px] bg-slate-100 px-2 py-1 rounded-full text-slate-600 font-medium">
-                                        <span>{totalCount}x Izin</span>
-                                        <span className="w-px bg-slate-300 h-3 self-center" />
-                                        <span>Total {totalDays} Hari</span>
-                                     </div>
-                                  </div>
+                          return (
+                            <div key={year} className="space-y-3 animate-in slide-in-from-bottom-2 duration-500">
+                              {/* Year Header */}
+                              <div className="flex items-center gap-3 px-1">
+                                <h4 className="text-lg font-bold text-slate-900">{year}</h4>
+                                <div className="h-px bg-slate-200 flex-1" />
+                                <div className="flex gap-3 text-[10px] bg-slate-100 px-2 py-1 rounded-full text-slate-600 font-medium">
+                                  <span>{totalCount}x Izin</span>
+                                  <span className="w-px bg-slate-300 h-3 self-center" />
+                                  <span>Total {totalDays} Hari</span>
+                                </div>
+                              </div>
 
                               {/* Cards List */}
                               <div className="space-y-3">
@@ -629,30 +620,29 @@ export default function Personel() {
                                   const id = `LR-${year}-${String(leave.id || idx + 1).padStart(3, '0')}`;
                                   const createdDate = new Date(leave.created_at || new Date()).toLocaleDateString('id-ID');
 
-                                       return (
-                                          <div key={leave.id || idx} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
-                                             {/* Top Row */}
-                                             <div className="flex justify-between items-start mb-2">
-                                                <div className="flex items-center gap-2">
-                                                   <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
-                                                      leave.jenis_izin === 'Cuti Tahunan' ? 'bg-blue-50 text-blue-600' : 
-                                                      leave.jenis_izin === 'Sakit' ? 'bg-red-50 text-red-600' : 
-                                                      'bg-orange-50 text-orange-600'
-                                                   }`}>
-                                                      {leave.jenis_izin}
-                                                   </span>
-                                                   <span className="text-sm font-bold text-slate-900">{leave.jumlah_hari} hari</span>
-                                                </div>
-                                                <span className="text-xs font-mono text-slate-400">{id}</span>
-                                             </div>
+                                  return (
+                                    <div key={leave.id || idx} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                                      {/* Top Row */}
+                                      <div className="flex justify-between items-start mb-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${leave.jenis_izin === 'Cuti Tahunan' ? 'bg-blue-50 text-blue-600' :
+                                            leave.jenis_izin === 'Sakit' ? 'bg-red-50 text-red-600' :
+                                              'bg-orange-50 text-orange-600'
+                                            }`}>
+                                            {leave.jenis_izin}
+                                          </span>
+                                          <span className="text-sm font-bold text-slate-900">{leave.jumlah_hari} hari</span>
+                                        </div>
+                                        <span className="text-xs font-mono text-slate-400">{id}</span>
+                                      </div>
 
-                                             {/* Date Range */}
-                                             <div className="text-sm text-slate-600 font-medium mb-3">
-                                                {formatDate(startDate)} s/d {formatDate(endDate)}
-                                             </div>
+                                      {/* Date Range */}
+                                      <div className="text-sm text-slate-600 font-medium mb-3">
+                                        {formatDate(startDate)} s/d {formatDate(endDate)}
+                                      </div>
 
-                                             {/* Divider */}
-                                             <div className="h-px bg-slate-100 my-3" />
+                                      {/* Divider */}
+                                      <div className="h-px bg-slate-100 my-3" />
 
                                       {/* Footer */}
                                       <div className="flex justify-between items-center text-[10px] text-zinc-400">
