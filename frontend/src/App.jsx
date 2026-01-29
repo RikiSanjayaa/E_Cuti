@@ -6,6 +6,7 @@ import Personel from './Pages/Admin/Personel';
 import Analytics from './Pages/Admin/Analytics';
 import AuditLogs from './Pages/Admin/AuditLogs';
 import UserManagement from './Pages/Admin/UserManagement';
+import LeaveTypeManagement from './Pages/Admin/LeaveTypeManagement';
 import AtasanDashboard from './Pages/Atasan/Dashboard';
 import Reports from './Pages/Atasan/Reports';
 import AdminLayout from './Layouts/AdminLayout';
@@ -36,6 +37,7 @@ function App() {
           <Route path="/admin/analytics" element={<Analytics />} />
           <Route path="/admin/audit" element={<AuditLogs />} />
           <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/admin/leave-types" element={<LeaveTypeManagement />} />
           <Route path="/" element={<Navigate to="/admin" replace />} />
         </Route>
 

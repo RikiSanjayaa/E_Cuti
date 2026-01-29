@@ -3,6 +3,7 @@ import { Pagination } from '../../components/Pagination';
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
+import { getLeaveColorClass, getLeaveColors } from '@/utils/leaveUtils';
 
 import AddPersonnelModal from '@/components/AddPersonnelModal';
 import ImportDetailsModal from '@/components/ImportDetailsModal';
@@ -77,10 +78,26 @@ export default function Personel() {
     new_personnel: 0
   });
 
+  // Leave types for color lookup
+  const [leaveTypes, setLeaveTypes] = useState([]);
+
   useEffect(() => {
     fetchFilters();
     fetchStats();
+    fetchLeaveTypes();
   }, []);
+
+  const fetchLeaveTypes = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/leave-types/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setLeaveTypes(response.data);
+    } catch (error) {
+      console.error("Failed to fetch leave types:", error);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -455,9 +472,27 @@ export default function Personel() {
                         {p.jabatan}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
-                        <span className={p.sisa_cuti < 5 ? 'text-red-600' : 'text-green-600'}>
-                          {p.sisa_cuti} hari
-                        </span>
+                        {p.balances ? (
+                          <div className="flex flex-wrap gap-1">
+                            {Object.entries(p.balances)
+                              .sort(([a], [b]) => a === 'Melahirkan' ? 1 : b === 'Melahirkan' ? -1 : 0) // Melahirkan last
+                              .slice(0, 7)
+                              .map(([type, data]) => {
+                                // Handle both old (int) and new (obj) structure just in case, though backend is updated
+                                const remaining = typeof data === 'object' ? data.remaining : data;
+                                return (
+                                  <span key={type} className={`text-xs px-1.5 py-0.5 rounded border ${getLeaveColorClass(type, leaveTypes)}`}>
+                                    {type.split(' ')[0]}: {remaining}
+                                  </span>
+                                );
+                              })}
+                            {Object.keys(p.balances).length > 7 && (
+                              <span className="text-xs text-muted-foreground">+{Object.keys(p.balances).length - 7}</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -538,25 +573,59 @@ export default function Personel() {
                     <p className="font-semibold text-sm text-slate-800 leading-snug">{selectedPersonnel.jabatan}</p>
                   </div>
 
-                  {/* Sisa Cuti (Clean Progress) */}
+                  {/* Per-Type Balances */}
                   <div className="col-span-2 pt-2 pb-2">
-                    <div className="flex justify-between items-end mb-2">
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex items-center gap-1">
-                        <Calendar className="w-3 h-3" /> Sisa Cuti Tahunan
-                      </p>
-                      <div className="flex items-baseline gap-1">
-                        <span className={`text-xl font-bold ${(selectedPersonnel.sisa_cuti ?? 12) === 0 ? 'text-red-600' : 'text-slate-900'}`}>
-                          {selectedPersonnel.sisa_cuti ?? 12}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-medium">/ 12</span>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex items-center gap-1 mb-3">
+                      <Calendar className="w-3 h-3" /> Sisa Kuota Cuti
+                    </p>
+                    {selectedPersonnel.balances && Object.keys(selectedPersonnel.balances).length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                        {Object.entries(selectedPersonnel.balances)
+                          .sort(([a], [b]) => a === 'Melahirkan' ? 1 : b === 'Melahirkan' ? -1 : 0)
+                          .map(([type, data]) => {
+                            const colors = getLeaveColors(type, leaveTypes);
+
+                            // Handle integer (legacy/cached) vs object (new) structure
+                            const isObj = typeof data === 'object';
+                            const remaining = isObj ? data.remaining : data;
+
+                            // Safe defaults for quota if using cached data
+                            const defaultQuotas = {
+                              'Cuti Tahunan': 12,
+                              'Sakit': 14,
+                              'Melahirkan': 90,
+                              'Istimewa': 8,
+                              'Keagamaan': 5,
+                              'Di Luar Tanggungan Negara': 30,
+                              'Alasan Penting': 10
+                            };
+
+                            const total = isObj ? data.quota : (defaultQuotas[type] || 12);
+
+                            // Calculate Percentage based on REMAINING (Full bar = Full Quota)
+                            const percent = Math.min(100, (remaining / total) * 100);
+
+                            return (
+                              <div key={type} className="space-y-1">
+                                <div className="flex justify-between text-xs font-medium">
+                                  <span className={colors.text}>{type}</span>
+                                  <span className="text-muted-foreground">
+                                    Sisa: {remaining} / {total} Hari
+                                  </span>
+                                </div>
+                                <div className={`h-2 w-full rounded-full ${colors.track} overflow-hidden`}>
+                                  <div
+                                    className={`h-full rounded-full ${colors.bar} transition-all duration-500`}
+                                    style={{ width: `${percent}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
                       </div>
-                    </div>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden w-full">
-                      <div
-                        className="h-full bg-slate-800 rounded-full transition-all duration-500"
-                        style={{ width: `${((selectedPersonnel.sisa_cuti ?? 12) / 12) * 100}%` }}
-                      />
-                    </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Tidak ada data kuota</p>
+                    )}
                   </div>
                 </div>
 
@@ -625,11 +694,8 @@ export default function Personel() {
                                       {/* Top Row */}
                                       <div className="flex justify-between items-start mb-2">
                                         <div className="flex items-center gap-2">
-                                          <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${leave.jenis_izin === 'Cuti Tahunan' ? 'bg-blue-50 text-blue-600' :
-                                            leave.jenis_izin === 'Sakit' ? 'bg-red-50 text-red-600' :
-                                              'bg-orange-50 text-orange-600'
-                                            }`}>
-                                            {leave.jenis_izin}
+                                          <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${getLeaveColorClass(leave.leave_type)}`}>
+                                            {leave.leave_type?.name || '-'}
                                           </span>
                                           <span className="text-sm font-bold text-slate-900">{leave.jumlah_hari} hari</span>
                                         </div>

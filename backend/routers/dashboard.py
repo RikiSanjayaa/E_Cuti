@@ -43,7 +43,10 @@ async def get_dashboard_stats(current_user: models.User = Depends(auth.get_curre
             })
 
     # 3. Recent Activity (15 latest)
-    recent_activity = db.query(models.LeaveHistory).order_by(models.LeaveHistory.created_at.desc()).limit(15).all()
+    from sqlalchemy.orm import joinedload
+    recent_activity = db.query(models.LeaveHistory)\
+        .options(joinedload(models.LeaveHistory.personnel), joinedload(models.LeaveHistory.leave_type))\
+        .order_by(models.LeaveHistory.created_at.desc()).limit(15).all()
     
     # 4. Total Leave Entries
     total_leaves = db.query(models.LeaveHistory).count()

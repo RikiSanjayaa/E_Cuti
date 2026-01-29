@@ -2,6 +2,7 @@ import { X, User, Calendar, FileText, Clock, Shield } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
+import { getLeaveColorClass } from '@/utils/leaveUtils';
 
 export function LeaveDetailModal({ isOpen, onClose, leave }) {
     if (!isOpen || !leave) return null;
@@ -11,18 +12,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
         return format(new Date(dateString), 'd MMMM yyyy', { locale: localeId });
     };
 
-    const getStatusColor = (type) => {
-        const styles = {
-            'Cuti Tahunan': 'bg-blue-100 text-blue-800',
-            'Sakit': 'bg-red-100 text-red-800',
-            'Istimewa': 'bg-purple-100 text-purple-800',
-            'Melahirkan': 'bg-green-100 text-green-800',
-            'Keagamaan': 'bg-orange-100 text-orange-800',
-            'Di Luar Tanggungan Negara': 'bg-gray-100 text-gray-800',
-            'Alasan Penting': 'bg-yellow-100 text-yellow-800',
-        };
-        return styles[type] || 'bg-gray-100 text-gray-800';
-    };
+
 
     return createPortal(
         <>
@@ -68,16 +58,9 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
                                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                                     <FileText className="w-3 h-3" /> Jenis Cuti
                                 </p>
-                                <span className={`inline-block px-2 py-1 rounded-md text-sm font-medium ${getStatusColor(leave.jenis_izin)}`}>
-                                    {leave.jenis_izin}
+                                <span className={`inline-block px-2 py-1 rounded-md text-sm font-medium border ${getLeaveColorClass(leave.leave_type)}`}>
+                                    {leave.leave_type?.name || '-'}
                                 </span>
-                            </div>
-
-                            <div className="space-y-1">
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <Clock className="w-3 h-3" /> Durasi
-                                </p>
-                                <p className="font-medium">{leave.jumlah_hari} Hari</p>
                             </div>
 
                             <div className="space-y-1">
@@ -89,10 +72,35 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
 
                             <div className="space-y-1">
                                 <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" /> Tanggal Selesai
+                                </p>
+                                <p className="font-medium">
+                                    {leave.tanggal_mulai ? formatDate(new Date(leave.tanggal_mulai).setDate(new Date(leave.tanggal_mulai).getDate() + (leave.jumlah_hari - 1))) : '-'}
+                                </p>
+                            </div>
+
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground flex items-center gap-1">
                                     <Shield className="w-3 h-3" /> Dicatat Oleh
                                 </p>
                                 <p className="font-medium text-sm">
                                     {leave.creator?.full_name || leave.creator?.username || 'System'}
+                                </p>
+                            </div>
+
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Clock className="w-3 h-3" /> Durasi
+                                </p>
+                                <p className="font-medium">{leave.jumlah_hari} Hari</p>
+                            </div>
+
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Clock className="w-3 h-3" /> Sisa Cuti
+                                </p>
+                                <p className="font-medium text-sm">
+                                    {leave.sisa_cuti !== undefined ? `${leave.sisa_cuti} Hari` : '-'}
                                 </p>
                             </div>
                         </div>

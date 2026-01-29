@@ -11,14 +11,18 @@ class Role(str, enum.Enum):
     admin = "admin"
     atasan = "atasan"
 
-class LeaveType(str, enum.Enum):
-    cuti_tahunan = "Cuti Tahunan"
-    sakit = "Sakit"
-    istimewa = "Istimewa"
-    keagamaan = "Keagamaan"
-    melahirkan = "Melahirkan"
-    di_luar_tanggungan = "Di Luar Tanggungan Negara"
-    alasan_penting = "Alasan Penting"
+class LeaveType(Base):
+    """Database-driven leave types with configurable quotas"""
+    __tablename__ = "leave_types"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)  # e.g., "Cuti Tahunan"
+    code = Column(String, unique=True, nullable=False)  # e.g., "cuti_tahunan"
+    default_quota = Column(Integer, nullable=False)     # e.g., 12 days
+    gender_specific = Column(String, nullable=True)     # 'P' for female-only, None for all
+    color = Column(String, nullable=True, default="blue")  # Preset color: blue, red, green, etc.
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class User(Base):
     __tablename__ = "users"
@@ -53,7 +57,7 @@ class LeaveHistory(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     personnel_id = Column(Integer, ForeignKey("personnel.id"))
-    jenis_izin = Column(Enum(LeaveType))
+    leave_type_id = Column(Integer, ForeignKey("leave_types.id"))
     jumlah_hari = Column(Integer)
     tanggal_mulai = Column(Date)
     alasan = Column(Text)
@@ -62,6 +66,7 @@ class LeaveHistory(Base):
     created_by = Column(Integer, ForeignKey("users.id"))
 
     personnel = relationship("Personnel", back_populates="leaves")
+    leave_type = relationship("LeaveType")
     creator = relationship("User")
 
 class AuditLog(Base):

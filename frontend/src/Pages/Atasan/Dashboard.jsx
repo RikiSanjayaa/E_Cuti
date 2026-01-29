@@ -138,7 +138,7 @@ export default function AtasanDashboard() {
           ) : (
             statsData.recent_activity.map((activity, index) => {
               const user = activity.creator ? (activity.creator.full_name || activity.creator.username) : 'System';
-              const action = `${activity.jenis_izin} - ${activity.personnel.nama}`;
+              const action = `${activity.leave_type?.name || 'Cuti'} - ${activity.personnel?.nama}`;
               const dateStr = formatDistanceToNow(new Date(activity.created_at), { addSuffix: true });
 
               return (

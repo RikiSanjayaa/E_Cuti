@@ -3,7 +3,8 @@ from fastapi.responses import StreamingResponse
 import io
 import pandas as pd
 from sqlalchemy.orm import Session, joinedload
-from datetime import date
+from sqlalchemy import extract, func, or_, and_
+from datetime import date, datetime
 import shutil
 import uuid
 import os
@@ -25,7 +26,7 @@ async def export_leaves(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
-    query = db.query(models.LeaveHistory).join(models.Personnel)
+    query = db.query(models.LeaveHistory).join(models.Personnel).join(models.LeaveType)
     
     if search:
         search_term = f"%{search}%"
@@ -35,14 +36,14 @@ async def export_leaves(
         )
         
     if type_filter and type_filter != 'all':
-        query = query.filter(models.LeaveHistory.jenis_izin == type_filter)
+        query = query.filter(models.LeaveType.code == type_filter)
         
     if sort_by:
         valid_sort_fields = {
             "created_at": models.LeaveHistory.created_at,
             "tanggal_mulai": models.LeaveHistory.tanggal_mulai,
             "jumlah_hari": models.LeaveHistory.jumlah_hari,
-            "jenis_izin": models.LeaveHistory.jenis_izin,
+            "jenis_izin": models.LeaveType.name,
             "nama": models.Personnel.nama,
             "nrp": models.Personnel.nrp
         }
@@ -54,14 +55,14 @@ async def export_leaves(
     else:
          query = query.order_by(models.LeaveHistory.created_at.desc())
          
-    leaves = query.all()
+    leaves = query.options(joinedload(models.LeaveHistory.leave_type)).all()
     
     data = []
     for leave in leaves:
         data.append({
             "NRP": leave.personnel.nrp if leave.personnel else "-",
             "Personel": leave.personnel.nama if leave.personnel else "-",
-            "Jenis Cuti": leave.jenis_izin.value,
+            "Jenis Cuti": leave.leave_type.name if leave.leave_type else "-",
             "Tanggal Mulai": leave.tanggal_mulai.strftime("%Y-%m-%d"),
             "Jumlah Hari": leave.jumlah_hari,
             "Alasan": leave.alasan
@@ -88,7 +89,7 @@ async def get_recent_leaves(
     db: Session = Depends(database.get_db)
 ):
     return db.query(models.LeaveHistory)\
-        .options(joinedload(models.LeaveHistory.personnel))\
+        .options(joinedload(models.LeaveHistory.personnel), joinedload(models.LeaveHistory.leave_type))\
         .filter(models.LeaveHistory.created_by == current_user.id)\
         .order_by(models.LeaveHistory.created_at.desc())\
         .limit(5)\
@@ -112,7 +113,10 @@ async def get_all_leaves(
     if current_user.role not in ["super_admin", "atasan"]:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
-    query = db.query(models.LeaveHistory).join(models.Personnel).options(joinedload(models.LeaveHistory.personnel))
+    query = db.query(models.LeaveHistory)\
+        .join(models.Personnel)\
+        .join(models.LeaveType)\
+        .options(joinedload(models.LeaveHistory.personnel), joinedload(models.LeaveHistory.leave_type))
     
     if search:
         search_term = f"%{search}%"
@@ -122,7 +126,7 @@ async def get_all_leaves(
         )
         
     if type_filter and type_filter != 'all':
-        query = query.filter(models.LeaveHistory.jenis_izin == type_filter)
+        query = query.filter(models.LeaveType.code == type_filter)
         
     if created_by:
         query = query.filter(models.LeaveHistory.created_by == created_by)
@@ -142,7 +146,7 @@ async def get_all_leaves(
         valid_sort_fields = {
             "created_at": models.LeaveHistory.created_at,
             "tanggal_mulai": models.LeaveHistory.tanggal_mulai,
-            "jenis_izin": models.LeaveHistory.jenis_izin,
+            "jenis_izin": models.LeaveType.name,
             "jumlah_hari": models.LeaveHistory.jumlah_hari,
             "nama": models.Personnel.nama,
             "nrp": models.Personnel.nrp
@@ -159,32 +163,24 @@ async def get_all_leaves(
 
     leaves = query.offset(skip).limit(limit).all()
 
-    # Calculate Progressive Sisa Cuti (Snapshot) for each leave record
-    if leaves:
-        from sqlalchemy import extract, func, or_, and_
-        from datetime import datetime
+    # Calculate sisa_cuti for each leave
+    for leave in leaves:
+        if not leave.personnel or not leave.leave_type:
+            continue
+            
+        current_year = leave.tanggal_mulai.year
         
-        for leave in leaves:
-            current_year = leave.tanggal_mulai.year
+        # Calculate used quota for this specific year/person/type
+        used_q = db.query(func.sum(models.LeaveHistory.jumlah_hari))\
+            .filter(
+                models.LeaveHistory.personnel_id == leave.personnel_id,
+                models.LeaveHistory.leave_type_id == leave.leave_type_id,
+                extract('year', models.LeaveHistory.tanggal_mulai) == current_year
+            ).scalar()
             
-            # Query TOTAL usage for this personnel in this year UP TO this specific leave
-            # Condition: (Same year) AND (start_date < this_start OR (start_date == this_start AND created_at <= this_created))
-            
-            usage_up_to_now = db.query(func.sum(models.LeaveHistory.jumlah_hari))\
-                .filter(
-                    models.LeaveHistory.personnel_id == leave.personnel_id,
-                    extract('year', models.LeaveHistory.tanggal_mulai) == current_year,
-                    or_(
-                        models.LeaveHistory.tanggal_mulai < leave.tanggal_mulai,
-                        and_(
-                            models.LeaveHistory.tanggal_mulai == leave.tanggal_mulai,
-                            models.LeaveHistory.created_at <= leave.created_at
-                        )
-                    )
-                ).scalar()
-            
-            used = usage_up_to_now or 0
-            leave.sisa_cuti = max(0, 12 - used)
+        used = used_q or 0
+        quota = leave.leave_type.default_quota
+        leave.sisa_cuti = max(0, quota - used)
 
     return leaves
 
@@ -192,12 +188,12 @@ async def get_all_leaves(
 async def create_leave(
     request: Request,
     nrp: str = Form(...),
-    jenis_izin: str = Form(...),
+    leave_type_id: int = Form(...),
     jumlah_hari: int = Form(...),
     tanggal_mulai: date = Form(...),
     alasan: str = Form(...),
     file: Optional[UploadFile] = File(None),
-    current_user: models.User = Depends(auth.get_current_admin), # Restricted to Admin
+    current_user: models.User = Depends(auth.get_current_admin),
     db: Session = Depends(database.get_db)
 ):
     # 1. Verify Personnel
@@ -205,42 +201,58 @@ async def create_leave(
     if not personnel:
         raise HTTPException(status_code=404, detail="Personnel with this NRP not found")
 
-    # 1.5 Calculate Quota for ALL leave types (Universal 12 Days Rule)
-    # Note: Removed "if jenis_izin == models.LeaveType.cuti_tahunan" check
-    from sqlalchemy import extract, func
-    from datetime import datetime
-    current_year = datetime.now().year
+    # 2. Verify Leave Type
+    leave_type = db.query(models.LeaveType).filter(
+        models.LeaveType.id == leave_type_id,
+        models.LeaveType.is_active == True
+    ).first()
+    if not leave_type:
+        raise HTTPException(status_code=404, detail="Leave type not found or inactive")
+    
+    # 3. Check gender-specific leave type
+    if leave_type.gender_specific:
+        if personnel.jenis_kelamin != leave_type.gender_specific:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Leave type '{leave_type.name}' is only available for personnel with gender '{leave_type.gender_specific}'"
+            )
+
+    # 4. Calculate remaining quota for THIS SPECIFIC leave type
+    current_year = tanggal_mulai.year
     
     used_q = db.query(func.sum(models.LeaveHistory.jumlah_hari))\
         .filter(
             models.LeaveHistory.personnel_id == personnel.id,
+            models.LeaveHistory.leave_type_id == leave_type_id,
             extract('year', models.LeaveHistory.tanggal_mulai) == current_year
         ).scalar()
         
     used = used_q or 0
-    remaining = 12 - used
+    remaining = leave_type.default_quota - used
+    
     if remaining < jumlah_hari:
-            raise HTTPException(status_code=400, detail=f"Sisa cuti tidak mencukupi. Sisa: {remaining} hari, Pengajuan: {jumlah_hari} hari.")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Kuota {leave_type.name} tidak mencukupi. Sisa: {remaining} hari, Pengajuan: {jumlah_hari} hari."
+        )
 
-    # 2. File Handling
+    # 5. File Handling
     file_path = None
     if file:
         if file.content_type not in VALID_FILE_TYPES:
             raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPG, PNG, PDF")
         
-        # Generate unique filename
         extension = file.filename.split(".")[-1]
         unique_filename = f"{uuid.uuid4()}.{extension}"
         file_path = f"{UPLOAD_DIR}/{unique_filename}"
         
-        # Save file
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
-    # 3. Create Leave Record
+    # 6. Create Leave Record
     new_leave = models.LeaveHistory(
         personnel_id=personnel.id,
-        jenis_izin=jenis_izin,
+        leave_type_id=leave_type_id,
         jumlah_hari=jumlah_hari,
         tanggal_mulai=tanggal_mulai,
         alasan=alasan,
@@ -251,7 +263,10 @@ async def create_leave(
     db.commit()
     db.refresh(new_leave)
     
-    # 4. Audit Log
+    # Load relationships for response
+    db.refresh(new_leave, ['leave_type', 'personnel'])
+    
+    # 7. Audit Log
     auth.log_audit(
         db, 
         current_user.id, 
@@ -259,7 +274,7 @@ async def create_leave(
         "Leave Management", 
         nrp, 
         "Personnel", 
-        f"Input izin for NRP {nrp}: {jenis_izin} ({jumlah_hari} days)",
+        f"Input izin for NRP {nrp}: {leave_type.name} ({jumlah_hari} days)",
         ip_address=request.client.host,
         user_agent=request.headers.get("user-agent")
     )
@@ -271,7 +286,7 @@ async def update_leave(
     request: Request,
     leave_id: int,
     nrp: str = Form(...),
-    jenis_izin: str = Form(...),
+    leave_type_id: int = Form(...),
     jumlah_hari: int = Form(...),
     tanggal_mulai: date = Form(...),
     alasan: str = Form(...),
@@ -283,32 +298,49 @@ async def update_leave(
     if not leave:
         raise HTTPException(status_code=404, detail="Leave record not found")
         
-    # Verify Personnel if changed (optional logic, but good for consistency)
+    # Verify Personnel
     personnel = db.query(models.Personnel).filter(models.Personnel.nrp == nrp).first()
     if not personnel:
         raise HTTPException(status_code=404, detail="Personnel with this NRP not found")
 
-    # Validate Quota on Update (Universal 12 Days Rule)
-    # Note: Removed "if jenis_izin == models.LeaveType.cuti_tahunan" check
-    from sqlalchemy import extract, func
-    from datetime import datetime
-    current_year = datetime.now().year
+    # Verify Leave Type
+    leave_type = db.query(models.LeaveType).filter(
+        models.LeaveType.id == leave_type_id,
+        models.LeaveType.is_active == True
+    ).first()
+    if not leave_type:
+        raise HTTPException(status_code=404, detail="Leave type not found or inactive")
+    
+    # Check gender-specific
+    if leave_type.gender_specific and personnel.jenis_kelamin != leave_type.gender_specific:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Leave type '{leave_type.name}' is only available for personnel with gender '{leave_type.gender_specific}'"
+        )
+
+    # Validate Quota on Update (exclude current record)
+    current_year = tanggal_mulai.year
     
     used_q = db.query(func.sum(models.LeaveHistory.jumlah_hari))\
         .filter(
             models.LeaveHistory.personnel_id == personnel.id,
+            models.LeaveHistory.leave_type_id == leave_type_id,
             extract('year', models.LeaveHistory.tanggal_mulai) == current_year,
-            models.LeaveHistory.id != leave_id  # Exclude self
+            models.LeaveHistory.id != leave_id
         ).scalar()
         
     used = used_q or 0
-    remaining = 12 - used
+    remaining = leave_type.default_quota - used
+    
     if remaining < jumlah_hari:
-            raise HTTPException(status_code=400, detail=f"Sisa cuti tidak mencukupi untuk update. Sisa: {remaining} hari, Pengajuan baru: {jumlah_hari} hari.")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Kuota {leave_type.name} tidak mencukupi untuk update. Sisa: {remaining} hari, Pengajuan baru: {jumlah_hari} hari."
+        )
 
     # Update fields
     leave.personnel_id = personnel.id
-    leave.jenis_izin = jenis_izin
+    leave.leave_type_id = leave_type_id
     leave.jumlah_hari = jumlah_hari
     leave.tanggal_mulai = tanggal_mulai
     leave.alasan = alasan
@@ -317,10 +349,6 @@ async def update_leave(
     if file:
         if file.content_type not in VALID_FILE_TYPES:
             raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPG, PNG, PDF")
-        
-        # Delete old file if exists (optional but recommended to save space)
-        # if leave.file_path and os.path.exists(leave.file_path):
-        #     os.remove(leave.file_path)
 
         extension = file.filename.split(".")[-1]
         unique_filename = f"{uuid.uuid4()}.{extension}"
@@ -333,6 +361,9 @@ async def update_leave(
 
     db.commit()
     db.refresh(leave)
+    
+    # Load relationships for response
+    db.refresh(leave, ['leave_type', 'personnel'])
 
     auth.log_audit(
         db, 

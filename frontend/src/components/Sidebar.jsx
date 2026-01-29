@@ -6,6 +6,7 @@ import {
   UserCog,
   BarChart3,
   Shield,
+  ClipboardList,
   X
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -22,6 +23,7 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
     { id: 'analytics', label: 'Analitik', icon: BarChart3, path: role === 'atasan' ? '/atasan/analytics' : '/admin/analytics', roles: ['admin', 'super_admin', 'atasan'] },
     { id: 'audit', label: 'Log Audit', icon: Shield, path: '/admin/audit', roles: ['admin', 'super_admin'] },
     { id: 'users', label: 'Manajemen Pengguna', icon: UserCog, path: '/admin/users', roles: ['admin', 'super_admin'] },
+    { id: 'leave-types', label: 'Jenis Cuti', icon: ClipboardList, path: '/admin/leave-types', roles: ['admin', 'super_admin'] },
   ];
 
   // Filter items based on role

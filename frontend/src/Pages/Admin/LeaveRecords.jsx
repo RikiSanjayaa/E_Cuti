@@ -7,12 +7,16 @@ import { id as localeId } from 'date-fns/locale';
 import { AddLeaveModal } from '@/components/AddLeaveModal';
 import { LeaveDetailModal } from '@/components/LeaveDetailModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import { getLeaveColorClass } from '@/utils/leaveUtils';
 
 export default function LeaveRecords() {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Leave Types for filter dropdown
+  const [leaveTypes, setLeaveTypes] = useState([]);
 
   // Advanced Filters State
   const [showFilters, setShowFilters] = useState(false);
@@ -47,12 +51,25 @@ export default function LeaveRecords() {
 
   useEffect(() => {
     fetchAdmins();
+    fetchLeaveTypes();
   }, []);
+
+  const fetchLeaveTypes = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/leave-types/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setLeaveTypes(response.data);
+    } catch (error) {
+      console.error("Failed to fetch leave types", error);
+    }
+  };
 
   const fetchAdmins = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/users/?limit=100', { // fetching enough potential creators
+      const response = await axios.get('/api/users/?limit=100', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const admins = response.data.filter(u => ['super_admin', 'admin'].includes(u.role));
@@ -147,18 +164,7 @@ export default function LeaveRecords() {
     }
   };
 
-  const getStatusColor = (type) => {
-    const styles = {
-      'Cuti Tahunan': 'bg-blue-50 text-blue-700 border-blue-200',
-      'Sakit': 'bg-red-50 text-red-700 border-red-200',
-      'Istimewa': 'bg-purple-50 text-purple-700 border-purple-200',
-      'Melahirkan': 'bg-green-50 text-green-700 border-green-200',
-      'Keagamaan': 'bg-orange-50 text-orange-700 border-orange-200',
-      'Di Luar Tanggungan Negara': 'bg-gray-50 text-gray-700 border-gray-200',
-      'Alasan Penting': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    };
-    return styles[type] || 'bg-gray-50 text-gray-700 border-gray-200';
-  };
+
 
   const formatSingleDate = (date) => {
     if (!date) return '-';
@@ -260,13 +266,9 @@ export default function LeaveRecords() {
               className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="all">Semua Jenis</option>
-              <option value="Cuti Tahunan">Cuti Tahunan</option>
-              <option value="Sakit">Sakit</option>
-              <option value="Istimewa">Istimewa</option>
-              <option value="Melahirkan">Melahirkan</option>
-              <option value="Keagamaan">Keagamaan</option>
-              <option value="Di Luar Tanggungan Negara">Di Luar Tanggungan Negara</option>
-              <option value="Alasan Penting">Alasan Penting</option>
+              {leaveTypes.map(lt => (
+                <option key={lt.id} value={lt.code}>{lt.name}</option>
+              ))}
             </select>
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -453,11 +455,11 @@ export default function LeaveRecords() {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border ${getStatusColor(
-                          leave.jenis_izin
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border ${getLeaveColorClass(
+                          leave.leave_type
                         )}`}
                       >
-                        {leave.jenis_izin}
+                        {leave.leave_type?.name || '-'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">

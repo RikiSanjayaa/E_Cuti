@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict
 from datetime import datetime, date
-from .models import Role, LeaveType
+from .models import Role
 
 class Token(BaseModel):
     access_token: str
@@ -42,12 +42,39 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
+# ===== Leave Type Schemas =====
+class LeaveTypeBase(BaseModel):
+    name: str
+    code: str
+    default_quota: int
+    gender_specific: Optional[str] = None
+    color: Optional[str] = "blue"
+    is_active: bool = True
+
+class LeaveTypeCreate(LeaveTypeBase):
+    pass
+
+class LeaveTypeUpdate(BaseModel):
+    name: Optional[str] = None
+    code: Optional[str] = None
+    default_quota: Optional[int] = None
+    gender_specific: Optional[str] = None
+    color: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class LeaveType(LeaveTypeBase):
+    id: int
+    created_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+# ===== Personnel Schemas =====
 class PersonnelBase(BaseModel):
     nrp: str
     nama: str
     pangkat: str
     jabatan: str
-
     jenis_kelamin: Optional[str] = None
 
 class PersonnelCreate(PersonnelBase):
@@ -55,14 +82,17 @@ class PersonnelCreate(PersonnelBase):
 
 class Personnel(PersonnelBase):
     id: int
-    sisa_cuti: Optional[int] = 12
+    # Per-type leave balances: {"Cuti Tahunan": 10, "Sakit": 14, ...}
+    # Per-type leave balances: {"Cuti Tahunan": {"remaining": 10, "quota": 12}, ...}
+    balances: Optional[Dict[str, Dict[str, int]]] = None
     
     class Config:
         from_attributes = True
 
+# ===== Leave Schemas =====
 class LeaveCreate(BaseModel):
     nrp: str
-    jenis_izin: LeaveType
+    leave_type_id: int
     jumlah_hari: int
     tanggal_mulai: date
     alasan: str
@@ -70,7 +100,7 @@ class LeaveCreate(BaseModel):
 class LeaveHistory(BaseModel):
     id: int
     personnel_id: int
-    jenis_izin: LeaveType
+    leave_type_id: int
     jumlah_hari: int
     tanggal_mulai: date
     alasan: str
@@ -79,12 +109,14 @@ class LeaveHistory(BaseModel):
     created_by: int
     
     personnel: Optional[Personnel] = None
+    leave_type: Optional[LeaveType] = None
     creator: Optional[User] = None
-    sisa_cuti: Optional[int] = None # Allow computed field
+    sisa_cuti: Optional[int] = None
     
     class Config:
         from_attributes = True
 
+# ===== Dashboard & Analytics Schemas =====
 class DashboardStats(BaseModel):
     total_leaves_today: int
     total_leave_entries: int

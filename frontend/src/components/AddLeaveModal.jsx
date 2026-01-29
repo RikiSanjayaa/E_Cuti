@@ -2,12 +2,13 @@ import { X, Calendar, FileText, User, AlertCircle, CheckCircle } from 'lucide-re
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
+import { getLeaveColorClass } from '@/utils/leaveUtils';
 
 export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [nrp, setNrp] = useState('');
   const [personel, setPersonnel] = useState(null);
   const [searchError, setSearchError] = useState('');
-  const [leaveType, setLeaveType] = useState('');
+  const [leaveTypeId, setLeaveTypeId] = useState('');
   const [startDate, setStartDate] = useState('');
   const [days, setDays] = useState('');
   const [context, setContext] = useState('');
@@ -16,12 +17,44 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
+  // New state for dynamic leave types
+  const [leaveTypes, setLeaveTypes] = useState([]);
+  const [loadingLeaveTypes, setLoadingLeaveTypes] = useState(false);
+
   const isEditMode = !!initialData;
+
+  // Fetch leave types when personnel is found (to filter by gender)
+  useEffect(() => {
+    const fetchLeaveTypes = async () => {
+      if (!personel) {
+        setLeaveTypes([]);
+        return;
+      }
+
+      setLoadingLeaveTypes(true);
+      try {
+        const token = localStorage.getItem('token');
+        // Pass gender filter to get only applicable leave types
+        const gender = personel.gender || '';
+        const res = await axios.get(`/api/leave-types/${gender ? `?gender=${gender}` : ''}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setLeaveTypes(res.data);
+      } catch (error) {
+        console.error("Error fetching leave types:", error);
+        setLeaveTypes([]);
+      } finally {
+        setLoadingLeaveTypes(false);
+      }
+    };
+
+    fetchLeaveTypes();
+  }, [personel]);
 
   useEffect(() => {
     if (initialData && isOpen) {
       setNrp(initialData.personnel?.nrp || '');
-      setLeaveType(initialData.jenis_izin || '');
+      setLeaveTypeId(initialData.leave_type_id || '');
       setStartDate(initialData.tanggal_mulai || '');
       setDays(initialData.jumlah_hari || '');
       setContext(initialData.alasan || '');
@@ -29,7 +62,8 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
         name: initialData.personnel.nama,
         nrp: initialData.personnel.nrp,
         position: initialData.personnel.jabatan ? `${initialData.personnel.pangkat} - ${initialData.personnel.jabatan}` : '',
-        quota: initialData.personnel.sisa_cuti || 0
+        gender: initialData.personnel.jenis_kelamin,
+        balances: initialData.personnel.balances || {}
       } : null);
     } else if (!isOpen) {
       resetForm();
@@ -54,7 +88,8 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
         name: res.data.nama,
         nrp: res.data.nrp,
         position: `${res.data.pangkat} - ${res.data.jabatan}`,
-        quota: res.data.sisa_cuti
+        gender: res.data.jenis_kelamin,
+        balances: res.data.balances || {}
       });
 
     } catch (error) {
@@ -64,10 +99,10 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     }
   };
 
-  // Auto-search effect (only if not in edit mode or nrp changed manually)
+  // Auto-search effect
   useEffect(() => {
-    // Avoid auto-search on initial load of edit mode if NRP is already set
-    if (isEditMode && nrp === initialData?.personnel?.nrp) return;
+    // We want to fetch fresh data (especially balances) even on edit mode
+    // so we don't return early anymore.
 
     const delayDebounceFn = setTimeout(() => {
       if (nrp && nrp.length >= 4) handlePersonnelSearch();
@@ -90,7 +125,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     try {
       const formData = new FormData();
       formData.append('nrp', nrp);
-      formData.append('jenis_izin', leaveType);
+      formData.append('leave_type_id', leaveTypeId);
       formData.append('jumlah_hari', days);
       formData.append('tanggal_mulai', startDate);
       formData.append('alasan', context);
@@ -103,15 +138,13 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       if (isEditMode) {
         await axios.put(`/api/leaves/${initialData.id}`, formData, {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+            'Authorization': `Bearer ${token}`
           }
         });
       } else {
         await axios.post('/api/leaves/', formData, {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+            'Authorization': `Bearer ${token}`
           }
         });
       }
@@ -133,18 +166,31 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     setNrp('');
     setPersonnel(null);
     setSearchError('');
-    setLeaveType('');
+    setLeaveTypeId('');
     setStartDate('');
     setDays('');
     setContext('');
     setFile(null);
     setSubmitSuccess(false);
     setSubmitError('');
+    setLeaveTypes([]);
   };
 
   const handleClose = () => {
     resetForm();
     onClose();
+  };
+
+  // Get selected leave type's remaining balance
+  const getSelectedTypeBalance = () => {
+    if (!leaveTypeId || !personel || !leaveTypes.length) return null;
+    const selectedType = leaveTypes.find(lt => lt.id === parseInt(leaveTypeId));
+    if (!selectedType || !personel.balances) return null;
+
+    const balance = personel.balances[selectedType.name];
+    if (balance === undefined || balance === null) return selectedType.default_quota;
+
+    return typeof balance === 'object' ? balance.remaining : balance;
   };
 
   if (!isOpen) return null;
@@ -217,27 +263,51 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                   <p className="text-xs text-red-500 mt-1">{searchError}</p>
                 )}
 
-                {/* Personnel Preview Card */}
+                {/* Personnel Preview Card with Per-Type Balances */}
                 {personel && (
-                  <div className="mt-4 bg-primary/5 border border-primary/10 rounded-lg p-4 flex items-start gap-4 animate-in fade-in slide-in-from-top-2">
-                    <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold shrink-0">
-                      {personel.name ? personel.name.charAt(0) : 'P'}
-                    </div>
-                    <div className="space-y-1 flex-1">
-                      <p className="font-semibold text-foreground">{personel.name}</p>
-                      <p className="text-xs text-muted-foreground">NRP: {personel.nrp}</p>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        <p className="text-xs text-muted-foreground bg-white/50 px-2 py-0.5 rounded-full border border-border">
-                          {personel.position}
-                        </p>
-                        <p className={`text-xs px-2 py-0.5 rounded-full border ${personel.quota > 0 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
-                          Sisa Cuti: {personel.quota} Hari
-                        </p>
+                  <div className="mt-4 bg-primary/5 border border-primary/10 rounded-lg p-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold shrink-0">
+                        {personel.name ? personel.name.charAt(0) : 'P'}
+                      </div>
+                      <div className="space-y-1 flex-1">
+                        <p className="font-semibold text-foreground">{personel.name}</p>
+                        <p className="text-xs text-muted-foreground">NRP: {personel.nrp}</p>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <p className="text-xs text-muted-foreground bg-white/50 px-2 py-0.5 rounded-full border border-border">
+                            {personel.position}
+                          </p>
+                          {personel.gender && (
+                            <p className="text-xs text-muted-foreground bg-white/50 px-2 py-0.5 rounded-full border border-border">
+                              {personel.gender === 'L' ? 'Laki-laki' : 'Perempuan'}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="ml-auto">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
                       </div>
                     </div>
-                    <div className="ml-auto">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    </div>
+
+                    {/* Per-Type Balances */}
+                    {personel.balances && Object.keys(personel.balances).length > 0 && (
+                      <div className="mt-4 pt-3 border-t border-primary/10">
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Sisa Kuota Cuti:</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {Object.entries(personel.balances).map(([type, data]) => {
+                            const remaining = typeof data === 'object' ? data.remaining : data;
+                            return (
+                              <div
+                                key={type}
+                                className={`text-xs px-2 py-1.5 rounded border ${getLeaveColorClass(type, leaveTypes)}`}
+                              >
+                                <span className="font-medium">{type}:</span> {remaining} hari
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -251,27 +321,38 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 </label>
               </div>
 
-              {/* Leave Type */}
+              {/* Leave Type - Dynamic Dropdown */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Jenis Cuti <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={leaveType}
-                  onChange={(e) => setLeaveType(e.target.value)}
+                  value={leaveTypeId}
+                  onChange={(e) => setLeaveTypeId(e.target.value)}
                   className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   required
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || loadingLeaveTypes || !personel}
                 >
-                  <option value="">Pilih jenis cuti</option>
-                  <option value="Cuti Tahunan">Cuti Tahunan</option>
-                  <option value="Sakit">Sakit</option>
-                  <option value="Istimewa">Istimewa</option>
-                  <option value="Keagamaan">Keagamaan</option>
-                  <option value="Melahirkan">Melahirkan</option>
-                  <option value="Di Luar Tanggungan Negara">Di Luar Tanggungan Negara</option>
-                  <option value="Alasan Penting">Alasan Penting</option>
+                  <option value="">
+                    {!personel ? 'Pilih personel terlebih dahulu' : loadingLeaveTypes ? 'Memuat jenis cuti...' : 'Pilih jenis cuti'}
+                  </option>
+                  {leaveTypes.map(lt => {
+                    const balance = personel?.balances?.[lt.name];
+                    const remaining = (balance && typeof balance === 'object') ? balance.remaining : (balance ?? lt.default_quota);
+                    return (
+                      <option key={lt.id} value={lt.id}>
+                        {lt.name}
+                      </option>
+                    );
+                  })}
                 </select>
+
+                {/* Show selected type's remaining balance prominently */}
+                {leaveTypeId && personel && getSelectedTypeBalance() !== null && (
+                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700 animate-in fade-in">
+                    Sisa kuota: <strong>{getSelectedTypeBalance()}</strong> hari
+                  </div>
+                )}
               </div>
 
               {/* Date and Days */}

@@ -1,3 +1,7 @@
+"""
+Seed script to populate dummy data for development/testing.
+Run migrate_leave_types.py first to set up the schema and leave types.
+"""
 from sqlalchemy.orm import Session
 from backend.core.database import SessionLocal
 from backend import models
@@ -7,6 +11,16 @@ from datetime import date, timedelta, datetime
 def seed_data():
     db = SessionLocal()
     
+    # Check if leave types exist (migration must run first)
+    leave_types = db.query(models.LeaveType).filter(models.LeaveType.is_active == True).all()
+    if not leave_types:
+        print("ERROR: No leave types found. Run migrate_leave_types.py first!")
+        db.close()
+        return
+    
+    # Build a map for easy lookup
+    leave_type_map = {lt.code: lt for lt in leave_types}
+    
     # 1. Seed Personnel
     if db.query(models.Personnel).count() > 0:
         print("Data personnel already exists. Skipping personnel seed.")
@@ -15,22 +29,31 @@ def seed_data():
         print("Seeding Personnel...")
         ranks = ["Bripda", "Briptu", "Brigadir", "Bripka", "Aipda", "Aiptu", "Ipda", "Iptu", "AKP", "Kompol", "AKBP", "Kombes"]
         jabatan_list = ["Anggota", "Kanit", "Kasubnit", "Pamin", "Kaur", "Kabag", "Kasat"]
-        jabatan_list = ["Anggota", "Kanit", "Kasubnit", "Pamin", "Kaur", "Kabag", "Kasat"]
-        names = [
-            "Adi Pratama", "Budi Santoso", "Citra Dewi", "Dedi Kurniawan", "Eko Prasetyo", 
-            "Fajar Nugroho", "Gita Pertiwi", "Hadi Sucipto", "Indah Sari", "Joko Susilo",
-            "Kiki Amalia", "Lina Wati", "Muhamad Rizky", "Nurul Hidayah", "Oki Saputra",
-            "Putri Ayu", "Qori Ahlam", "Rini Suharti", "Slamet Riyadi", "Tri Wahyuni"
+        
+        # Names with explicit gender assignment
+        names_male = [
+            ("Adi Pratama", "L"), ("Budi Santoso", "L"), ("Dedi Kurniawan", "L"), 
+            ("Eko Prasetyo", "L"), ("Fajar Nugroho", "L"), ("Hadi Sucipto", "L"), 
+            ("Joko Susilo", "L"), ("Muhamad Rizky", "L"), ("Oki Saputra", "L"), 
+            ("Slamet Riyadi", "L")
+        ]
+        names_female = [
+            ("Citra Dewi", "P"), ("Gita Pertiwi", "P"), ("Indah Sari", "P"), 
+            ("Kiki Amalia", "P"), ("Lina Wati", "P"), ("Nurul Hidayah", "P"), 
+            ("Putri Ayu", "P"), ("Qori Ahlam", "P"), ("Rini Suharti", "P"), 
+            ("Tri Wahyuni", "P")
         ]
         
+        names = names_male + names_female
+        
         personnels = []
-        for i, name in enumerate(names):
+        for i, (name, gender) in enumerate(names):
             p = models.Personnel(
                 nrp=f"8501{1000+i}",
                 nama=name,
                 pangkat=random.choice(ranks),
                 jabatan=f"{random.choice(jabatan_list)}",
-                jenis_kelamin=random.choice(["L", "P"])
+                jenis_kelamin=gender
             )
             db.add(p)
             personnels.append(p)
@@ -49,7 +72,9 @@ def seed_data():
          print("Leave history already populated.")
     else:
         print("Seeding Leave History...")
-        leave_types = ["Cuti Tahunan", "Sakit", "Istimewa", "Alasan Penting", "Keagamaan"]
+        
+        # Types that can be used by anyone
+        general_leave_types = ['cuti_tahunan', 'sakit', 'istimewa', 'alasan_penting', 'keagamaan']
         reasons = ["Acara Keluarga", "Sakit Demam", "Menikah", "Ibadah Umroh", "Urusan Mendesak", "Istirahat"]
         
         today = date.today()
@@ -61,14 +86,26 @@ def seed_data():
             # Random date within last 4 months
             start_date = today - timedelta(days=random.randint(0, 120))
             
+            # Choose a valid leave type for this personnel
+            if p.jenis_kelamin == 'P' and random.random() < 0.1:
+                # 10% chance for female to have maternity leave
+                lt_code = 'melahirkan'
+                days = random.randint(30, 90)
+            else:
+                lt_code = random.choice(general_leave_types)
+            
+            leave_type = leave_type_map.get(lt_code)
+            if not leave_type:
+                continue
+            
             leave = models.LeaveHistory(
                 personnel_id=p.id,
-                jenis_izin=random.choice(leave_types),
+                leave_type_id=leave_type.id,
                 jumlah_hari=days,
                 tanggal_mulai=start_date,
                 alasan=random.choice(reasons),
                 created_by=admin_id,
-                created_at=datetime.combine(start_date, datetime.min.time()) # Set created_at same as start approx
+                created_at=datetime.combine(start_date, datetime.min.time())
             )
             db.add(leave)
             
@@ -79,9 +116,14 @@ def seed_data():
             # Start date is today or recent enough to be active
             start_date = today - timedelta(days=random.randint(0, days-1))
             
+            lt_code = random.choice(general_leave_types)
+            leave_type = leave_type_map.get(lt_code)
+            if not leave_type:
+                continue
+            
             leave = models.LeaveHistory(
                 personnel_id=p.id,
-                jenis_izin=random.choice(leave_types),
+                leave_type_id=leave_type.id,
                 jumlah_hari=days,
                 tanggal_mulai=start_date,
                 alasan="Sedang Cuti (Active)",

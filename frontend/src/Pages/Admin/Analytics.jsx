@@ -16,6 +16,23 @@ export default function Analytics() {
     data: []
   });
   const [loading, setLoading] = useState(false);
+  const [leaveTypes, setLeaveTypes] = useState([]);
+
+  useEffect(() => {
+    fetchLeaveTypes();
+  }, []);
+
+  const fetchLeaveTypes = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/leave-types', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setLeaveTypes(response.data);
+    } catch (error) {
+      console.error("Failed to fetch leave types", error);
+    }
+  };
 
   useEffect(() => {
     // Set default dates (current month)
@@ -137,13 +154,9 @@ export default function Analytics() {
               className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="all">Semua Jenis</option>
-              <option value="Cuti Tahunan">Cuti Tahunan</option>
-              <option value="Sakit">Sakit</option>
-              <option value="Istimewa">Istimewa</option>
-              <option value="Melahirkan">Melahirkan</option>
-              <option value="Keagamaan">Keagamaan</option>
-              <option value="Di Luar Tanggungan Negara">Di Luar Tanggungan Negara</option>
-              <option value="Alasan Penting">Alasan Penting</option>
+              {leaveTypes.map(lt => (
+                <option key={lt.id} value={lt.code}>{lt.name}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -247,7 +260,7 @@ export default function Analytics() {
                       {record.personnel?.nama}
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
-                      {record.jenis_izin}
+                      {record.leave_type?.name || '-'}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
                       {format(new Date(record.tanggal_mulai), 'd MMM yyyy', { locale: localeId })}

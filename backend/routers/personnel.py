@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from fastapi.responses import StreamingResponse
 import io
 from sqlalchemy.orm import Session
-from typing import List
+from sqlalchemy import extract, func
+from typing import List, Dict
 import json
 import pandas as pd
 from backend.core import database, auth
@@ -14,6 +15,45 @@ router = APIRouter(
     prefix="/api/personnel",
     tags=["Personnel"]
 )
+
+def calculate_personnel_balances(db: Session, personnel: models.Personnel, year: int = None) -> Dict[str, Dict[str, int]]:
+    """
+    Calculate remaining leave balances for each leave type for a given personnel.
+    Only includes leave types applicable to the personnel's gender.
+    Returns: {"Type": {"remaining": 5, "used": 7, "quota": 12}}
+    """
+    if year is None:
+        year = datetime.now().year
+    
+    # Get all active leave types applicable to this personnel
+    leave_types = db.query(models.LeaveType).filter(
+        models.LeaveType.is_active == True,
+        (models.LeaveType.gender_specific == None) |
+        (models.LeaveType.gender_specific == personnel.jenis_kelamin)
+    ).all()
+    
+    # Get usage per leave type for the year
+    usage_query = db.query(
+        models.LeaveHistory.leave_type_id,
+        func.sum(models.LeaveHistory.jumlah_hari).label('total_days')
+    ).filter(
+        models.LeaveHistory.personnel_id == personnel.id,
+        extract('year', models.LeaveHistory.tanggal_mulai) == year
+    ).group_by(models.LeaveHistory.leave_type_id).all()
+    
+    usage_map = {res[0]: res[1] or 0 for res in usage_query}
+    
+    balances = {}
+    for lt in leave_types:
+        used = usage_map.get(lt.id, 0)
+        remaining = max(0, lt.default_quota - used)
+        balances[lt.name] = {
+            "remaining": remaining,
+            "quota": lt.default_quota,
+            "used": used
+        }
+    
+    return balances
 
 @router.get("/stats")
 async def get_personnel_stats(
@@ -42,7 +82,7 @@ async def get_personnel_stats(
     
     return {
         "total_personnel": total_personnel,
-        "active_personnel": total_personnel - on_leave_count, # Active usually means available
+        "active_personnel": total_personnel - on_leave_count,
         "on_leave": on_leave_count,
         "new_personnel": new_personnel_count
     }
@@ -66,7 +106,6 @@ async def export_personnel(
             (models.Personnel.nrp.ilike(search)) |
             (models.Personnel.jabatan.ilike(search))
         )
-        
 
     if pangkat:
         q = q.filter(models.Personnel.pangkat == pangkat)
@@ -74,7 +113,6 @@ async def export_personnel(
     if jabatan:
         q = q.filter(models.Personnel.jabatan.ilike(f"%{jabatan}%"))
 
-    # Apply filtering logic same as get_all_personnel (minus limit/offset)
     if sort_by:
         valid_sort_fields = {
             "nama": models.Personnel.nama,
@@ -91,37 +129,27 @@ async def export_personnel(
         q = q.order_by(models.Personnel.nama.asc())
 
     personnel_list = q.all()
-
-    # Calculate leave calculations for export
-    from datetime import datetime
-    from sqlalchemy import extract, func
-    current_year = datetime.now().year
     
-    if personnel_list:
-        personnel_ids = [p.id for p in personnel_list]
-        usage_query = db.query(
-            models.LeaveHistory.personnel_id,
-            func.sum(models.LeaveHistory.jumlah_hari).label('total_days')
-        ).filter(
-            models.LeaveHistory.personnel_id.in_(personnel_ids),
-            extract('year', models.LeaveHistory.tanggal_mulai) == current_year
-        ).group_by(models.LeaveHistory.personnel_id).all()
-        
-        usage_map = {res[0]: res[1] for res in usage_query}
-        for p in personnel_list:
-             used = usage_map.get(p.id, 0) or 0
-             p.sisa_cuti = max(0, 12 - used)
+    # Get all leave types for column headers
+    leave_types = db.query(models.LeaveType).filter(models.LeaveType.is_active == True).all()
 
-    # Create DataFrame
+    # Create DataFrame with per-type balances
     data = []
     for p in personnel_list:
-        data.append({
+        balances = calculate_personnel_balances(db, p)
+        row = {
             "NRP": p.nrp,
             "Nama": p.nama,
             "Pangkat": p.pangkat,
             "Jabatan": p.jabatan,
-            "Sisa Cuti (Hari)": getattr(p, 'sisa_cuti', 12)
-        })
+            "Jenis Kelamin": p.jenis_kelamin or "-"
+        }
+        # Add balance columns
+        for lt in leave_types:
+            if lt.name in balances:
+                # Balances is now a dict: {"remaining": X, ...}
+                row[f"Sisa {lt.name}"] = balances[lt.name]["remaining"]
+        data.append(row)
         
     df = pd.DataFrame(data)
     
@@ -170,15 +198,11 @@ async def get_all_personnel(
             (models.Personnel.nrp.ilike(search)) |
             (models.Personnel.jabatan.ilike(search))
         )
-        
 
     if pangkat:
         q = q.filter(models.Personnel.pangkat == pangkat)
 
     if jabatan:
-        # Jabatan matching might be partial or exact, we use partial for more flexibility 
-        # but user asked for "filter" so maybe exact? Stick to ILIKE for flexibility on roles.
-        # But filter dropdowns usually expect exact. Let's do partial but with dropdown values it will be quasi-exact.
         q = q.filter(models.Personnel.jabatan.ilike(f"%{jabatan}%"))
         
     # Total Count (Filtered)
@@ -196,7 +220,6 @@ async def get_all_personnel(
             "nrp": models.Personnel.nrp,
             "jabatan": models.Personnel.jabatan,
             "pangkat": models.Personnel.pangkat,
-
         }
         
         sort_column = valid_sort_fields.get(sort_by, models.Personnel.nama)
@@ -210,28 +233,9 @@ async def get_all_personnel(
 
     personnel_list = q.offset(skip).limit(limit).all()
     
-    # Calculate Sisa Cuti for each personnel in specific page
-    if personnel_list:
-        from datetime import datetime
-        from sqlalchemy import extract, func
-        
-        current_year = datetime.now().year
-        personnel_ids = [p.id for p in personnel_list]
-        
-        # Query total used days for ALL leave types in current year
-        usage_query = db.query(
-            models.LeaveHistory.personnel_id,
-            func.sum(models.LeaveHistory.jumlah_hari).label('total_days')
-        ).filter(
-            models.LeaveHistory.personnel_id.in_(personnel_ids),
-            extract('year', models.LeaveHistory.tanggal_mulai) == current_year
-        ).group_by(models.LeaveHistory.personnel_id).all()
-        
-        usage_map = {res[0]: res[1] for res in usage_query}
-        
-        for p in personnel_list:
-            used = usage_map.get(p.id, 0) or 0 # Handle None if sum returns None
-            p.sisa_cuti = max(0, 12 - used)
+    # Calculate per-type balances for each personnel
+    for p in personnel_list:
+        p.balances = calculate_personnel_balances(db, p)
             
     return personnel_list
 
@@ -251,12 +255,16 @@ async def create_personnel(
         nrp=personnel.nrp,
         nama=personnel.nama,
         pangkat=personnel.pangkat,
-        jabatan=personnel.jabatan
+        jabatan=personnel.jabatan,
+        jenis_kelamin=personnel.jenis_kelamin
     )
     
     db.add(new_personnel)
     db.commit()
     db.refresh(new_personnel)
+    
+    # Calculate balances for response
+    new_personnel.balances = calculate_personnel_balances(db, new_personnel)
     
     # Log audit
     auth.log_audit(
@@ -279,19 +287,9 @@ async def get_personnel_by_nrp(nrp: str, current_user: models.User = Depends(aut
     personnel = db.query(models.Personnel).filter(models.Personnel.nrp == nrp).first()
     if not personnel:
         raise HTTPException(status_code=404, detail="Personnel not found")
-        
-    # Calculate Leave Quota (Assuming 12 days/year) - ALL TYPES INCLUDED
-    from datetime import datetime
-    from sqlalchemy import extract
-    current_year = datetime.now().year
     
-    used_leave = db.query(models.LeaveHistory)\
-        .filter(models.LeaveHistory.personnel_id == personnel.id)\
-        .filter(extract('year', models.LeaveHistory.tanggal_mulai) == current_year)\
-        .all()
-        
-    total_used = sum([l.jumlah_hari for l in used_leave])
-    personnel.sisa_cuti = 12 - total_used
+    # Calculate per-type balances
+    personnel.balances = calculate_personnel_balances(db, personnel)
     
     return personnel
 
@@ -339,12 +337,14 @@ async def import_personnel(file: UploadFile = File(...), current_user: models.Us
                     existing.nama = item.get("nama")
                     existing.pangkat = item.get("pangkat")
                     existing.jabatan = item.get("jabatan")
+                    existing.jenis_kelamin = item.get("jenis_kelamin")
                 else:
                     new_p = models.Personnel(
                         nrp=nrp,
                         nama=item.get("nama"),
                         pangkat=item.get("pangkat"),
-                        jabatan=item.get("jabatan")
+                        jabatan=item.get("jabatan"),
+                        jenis_kelamin=item.get("jenis_kelamin")
                     )
                     db.add(new_p)
                 count += 1

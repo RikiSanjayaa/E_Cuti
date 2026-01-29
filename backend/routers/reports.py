@@ -24,7 +24,10 @@ async def get_analytics_summary(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
-    query = db.query(models.LeaveHistory).options(joinedload(models.LeaveHistory.personnel)).join(models.Personnel)
+    query = db.query(models.LeaveHistory)\
+        .join(models.Personnel)\
+        .join(models.LeaveType)\
+        .options(joinedload(models.LeaveHistory.personnel), joinedload(models.LeaveHistory.leave_type))
     
     if start_date:
         query = query.filter(models.LeaveHistory.tanggal_mulai >= start_date)
@@ -32,7 +35,7 @@ async def get_analytics_summary(
         query = query.filter(models.LeaveHistory.tanggal_mulai <= end_date)
 
     if leave_type and leave_type != 'all':
-        query = query.filter(models.LeaveHistory.jenis_izin == leave_type)
+        query = query.filter(models.LeaveType.code == leave_type)
         
     leaves = query.all()
     
@@ -55,10 +58,12 @@ async def export_report(
     db: Session = Depends(database.get_db)
 ):
     # Filter data
-    query = db.query(models.LeaveHistory).join(models.Personnel)
+    query = db.query(models.LeaveHistory)\
+        .join(models.Personnel)\
+        .join(models.LeaveType)\
+        .options(joinedload(models.LeaveHistory.leave_type))
     
     if month and year:
-        # Filter by start date in month/year
         from sqlalchemy import extract
         query = query.filter(extract('month', models.LeaveHistory.tanggal_mulai) == month)
         query = query.filter(extract('year', models.LeaveHistory.tanggal_mulai) == year)
@@ -72,13 +77,13 @@ async def export_report(
     data_list = []
     
     for idx, leave in enumerate(leaves, 1):
-        # 1. Clean up Enum (LeaveType)
-        jenis_izin_str = leave.jenis_izin.value if hasattr(leave.jenis_izin, 'value') else str(leave.jenis_izin)
+        # Get leave type name from relationship
+        jenis_izin_str = leave.leave_type.name if leave.leave_type else "-"
         
-        # 2. Format Date
+        # Format Date
         tgl_str = leave.tanggal_mulai.strftime("%d %b %Y") if leave.tanggal_mulai else "-"
         
-        # 3. Combine for cleaner output
+        # Combine for cleaner output
         jenis_izin_display = f"{jenis_izin_str}\n(Mulai: {tgl_str})\n({leave.jumlah_hari} hari)"
 
         data_list.append({
@@ -97,7 +102,6 @@ async def export_report(
     if format == "excel":
         df = pd.DataFrame(data_list)
         stream = BytesIO()
-        # Basic Excel Export using pandas default (uses openpyxl if installed)
         df.to_excel(stream, index=False, sheet_name='Laporan Izin')
         stream.seek(0)
         
@@ -110,7 +114,6 @@ async def export_report(
         
     elif format == "pdf":
         buffer = BytesIO()
-        # Custom Page Layout
         doc = SimpleDocTemplate(
             buffer, 
             pagesize=landscape(A4),
@@ -129,11 +132,10 @@ async def export_report(
             parent=styles['Normal'],
             fontName='Times-Bold',
             fontSize=12,
-            alignment=1, # Center
+            alignment=1,
             leading=14
         )
         
-        # Standard Polri Header Format (Centered)
         elements.append(Paragraph("KEPOLISIAN NEGARA REPUBLIK INDONESIA", header_style))
         elements.append(Paragraph("DAERAH NUSA TENGGARA BARAT", header_style))
         elements.append(Paragraph("<u>RO BIRO LOGISTIK</u>", header_style))
@@ -145,7 +147,7 @@ async def export_report(
             parent=styles['Heading1'],
             fontName='Times-Bold',
             fontSize=14,
-            alignment=1, # Center
+            alignment=1,
             leading=18,
             spaceAfter=20
         )
@@ -160,7 +162,6 @@ async def export_report(
         # 2. TABLE DATA
         headers = ["NO", "NAMA", "PANGKAT", "NRP/NIP", "JABATAN", "JENIS IZIN", "KETERANGAN"]
         
-        # Style for Table Content
         cell_style = ParagraphStyle(
             'CellStyle',
             parent=styles['Normal'],
@@ -169,54 +170,41 @@ async def export_report(
             leading=12
         )
         
-        # Header Style for Table
         header_cell_style = ParagraphStyle(
             'HeaderCellStyle',
             parent=styles['Normal'],
             fontName='Times-Bold',
             fontSize=10,
-            alignment=1, # Center
+            alignment=1,
             leading=12
         )
         
-        # Wrap headers in Paragraphs too (for consistency)
         table_data = [[Paragraph(h, header_cell_style) for h in headers]]
         
         for idx, item in enumerate(leaves, 1):
-            # Handle Enum display (clean string)
-            jenis_izin_str = item.jenis_izin.value if hasattr(item.jenis_izin, 'value') else str(item.jenis_izin)
-            
-            # Format Date: 27 Jan 2026
+            jenis_izin_str = item.leave_type.name if item.leave_type else "-"
             tgl_str = item.tanggal_mulai.strftime("%d %b %Y") if item.tanggal_mulai else "-"
             
             row = [
                 str(idx),
-                Paragraph(item.personnel.nama, cell_style),  # Wrapped
+                Paragraph(item.personnel.nama, cell_style),
                 item.personnel.pangkat,
-                Paragraph(str(item.personnel.nrp), cell_style), # Wrapped just in case
-                Paragraph(item.personnel.jabatan, cell_style), # Wrapped
-                Paragraph(f"{jenis_izin_str}<br/>Tgl: {tgl_str}<br/>({item.jumlah_hari} hari)", cell_style), # Wrapped
-                Paragraph(item.alasan, cell_style) # Wrapped
+                Paragraph(str(item.personnel.nrp), cell_style),
+                Paragraph(item.personnel.jabatan, cell_style),
+                Paragraph(f"{jenis_izin_str}<br/>Tgl: {tgl_str}<br/>({item.jumlah_hari} hari)", cell_style),
+                Paragraph(item.alasan, cell_style)
             ]
             table_data.append(row)
             
-        # Column Widths (Adjusted for better fit)
-        # Total available width ~780
         col_widths = [30, 180, 100, 80, 120, 110, 160]
         
         t = Table(table_data, colWidths=col_widths, repeatRows=1)
         
-        # Professional Black & White Style
         report_table_style = TableStyle([
-            # Alignment
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'), # Top align content
-            ('ALIGN', (0, 0), (0, -1), 'CENTER'), # NO column Center
-            
-            # Borders (Black, Thin)
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('BOX', (0, 0), (-1, -1), 1, colors.black),
-            
-            # Padding
             ('TOPPADDING', (0, 0), (-1, -1), 6),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
             ('LEFTPADDING', (0, 0), (-1, -1), 6),
@@ -226,8 +214,7 @@ async def export_report(
         elements.append(t)
         elements.append(Spacer(1, 30))
         
-        # 3. SIGNATURE BLOCK (Tanda Tangan)
-        
+        # 3. SIGNATURE BLOCK
         date_str = date.today().strftime("%d %B %Y")
         
         sig_style = ParagraphStyle(
@@ -235,17 +222,16 @@ async def export_report(
             parent=styles['Normal'],
             fontName='Times-Roman',
             fontSize=11,
-            alignment=1, # Center
+            alignment=1,
             leading=14
         )
         
-        sig_header = f"Mataram, {date_str}<br/>A.N. KARO LOGISTIK POLDA NTB<br/>KASUBAGRENMIN"
+        sig_header = f"Mataram, {date_str}<br/>A.N. KARO LOGISTIK POLDA NTB<br/>KASUBAGRENMINI"
         sig_name = f"<br/><br/><br/><br/><br/><u><b>ETEK RIAWAN, S.E.</b></u><br/>KOMPOL NRP 73120869"
         
-        # Create a 2-column table, signature in right column
         sig_data = [[
-            "", # Left empty
-            Paragraph(sig_header + sig_name, sig_style) # Right
+            "",
+            Paragraph(sig_header + sig_name, sig_style)
         ]]
         
         sig_table = Table(sig_data, colWidths=[400, 250])
