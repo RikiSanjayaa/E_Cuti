@@ -30,8 +30,8 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
                 onClick={onClose}
             />
 
-            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[90vh] bg-white rounded-lg shadow-2xl z-50 overflow-hidden animate-in zoom-in-95 duration-200">
-                <div className="sticky top-0 bg-white px-6 py-4 flex items-center justify-between border-b border-border">
+            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[90vh] bg-card rounded-lg shadow-2xl z-50 overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="sticky top-0 bg-card px-6 py-4 flex items-center justify-between border-b border-border">
                     <h2 className="text-xl font-semibold">Detail Pengajuan Cuti</h2>
                     <button
                         onClick={onClose}

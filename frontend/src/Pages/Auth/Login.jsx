@@ -47,11 +47,11 @@ export default function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-100 p-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg border-t-4 border-t-slate-800 p-8">
+    <div className="flex items-center justify-center min-h-screen bg-slate-100 dark:bg-zinc-950 p-4">
+      <div className="w-full max-w-md bg-card rounded-lg shadow-lg border-t-4 border-t-slate-800 p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">Polda NTB</h1>
-          <p className="text-sm text-slate-500 mt-1">Sistem Monitoring Izin Personel</p>
+          <h1 className="text-2xl font-bold text-foreground">Polda NTB</h1>
+          <p className="text-sm text-muted-foreground mt-1">Sistem Monitoring Izin Personel</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">

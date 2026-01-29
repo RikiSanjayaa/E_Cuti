@@ -33,7 +33,7 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-muted/30">
+    <div className="flex h-screen bg-muted/40 transition-colors duration-300">
       <Sidebar
         isCollapsed={isSidebarCollapsed}
         role={userRole.toLowerCase()}

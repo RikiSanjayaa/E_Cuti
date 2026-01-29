@@ -50,25 +50,25 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
       <aside className={`
         ${isMobile ? 'fixed inset-y-0 left-0 z-40' : 'relative'}
         ${isCollapsed ? (isMobile ? '-translate-x-full' : 'w-20') : 'w-72'} 
-        bg-white border-r border-border h-screen flex flex-col transition-all duration-300 ease-in-out shadow-xl
+        bg-card border-r border-border h-screen flex flex-col transition-all duration-300 ease-in-out shadow-xl
       `}>
         {/* Header */}
         <div className={`h-20 flex items-center ${!isMobile && isCollapsed ? 'justify-center w-full' : 'px-6'} border-b border-border transition-all duration-300`}>
           <div className={`flex items-center overflow-hidden whitespace-nowrap w-full ${!isMobile && isCollapsed ? 'justify-center' : 'gap-4'}`}>
-            <div className={`flex-shrink-0 w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg shadow-slate-900/20 transition-all duration-300`}>
+            <div className={`flex-shrink-0 w-10 h-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center shadow-lg transition-all duration-300`}>
               <FileText className="w-5 h-5" />
             </div>
 
             <div className={`transition-all duration-300 overflow-hidden ${!isMobile && isCollapsed ? 'opacity-0 w-0' : 'opacity-100 flex-1'}`}>
-              <h1 className="font-bold text-lg text-slate-900 leading-tight">
+              <h1 className="font-bold text-lg text-foreground leading-tight">
                 {role === 'atasan' ? 'Monitoring Cuti' : 'Manajemen Cuti'}
               </h1>
-              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold text-left">Polda NTB</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold text-left">Polda NTB</p>
             </div>
 
             {/* Close button for mobile */}
             {isMobile && (
-              <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded-lg text-slate-500">
+              <button onClick={onClose} className="p-1 hover:bg-accent hover:text-accent-foreground rounded-lg text-muted-foreground">
                 <X className="w-5 h-5" />
               </button>
             )}
@@ -92,8 +92,8 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
                     className={`group w-full flex items-center rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap relative
                       ${!isMobile && isCollapsed ? 'justify-center h-12 px-0' : 'h-11 px-4 gap-3'}
                       ${isActive
-                        ? 'bg-gray-200 text-black'
-                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                        ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100 shadow-sm font-semibold'
+                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                       }
                     `}
                     title={!isMobile && isCollapsed ? item.label : undefined}
@@ -113,12 +113,12 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
         {/* Footer */}
         <div className={`p-4 border-t border-border overflow-hidden whitespace-nowrap transition-all duration-300 ${!isMobile && isCollapsed ? 'opacity-0 h-0 py-0' : 'opacity-100 h-auto'}`}>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
-              <Shield className="w-4 h-4 text-slate-400" />
+            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+              <Shield className="w-4 h-4 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-700">Versi 1.0.0</p>
-              <p className="text-[10px] text-slate-400">© 2026 Polda NTB</p>
+              <p className="text-xs font-semibold text-foreground">Versi 1.0.0</p>
+              <p className="text-[10px] text-muted-foreground">© 2026 Polda NTB</p>
             </div>
           </div>
         </div>

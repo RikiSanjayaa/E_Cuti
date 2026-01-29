@@ -21,11 +21,10 @@ const CopyButton = ({ text }) => {
   return (
     <button
       onClick={handleCopy}
-      className={`p-1.5 rounded-md transition-all duration-200 flex items-center justify-center ${
-        copied 
-          ? 'bg-green-100 text-green-600' 
-          : 'text-muted-foreground hover:text-primary hover:bg-slate-100 opacity-0 group-hover:opacity-100'
-      }`}
+      className={`p-1.5 rounded-md transition-all duration-200 flex items-center justify-center ${copied
+        ? 'bg-green-100 text-green-600'
+        : 'text-muted-foreground hover:text-primary hover:bg-slate-100 opacity-0 group-hover:opacity-100'
+        }`}
       title={copied ? "Tersalin!" : "Salin NRP"}
     >
       {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -79,14 +78,14 @@ export default function Personel() {
       axios.get(`/api/leaves/?search=${selectedEmployee.nrp}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      .then(res => {
-        setLeaveHistory(res.data);
-        setHistoryLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to fetch history:", err);
-        setHistoryLoading(false);
-      });
+        .then(res => {
+          setLeaveHistory(res.data);
+          setHistoryLoading(false);
+        })
+        .catch(err => {
+          console.error("Failed to fetch history:", err);
+          setHistoryLoading(false);
+        });
     } else {
       setLeaveHistory([]);
     }
@@ -201,26 +200,26 @@ export default function Personel() {
 
         {/* Summary Cards (Mock Data for now as backend doesn't aggregate this yet) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-border rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Total Personel</p>
             <p className="text-3xl font-semibold text-foreground mt-2">{globalTotal || totalItems}</p>
           </div>
-          <div className="bg-white border border-border rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Personel Aktif</p>
             <p className="text-3xl font-semibold text-foreground mt-2">{globalTotal || totalItems}</p>
           </div>
-          <div className="bg-white border border-border rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Sedang Cuti</p>
             <p className="text-3xl font-semibold text-foreground mt-2">-</p>
           </div>
-          <div className="bg-white border border-border rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Personel Baru (Bulan Ini)</p>
             <p className="text-3xl font-semibold text-foreground mt-2">-</p>
           </div>
         </div>
 
         {/* Filters and Actions */}
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -237,7 +236,7 @@ export default function Personel() {
                 <>
                   <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm hover:bg-slate-800 flex items-center gap-2 cursor-pointer shadow-sm"
+                    className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm hover:bg-slate-800 flex items-center gap-2 cursor-pointer shadow-sm dark:bg-transparent dark:border dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800/50"
                   >
                     <div className="bg-white/20 p-0.5 rounded">
                       <Plus className="w-3 h-3" />
@@ -253,7 +252,7 @@ export default function Personel() {
                   />
                   <button
                     onClick={() => fileInputRef.current.click()}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
+                    className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm dark:bg-transparent dark:border dark:border-green-800 dark:text-green-500 dark:hover:bg-green-900/20"
                     disabled={importLoading}
                   >
                     {importLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
@@ -270,7 +269,7 @@ export default function Personel() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-border rounded-lg overflow-hidden shadow-sm">
+        <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -362,7 +361,7 @@ export default function Personel() {
               </tbody>
             </table>
           </div>
-          <div className="border-t border-border bg-white px-4">
+          <div className="border-t border-border bg-card px-4">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -382,186 +381,185 @@ export default function Personel() {
               onClick={() => setSelectedEmployee(null)}
             />
             {/* Side Drawer Container - Fixed Right */}
-            <div className="fixed right-0 inset-y-0 w-full md:w-[450px] bg-white shadow-2xl z-[110] overflow-y-auto animate-in slide-in-from-right duration-300 flex flex-col">
-                
-                {/* Simple Header */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-white sticky top-0 z-10">
+            <div className="fixed right-0 inset-y-0 w-full md:w-[450px] bg-card shadow-2xl z-[110] overflow-y-auto animate-in slide-in-from-right duration-300 flex flex-col">
+
+              {/* Simple Header */}
+              <div className="flex items-center justify-between p-6 border-b border-border bg-card sticky top-0 z-10">
+                <div>
+                  <h2 className="text-xl font-bold text-foreground leading-tight" title={selectedEmployee.nama}>
+                    {selectedEmployee.nama}
+                  </h2>
+                  <div className="flex items-center gap-2 mt-1 text-slate-500 text-sm font-medium">
+                    <Shield className="w-4 h-4" />
+                    {selectedEmployee.pangkat}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedEmployee(null)}
+                  className="p-2 hover:bg-accent rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Content Grid (Clean Minimalist Design) */}
+              <div className="px-6 pb-6 mt-2">
+
+                <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+                  {/* NRP */}
                   <div>
-                    <h2 className="text-xl font-bold text-slate-900 leading-tight" title={selectedEmployee.nama}>
-                      {selectedEmployee.nama}
-                    </h2>
-                    <div className="flex items-center gap-2 mt-1 text-slate-500 text-sm font-medium">
-                      <Shield className="w-4 h-4" />
-                      {selectedEmployee.pangkat}
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
+                      NRP
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-slate-800 tracking-wide">{selectedEmployee.nrp}</span>
+                      <CopyButton text={selectedEmployee.nrp} />
                     </div>
                   </div>
-                  <button
-                    onClick={() => setSelectedEmployee(null)}
-                    className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+
+                  {/* Gender */}
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
+                      Gender
+                    </p>
+                    <p className="font-semibold text-sm text-slate-800">
+                      {selectedEmployee.jenis_kelamin === 'L' ? 'Laki-laki' : selectedEmployee.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
+                    </p>
+                  </div>
+
+                  {/* Jabatan */}
+                  <div className="col-span-2">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Jabatan</p>
+                    <p className="font-semibold text-sm text-slate-800 leading-snug">{selectedEmployee.jabatan}</p>
+                  </div>
+
+                  {/* Sisa Cuti (Clean Progress) */}
+                  <div className="col-span-2 pt-2 pb-2">
+                    <div className="flex justify-between items-end mb-2">
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex items-center gap-1">
+                        <Calendar className="w-3 h-3" /> Sisa Cuti Tahunan
+                      </p>
+                      <div className="flex items-baseline gap-1">
+                        <span className={`text-xl font-bold ${(selectedEmployee.sisa_cuti ?? 12) === 0 ? 'text-red-600' : 'text-slate-900'}`}>
+                          {selectedEmployee.sisa_cuti ?? 12}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium">/ 12</span>
+                      </div>
+                    </div>
+                    <div className="h-1.5 bg-secondary rounded-full overflow-hidden w-full">
+                      <div
+                        className="h-full bg-primary rounded-full transition-all duration-500"
+                        style={{ width: `${((selectedEmployee.sisa_cuti ?? 12) / 12) * 100}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Content Grid (Clean Minimalist Design) */}
-                <div className="px-6 pb-6 mt-2">
-                  
-                  <div className="grid grid-cols-2 gap-y-6 gap-x-4">
-                    {/* NRP */}
-                    <div>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
-                          NRP
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm text-slate-800 tracking-wide">{selectedEmployee.nrp}</span>
-                          <CopyButton text={selectedEmployee.nrp} />
-                        </div>
-                    </div>
-
-                    {/* Gender */}
-                    <div>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
-                          Gender
-                        </p>
-                        <p className="font-semibold text-sm text-slate-800">
-                          {selectedEmployee.jenis_kelamin === 'L' ? 'Laki-laki' : selectedEmployee.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
-                        </p>
-                    </div>
-
-                    {/* Jabatan */}
-                    <div className="col-span-2">
-                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Jabatan</p>
-                         <p className="font-semibold text-sm text-slate-800 leading-snug">{selectedEmployee.jabatan}</p>
-                    </div>
-
-                    {/* Sisa Cuti (Clean Progress) */}
-                    <div className="col-span-2 pt-2 pb-2">
-                         <div className="flex justify-between items-end mb-2">
-                            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex items-center gap-1">
-                               <Calendar className="w-3 h-3" /> Sisa Cuti Tahunan
-                            </p>
-                             <div className="flex items-baseline gap-1">
-                                 <span className={`text-xl font-bold ${(selectedEmployee.sisa_cuti ?? 12) === 0 ? 'text-red-600' : 'text-slate-900'}`}>
-                                   {selectedEmployee.sisa_cuti ?? 12}
-                                 </span>
-                                 <span className="text-[10px] text-slate-400 font-medium">/ 12</span>
-                             </div>
-                         </div>
-                         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden w-full">
-                           <div 
-                              className="h-full bg-slate-800 rounded-full transition-all duration-500" 
-                              style={{ width: `${((selectedEmployee.sisa_cuti ?? 12) / 12) * 100}%` }}
-                           />
-                         </div>
-                    </div>
+                {/* Leave History Section */}
+                <div className="mt-4">
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                      Riwayat Izin
+                    </h3>
+                    <span className="text-xs text-muted-foreground font-medium">{leaveHistory.length} riwayat</span>
                   </div>
 
-                  {/* Leave History Section */}
-                  <div className="mt-4">
-                     <div className="flex items-center justify-between mb-3 px-1">
-                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                          Riwayat Izin
-                        </h3>
-                        <span className="text-xs text-muted-foreground font-medium">{leaveHistory.length} riwayat</span>
-                     </div>
-                    
-                    <div className="rounded-xl p-1 space-y-6">
-                      {historyLoading ? (
-                        <div className="flex justify-center py-8">
-                          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                        </div>
-                      ) : leaveHistory.length > 0 ? (
-                        (() => {
-                          // Group by Year
-                          const grouped = leaveHistory.reduce((acc, leave) => {
-                            const year = new Date(leave.tanggal_mulai).getFullYear();
-                            if (!acc[year]) acc[year] = [];
-                            acc[year].push(leave);
-                            return acc;
-                          }, {});
+                  <div className="rounded-xl p-1 space-y-6">
+                    {historyLoading ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : leaveHistory.length > 0 ? (
+                      (() => {
+                        // Group by Year
+                        const grouped = leaveHistory.reduce((acc, leave) => {
+                          const year = new Date(leave.tanggal_mulai).getFullYear();
+                          if (!acc[year]) acc[year] = [];
+                          acc[year].push(leave);
+                          return acc;
+                        }, {});
 
-                          // Sort Years Descending
-                          const sortedYears = Object.keys(grouped).sort((a, b) => b - a);
+                        // Sort Years Descending
+                        const sortedYears = Object.keys(grouped).sort((a, b) => b - a);
 
-                          return sortedYears.map(year => {
-                             const leaves = grouped[year];
-                             const totalDays = leaves.reduce((sum, item) => sum + item.jumlah_hari, 0);
-                             const totalCount = leaves.length;
+                        return sortedYears.map(year => {
+                          const leaves = grouped[year];
+                          const totalDays = leaves.reduce((sum, item) => sum + item.jumlah_hari, 0);
+                          const totalCount = leaves.length;
 
-                             return (
-                               <div key={year} className="space-y-3 animate-in slide-in-from-bottom-2 duration-500">
-                                  {/* Year Header */}
-                                  <div className="flex items-center gap-3 px-1"> 
-                                     <h4 className="text-lg font-bold text-slate-900">{year}</h4>
-                                     <div className="h-px bg-slate-200 flex-1" />
-                                     <div className="flex gap-3 text-[10px] bg-slate-100 px-2 py-1 rounded-full text-slate-600 font-medium">
-                                        <span>{totalCount}x Izin</span>
-                                        <span className="w-px bg-slate-300 h-3 self-center" />
-                                        <span>Total {totalDays} Hari</span>
-                                     </div>
-                                  </div>
+                          return (
+                            <div key={year} className="space-y-3 animate-in slide-in-from-bottom-2 duration-500">
+                              {/* Year Header */}
+                              <div className="flex items-center gap-3 px-1">
+                                <h4 className="text-lg font-bold text-slate-900">{year}</h4>
+                                <div className="h-px bg-border flex-1" />
+                                <div className="flex gap-3 text-[10px] bg-muted px-2 py-1 rounded-full text-foreground font-medium">
+                                  <span>{totalCount}x Izin</span>
+                                  <span className="w-px bg-slate-300 h-3 self-center" />
+                                  <span>Total {totalDays} Hari</span>
+                                </div>
+                              </div>
 
-                                  {/* Cards List */}
-                                  <div className="space-y-3">
-                                    {leaves.map((leave, idx) => {
-                                       // Helper: Calculate End Date
-                                       const startDate = new Date(leave.tanggal_mulai);
-                                       const endDate = new Date(startDate);
-                                       endDate.setDate(endDate.getDate() + (leave.jumlah_hari - 1));
-                                       
-                                       // Helper: Format Date
-                                       const formatDate = (d) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                              {/* Cards List */}
+                              <div className="space-y-3">
+                                {leaves.map((leave, idx) => {
+                                  // Helper: Calculate End Date
+                                  const startDate = new Date(leave.tanggal_mulai);
+                                  const endDate = new Date(startDate);
+                                  endDate.setDate(endDate.getDate() + (leave.jumlah_hari - 1));
 
-                                       // Helper: ID formatting (Mock ID)
-                                       const id = `LR-${year}-${String(leave.id || idx + 1).padStart(3, '0')}`;
-                                       const createdDate = new Date(leave.created_at || new Date()).toLocaleDateString('id-ID');
+                                  // Helper: Format Date
+                                  const formatDate = (d) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 
-                                       return (
-                                          <div key={leave.id || idx} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
-                                             {/* Top Row */}
-                                             <div className="flex justify-between items-start mb-2">
-                                                <div className="flex items-center gap-2">
-                                                   <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
-                                                      leave.jenis_izin === 'Cuti Tahunan' ? 'bg-blue-50 text-blue-600' : 
-                                                      leave.jenis_izin === 'Sakit' ? 'bg-red-50 text-red-600' : 
-                                                      'bg-orange-50 text-orange-600'
-                                                   }`}>
-                                                      {leave.jenis_izin}
-                                                   </span>
-                                                   <span className="text-sm font-bold text-slate-900">{leave.jumlah_hari} hari</span>
-                                                </div>
-                                                <span className="text-xs font-mono text-slate-400">{id}</span>
-                                             </div>
+                                  // Helper: ID formatting (Mock ID)
+                                  const id = `LR-${year}-${String(leave.id || idx + 1).padStart(3, '0')}`;
+                                  const createdDate = new Date(leave.created_at || new Date()).toLocaleDateString('id-ID');
 
-                                             {/* Date Range */}
-                                             <div className="text-sm text-slate-600 font-medium mb-3">
-                                                {formatDate(startDate)} s/d {formatDate(endDate)}
-                                             </div>
+                                  return (
+                                    <div key={leave.id || idx} className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-shadow">
+                                      {/* Top Row */}
+                                      <div className="flex justify-between items-start mb-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${leave.jenis_izin === 'Cuti Tahunan' ? 'bg-blue-50 text-blue-600' :
+                                            leave.jenis_izin === 'Sakit' ? 'bg-red-50 text-red-600' :
+                                              'bg-orange-50 text-orange-600'
+                                            }`}>
+                                            {leave.jenis_izin}
+                                          </span>
+                                          <span className="text-sm font-bold text-foreground">{leave.jumlah_hari} hari</span>
+                                        </div>
+                                        <span className="text-xs font-mono text-slate-400">{id}</span>
+                                      </div>
 
-                                             {/* Divider */}
-                                             <div className="h-px bg-slate-100 my-3" />
+                                      {/* Date Range */}
+                                      <div className="text-sm text-muted-foreground font-medium mb-3">
+                                        {formatDate(startDate)} s/d {formatDate(endDate)}
+                                      </div>
 
-                                             {/* Footer */}
-                                             <div className="flex justify-between items-center text-[10px] text-zinc-400">
-                                                <span>Dicatat oleh Admin pada {createdDate}</span>
-                                             </div>
-                                          </div>
-                                       );
-                                    })}
-                                  </div>
-                               </div>
-                             );
-                          });
-                        })()
-                      ) : (
-                        <div className="text-center py-8 border-2 border-dashed border-slate-100 rounded-xl">
-                           <p className="text-sm text-muted-foreground">Belum ada riwayat izin ditemukan</p>
-                        </div>
-                      )}
-                    </div>
+                                      {/* Divider */}
+                                      <div className="h-px bg-border my-3" />
+
+                                      {/* Footer */}
+                                      <div className="flex justify-between items-center text-[10px] text-zinc-400">
+                                        <span>Dicatat oleh Admin pada {createdDate}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()
+                    ) : (
+                      <div className="text-center py-8 border-2 border-dashed border-slate-100 rounded-xl">
+                        <p className="text-sm text-muted-foreground">Belum ada riwayat izin ditemukan</p>
+                      </div>
+                    )}
                   </div>
-
                 </div>
+
+              </div>
             </div>
           </>,
           document.body

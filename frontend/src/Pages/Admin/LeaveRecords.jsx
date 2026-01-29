@@ -121,15 +121,15 @@ export default function LeaveRecords() {
 
   const getStatusColor = (type) => {
     const styles = {
-      'Cuti Tahunan': 'bg-blue-50 text-blue-700 border-blue-200',
-      'Sakit': 'bg-red-50 text-red-700 border-red-200',
-      'Istimewa': 'bg-purple-50 text-purple-700 border-purple-200',
-      'Melahirkan': 'bg-green-50 text-green-700 border-green-200',
-      'Keagamaan': 'bg-orange-50 text-orange-700 border-orange-200',
-      'Di Luar Tanggungan Negara': 'bg-gray-50 text-gray-700 border-gray-200',
-      'Alasan Penting': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+      'Cuti Tahunan': 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
+      'Sakit': 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
+      'Istimewa': 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
+      'Melahirkan': 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
+      'Keagamaan': 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800',
+      'Di Luar Tanggungan Negara': 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700',
+      'Alasan Penting': 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
     };
-    return styles[type] || 'bg-gray-50 text-gray-700 border-gray-200';
+    return styles[type] || 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
   };
 
   const formatLeaveDateRange = (startDate, days) => {
@@ -179,7 +179,7 @@ export default function LeaveRecords() {
       </div>
 
       {/* Filters and Actions */}
-      <div className="bg-white border border-border rounded-lg p-4">
+      <div className="bg-card border border-border rounded-lg p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -219,7 +219,7 @@ export default function LeaveRecords() {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-border rounded-lg overflow-hidden shadow-sm">
+      <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -359,7 +359,7 @@ export default function LeaveRecords() {
         </div>
 
         {/* Pagination */}
-        <div className="border-t border-border bg-white px-4">
+        <div className="border-t border-border bg-card px-4">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -398,9 +398,9 @@ export default function LeaveRecords() {
               className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
               onClick={() => !deleteLoading && setIsDeleteModalOpen(false)}
             />
-            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-lg shadow-xl z-50 p-6 animate-in zoom-in-95 duration-200">
+            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-card rounded-lg shadow-xl z-50 p-6 animate-in zoom-in-95 duration-200">
               <div className="flex flex-col items-center text-center space-y-4">
-                <div className="bg-red-100 p-3 rounded-full">
+                <div className="bg-red-100 dark:bg-red-900/20 p-3 rounded-full">
                   <AlertTriangle className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
@@ -413,7 +413,7 @@ export default function LeaveRecords() {
                   <button
                     onClick={() => setIsDeleteModalOpen(false)}
                     disabled={deleteLoading}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-accent transition-colors"
                   >
                     Batal
                   </button>

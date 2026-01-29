@@ -88,20 +88,20 @@ export default function AuditLogs() {
   };
 
   const getActionBadge = (action) => {
-    if (action.includes('CREATE')) return 'bg-green-50 text-green-700 border-green-200';
-    if (action.includes('DELETE')) return 'bg-red-50 text-red-700 border-red-200';
-    if (action.includes('UPDATE')) return 'bg-blue-50 text-blue-700 border-blue-200';
-    if (action.includes('VIEW') || action.includes('EXPORT')) return 'bg-purple-50 text-purple-700 border-purple-200';
-    if (action.includes('LOGIN') || action.includes('FAILED')) return 'bg-orange-50 text-orange-700 border-orange-200';
-    if (action.includes('IMPORT')) return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-    return 'bg-gray-50 text-gray-700 border-gray-200';
+    if (action.includes('CREATE')) return 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+    if (action.includes('DELETE')) return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
+    if (action.includes('UPDATE')) return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800';
+    if (action.includes('VIEW') || action.includes('EXPORT')) return 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800';
+    if (action.includes('LOGIN') || action.includes('FAILED')) return 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
+    if (action.includes('IMPORT')) return 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800';
+    return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
   };
 
   const getStatusBadge = (status) => {
-    if (status === 'success') return 'bg-green-100 text-green-800 border-green-300';
-    if (status === 'failure') return 'bg-red-100 text-red-800 border-red-300';
-    if (status === 'warning') return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-    return 'bg-gray-100 text-gray-800 border-gray-300';
+    if (status === 'success') return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+    if (status === 'failure') return 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
+    if (status === 'warning') return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
+    return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
   };
 
   const getStatusIcon = (status) => {
@@ -131,9 +131,9 @@ export default function AuditLogs() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-50 p-3 rounded-lg">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
               <Shield className="w-5 h-5 text-blue-600" />
             </div>
             <div>
@@ -144,9 +144,9 @@ export default function AuditLogs() {
         </div>
         {/* Placeholder stats - normally would come from API summary endpoint */}
         {/* Card 2: Kegiatan Hari Ini */}
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-green-50 p-3 rounded-lg">
+            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
               <Calendar className="w-5 h-5 text-green-600" />
             </div>
             <div>
@@ -165,9 +165,9 @@ export default function AuditLogs() {
         </div>
 
         {/* Card 3: Aksi Gagal */}
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-red-50 p-3 rounded-lg">
+            <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
               <AlertTriangle className="w-5 h-5 text-red-600" />
             </div>
             <div>
@@ -180,9 +180,9 @@ export default function AuditLogs() {
         </div>
 
         {/* Card 4: Autentikasi */}
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-orange-50 p-3 rounded-lg">
+            <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg">
               <Lock className="w-5 h-5 text-orange-600" />
             </div>
             <div>
@@ -196,7 +196,7 @@ export default function AuditLogs() {
       </div>
 
       {/* Filters in Header */}
-      <div className="bg-white border border-border rounded-lg p-4">
+      <div className="bg-card border border-border rounded-lg p-4">
         <div className="flex flex-col xl:flex-row gap-4">
           {/* Date Filters */}
           <div className="flex gap-2 flex-1 xl:flex-none">
@@ -292,7 +292,7 @@ export default function AuditLogs() {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-border rounded-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -415,7 +415,7 @@ export default function AuditLogs() {
             </tbody>
           </table>
         </div>
-        <div className="border-t border-border bg-white">
+        <div className="border-t border-border bg-card">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

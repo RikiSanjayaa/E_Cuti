@@ -6,6 +6,8 @@ import Personel from './Pages/Admin/Personel';
 import Analytics from './Pages/Admin/Analytics';
 import AuditLogs from './Pages/Admin/AuditLogs';
 import UserManagement from './Pages/Admin/UserManagement';
+import Profile from './Pages/Admin/Profile';
+import Preferences from './Pages/Admin/Preferences';
 import AtasanDashboard from './Pages/Atasan/Dashboard';
 import Reports from './Pages/Atasan/Reports';
 import AdminLayout from './Layouts/AdminLayout';
@@ -35,7 +37,10 @@ function App() {
           <Route path="/admin/personel" element={<Personel />} />
           <Route path="/admin/analytics" element={<Analytics />} />
           <Route path="/admin/audit" element={<AuditLogs />} />
+          <Route path="/admin/audit" element={<AuditLogs />} />
           <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/admin/profile" element={<Profile />} />
+          <Route path="/admin/preferences" element={<Preferences />} />
           <Route path="/" element={<Navigate to="/admin" replace />} />
         </Route>
 
@@ -46,6 +51,7 @@ function App() {
           <Route path="/atasan/personel" element={<Personel />} />
           <Route path="/atasan/analytics" element={<Analytics />} />
           <Route path="/atasan/reports" element={<Reports />} />
+          <Route path="/atasan/profile" element={<Profile />} />
         </Route>
       </Routes>
     </Router>

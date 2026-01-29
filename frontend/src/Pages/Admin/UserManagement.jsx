@@ -208,10 +208,10 @@ export default function UserManagement() {
 
 
   const getStatusBadge = (status) => {
-    if (status === 'active') return 'bg-green-50 text-green-700 border-green-200';
-    if (status === 'inactive') return 'bg-gray-50 text-gray-700 border-gray-200';
-    if (status === 'locked') return 'bg-red-50 text-red-700 border-red-200';
-    return 'bg-gray-50 text-gray-700 border-gray-200';
+    if (status === 'active') return 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
+    if (status === 'inactive') return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
+    if (status === 'locked') return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
+    return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
   };
 
   const getStatusIcon = (status) => {
@@ -222,10 +222,10 @@ export default function UserManagement() {
   };
 
   const getRoleBadge = (role) => {
-    if (role === 'super_admin') return 'bg-purple-50 text-purple-700 border-purple-200';
-    if (role === 'admin') return 'bg-blue-50 text-blue-700 border-blue-200';
-    if (role === 'atasan') return 'bg-orange-50 text-orange-700 border-orange-200';
-    return 'bg-gray-50 text-gray-700 border-gray-200';
+    if (role === 'super_admin') return 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800';
+    if (role === 'admin') return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800';
+    if (role === 'atasan') return 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800';
+    return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
   };
 
   const totalAdmins = users.filter(u => ['admin', 'super_admin'].includes(u.role)).length;
@@ -253,7 +253,7 @@ export default function UserManagement() {
 
       {showForm && (
         <div className="relative">
-          <div className="bg-white border border-border rounded-lg p-6 shadow-sm animate-in fade-in slide-in-from-top-4">
+          <div className="bg-card border border-border rounded-lg p-6 shadow-sm animate-in fade-in slide-in-from-top-4">
             <h2 className="text-lg font-semibold mb-4">Tambah Pengguna Baru</h2>
             {message.text && (
               <div className={`p-3 mb-4 rounded-md text-sm ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
@@ -339,9 +339,9 @@ export default function UserManagement() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Total Admin */}
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-50 p-3 rounded-lg">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
               <Shield className="w-5 h-5 text-blue-600" />
             </div>
             <div>
@@ -352,9 +352,9 @@ export default function UserManagement() {
         </div>
 
         {/* Total Atasan */}
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-orange-50 p-3 rounded-lg">
+            <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg">
               <Briefcase className="w-5 h-5 text-orange-600" />
             </div>
             <div>
@@ -365,9 +365,9 @@ export default function UserManagement() {
         </div>
 
         {/* Active Users */}
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-green-50 p-3 rounded-lg">
+            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
               <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
             <div>
@@ -378,9 +378,9 @@ export default function UserManagement() {
         </div>
 
         {/* Inactive Users */}
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-red-50 p-3 rounded-lg">
+            <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
               <Lock className="w-5 h-5 text-red-600" />
             </div>
             <div>
@@ -392,7 +392,7 @@ export default function UserManagement() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white border border-border rounded-lg p-4">
+      <div className="bg-card border border-border rounded-lg p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -430,7 +430,7 @@ export default function UserManagement() {
       </div>
 
       {/* User Table */}
-      <div className="bg-white border border-border rounded-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -540,7 +540,7 @@ export default function UserManagement() {
             </tbody>
           </table>
         </div>
-        <div className="border-t border-border bg-white px-4">
+        <div className="border-t border-border bg-card px-4">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
