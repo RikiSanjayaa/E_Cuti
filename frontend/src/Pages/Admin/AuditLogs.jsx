@@ -122,6 +122,37 @@ export default function AuditLogs() {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const params = {
+        action: actionFilter,
+        role: roleFilter,
+        category: categoryFilter,
+        status_filter: statusFilter, // Matches backend parameter name
+        start_date: startDate,
+        end_date: endDate
+      };
+
+      const response = await axios.get('/api/audit/export', {
+        params,
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'audit_logs.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Failed to export logs:", error);
+      alert("Gagal mengunduh data audit logs.");
+    }
+  };
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
@@ -139,6 +170,8 @@ export default function AuditLogs() {
           Refresh
         </button>
       </div>
+
+
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -295,7 +328,10 @@ export default function AuditLogs() {
             >
               Reset
             </button>
-            <button className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 h-[38px]">
+            <button
+              onClick={handleExport}
+              className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 h-[38px] cursor-pointer"
+            >
               <Download className="w-4 h-4" />
               Ekspor
             </button>

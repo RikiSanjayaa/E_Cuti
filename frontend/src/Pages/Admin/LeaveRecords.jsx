@@ -134,6 +134,37 @@ export default function LeaveRecords() {
     return `${format(start, 'd MMM yyyy', { locale: localeId })} - ${format(end, 'd MMM yyyy', { locale: localeId })}`;
   };
 
+
+
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const params = {
+        search: searchQuery,
+        type_filter: typeFilter,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      };
+
+      const response = await axios.get('/api/leaves/export', {
+        params,
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'leaves.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Failed to export leaves:", error);
+      alert("Gagal mengunduh data riwayat cuti.");
+    }
+  };
+
   // Sort Helpers
   const handleSort = (field) => {
     if (sortBy === field) {
@@ -194,7 +225,9 @@ export default function LeaveRecords() {
               <Filter className="w-4 h-4" />
               Filter Lainnya
             </button>
-            <button className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer">
+            <button
+              onClick={handleExport}
+              className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer">
               <Download className="w-4 h-4" />
               Ekspor
             </button>

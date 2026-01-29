@@ -1,4 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request, Response
+from fastapi.responses import StreamingResponse
+import io
+import pandas as pd
 from sqlalchemy.orm import Session, joinedload
 from datetime import date
 import shutil
@@ -12,6 +15,70 @@ router = APIRouter(
     prefix="/api/leaves",
     tags=["Leaves"]
 )
+
+@router.get("/export")
+async def export_leaves(
+    search: str = None,
+    type_filter: str = None,
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    query = db.query(models.LeaveHistory).join(models.Personnel)
+    
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (models.Personnel.nama.ilike(search_term)) |
+            (models.Personnel.nrp.ilike(search_term))
+        )
+        
+    if type_filter and type_filter != 'all':
+        query = query.filter(models.LeaveHistory.jenis_izin == type_filter)
+        
+    if sort_by:
+        valid_sort_fields = {
+            "created_at": models.LeaveHistory.created_at,
+            "tanggal_mulai": models.LeaveHistory.tanggal_mulai,
+            "jumlah_hari": models.LeaveHistory.jumlah_hari,
+            "jenis_izin": models.LeaveHistory.jenis_izin,
+            "nama": models.Personnel.nama,
+            "nrp": models.Personnel.nrp
+        }
+        sort_column = valid_sort_fields.get(sort_by, models.LeaveHistory.created_at)
+        if sort_order == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+    else:
+         query = query.order_by(models.LeaveHistory.created_at.desc())
+         
+    leaves = query.all()
+    
+    data = []
+    for leave in leaves:
+        data.append({
+            "NRP": leave.personnel.nrp if leave.personnel else "-",
+            "Personel": leave.personnel.nama if leave.personnel else "-",
+            "Satker": leave.personnel.satker if leave.personnel else "-",
+            "Jenis Cuti": leave.jenis_izin.value,
+            "Tanggal Mulai": leave.tanggal_mulai.strftime("%Y-%m-%d"),
+            "Jumlah Hari": leave.jumlah_hari,
+            "Alasan": leave.alasan
+        })
+        
+    df = pd.DataFrame(data)
+    
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name='Riwayat Cuti', index=False)
+    output.seek(0)
+    
+    headers = {
+        'Content-Disposition': 'attachment; filename="riwayat_cuti.xlsx"'
+    }
+    return StreamingResponse(output, headers=headers, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 VALID_FILE_TYPES = ["image/jpeg", "image/png", "application/pdf"]
 UPLOAD_DIR = "uploads/evidence"

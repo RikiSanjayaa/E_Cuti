@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Response, Request
+from fastapi.responses import StreamingResponse
+import io
 from sqlalchemy.orm import Session
 from typing import List
 import json
@@ -11,6 +13,87 @@ router = APIRouter(
     prefix="/api/personnel",
     tags=["Personnel"]
 )
+
+@router.get("/export")
+async def export_personnel(
+    query: str = None,
+    sort_by: str = "nama",
+    sort_order: str = "asc",
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    q = db.query(models.Personnel)
+    
+    if query:
+        search = f"%{query}%"
+        q = q.filter(
+            (models.Personnel.nama.ilike(search)) |
+            (models.Personnel.nrp.ilike(search)) |
+            (models.Personnel.jabatan.ilike(search))
+        )
+        
+    # Apply filtering logic same as get_all_personnel (minus limit/offset)
+    if sort_by:
+        valid_sort_fields = {
+            "nama": models.Personnel.nama,
+            "nrp": models.Personnel.nrp,
+            "jabatan": models.Personnel.jabatan,
+            "pangkat": models.Personnel.pangkat,
+            "satker": models.Personnel.satker
+        }
+        sort_column = valid_sort_fields.get(sort_by, models.Personnel.nama)
+        if sort_order == "desc":
+            q = q.order_by(sort_column.desc())
+        else:
+            q = q.order_by(sort_column.asc())
+    else:
+        q = q.order_by(models.Personnel.nama.asc())
+
+    personnel_list = q.all()
+
+    # Calculate leave calculations for export
+    from datetime import datetime
+    from sqlalchemy import extract, func
+    current_year = datetime.now().year
+    
+    if personnel_list:
+        personnel_ids = [p.id for p in personnel_list]
+        usage_query = db.query(
+            models.LeaveHistory.personnel_id,
+            func.sum(models.LeaveHistory.jumlah_hari).label('total_days')
+        ).filter(
+            models.LeaveHistory.personnel_id.in_(personnel_ids),
+            extract('year', models.LeaveHistory.tanggal_mulai) == current_year
+        ).group_by(models.LeaveHistory.personnel_id).all()
+        
+        usage_map = {res[0]: res[1] for res in usage_query}
+        for p in personnel_list:
+             used = usage_map.get(p.id, 0) or 0
+             p.sisa_cuti = max(0, 12 - used)
+
+    # Create DataFrame
+    data = []
+    for p in personnel_list:
+        data.append({
+            "NRP": p.nrp,
+            "Nama": p.nama,
+            "Pangkat": p.pangkat,
+            "Jabatan": p.jabatan,
+            "Satuan Kerja": p.satker,
+            "Sisa Cuti (Hari)": getattr(p, 'sisa_cuti', 12)
+        })
+        
+    df = pd.DataFrame(data)
+    
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name='Personnel', index=False)
+    output.seek(0)
+    
+    headers = {
+        'Content-Disposition': 'attachment; filename="personnel.xlsx"'
+    }
+    return StreamingResponse(output, headers=headers, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 @router.get("/", response_model=List[schemas.Personnel])
 async def get_all_personnel(

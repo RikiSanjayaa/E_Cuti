@@ -113,6 +113,34 @@ export default function Personel() {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const params = {
+        query: searchQuery,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      };
+
+      const response = await axios.get('/api/personnel/export', {
+        params,
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'personnel.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Failed to export personnel:", error);
+      alert("Gagal mengunduh data personel.");
+    }
+  };
+
   const handleSort = (field) => {
     if (sortBy === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -199,7 +227,10 @@ export default function Personel() {
                 {importLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                 Import Excel
               </button>
-              <button className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer">
+              <button
+                onClick={handleExport}
+                className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer"
+              >
                 <Download className="w-4 h-4" />
                 Ekspor
               </button>
