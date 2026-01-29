@@ -52,12 +52,12 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
       <aside className={`
         ${isMobile ? 'fixed inset-y-0 left-0 z-40' : 'relative'}
         ${isCollapsed ? (isMobile ? '-translate-x-full' : 'w-20') : 'w-72'} 
-        bg-card border-r border-border h-screen flex flex-col transition-all duration-300 ease-in-out shadow-xl
+        bg-card border-r border-border h-screen flex flex-col transition-all duration-300 ease-in-out
       `}>
         {/* Header */}
         <div className={`h-20 flex items-center ${!isMobile && isCollapsed ? 'justify-center w-full' : 'px-6'} border-b border-border transition-all duration-300`}>
           <div className={`flex items-center overflow-hidden whitespace-nowrap w-full ${!isMobile && isCollapsed ? 'justify-center' : 'gap-4'}`}>
-            <div className={`flex-shrink-0 w-10 h-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center shadow-lg transition-all duration-300`}>
+            <div className={`flex-shrink-0 w-10 h-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center transition-all duration-300`}>
               <FileText className="w-5 h-5" />
             </div>
 
@@ -94,7 +94,7 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
                     className={`group w-full flex items-center rounded-xl transition-all duration-200 cursor-pointer overflow-hidden whitespace-nowrap relative
                       ${!isMobile && isCollapsed ? 'justify-center h-12 px-0' : 'h-11 px-4 gap-3'}
                       ${isActive
-                        ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100 shadow-sm font-semibold'
+                        ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100 font-semibold'
                         : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                       }
                     `}

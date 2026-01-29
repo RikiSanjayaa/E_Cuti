@@ -337,7 +337,7 @@ export default function Personel() {
             <select
               value={filterPangkat}
               onChange={(e) => setFilterPangkat(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white min-w-[140px]"
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background text-foreground min-w-[140px]"
             >
               <option value="">Semua Pangkat</option>
               {rankOptions.map(opt => (
@@ -348,7 +348,7 @@ export default function Personel() {
             <select
               value={filterJabatan}
               onChange={(e) => setFilterJabatan(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white min-w-[140px]"
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background text-foreground min-w-[140px]"
             >
               <option value="">Semua Jabatan</option>
               {jabatanOptions.map(opt => (
