@@ -12,6 +12,10 @@ router = APIRouter(
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+@router.get("/me", response_model=schemas.User)
+async def get_current_user_profile(current_user: models.User = Depends(auth.get_current_user)):
+    return current_user
+
 def get_password_hash(password):
     return pwd_context.hash(password)
 
@@ -122,6 +126,13 @@ async def update_user(
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
+        
+    if user_update.username is not None and user_update.username != db_user.username:
+        # Check if new username is already taken
+        existing = db.query(models.User).filter(models.User.username == user_update.username).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Username already taken")
+        db_user.username = user_update.username
         
     if user_update.full_name is not None:
         db_user.full_name = user_update.full_name

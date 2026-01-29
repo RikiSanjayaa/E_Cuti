@@ -1,11 +1,29 @@
 import { Bell, User, ChevronDown, PanelLeft, LogOut, Moon, Sun } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export function Header({ userRole, onToggleSidebar }) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await axios.get('/api/users/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setCurrentUser(res.data);
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -20,8 +38,7 @@ export function Header({ userRole, onToggleSidebar }) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
+    localStorage.clear();
     navigate('/login');
   };
 
@@ -51,14 +68,21 @@ export function Header({ userRole, onToggleSidebar }) {
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="flex items-center gap-3 hover:bg-accent hover:text-accent-foreground px-3 py-2 rounded-md transition-colors cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-              <User className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-xs transition-transform hover:scale-105">
+              {currentUser?.full_name
+                ? currentUser.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+                : <User className="w-4 h-4" />
+              }
             </div>
             <div className="text-left hidden md:block">
-              <p className="text-sm font-medium capitalize text-foreground">{userRole || 'User'}</p>
-              <p className="text-xs text-muted-foreground">Portal Pengguna</p>
+              <p className="text-sm font-semibold capitalize text-foreground whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]">
+                {currentUser?.full_name || currentUser?.username || userRole || 'User'}
+              </p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                {currentUser?.role === 'super_admin' ? 'Super Admin' : currentUser?.role === 'atasan' ? 'Atasan' : 'Admin'}
+              </p>
             </div>
-            <ChevronDown className="w-4 h-4 text-muted-foreground hidden md:block" />
+            <ChevronDown className={`w-4 h-4 text-muted-foreground hidden md:block transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`} />
           </button>
 
           {showUserMenu && (
