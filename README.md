@@ -63,19 +63,30 @@ Sebelum menjalankan aplikasi, pastikan komputer Anda sudah terinstall:
     pip install -r backend/requirements.txt
     ```
 
-4.  **Inisialisasi Database**:
+4.  **Inisialisasi Database (First Time Only)**:
     ```bash
-    python -m backend.scripts.init_db
+    npm run db:init
     ```
-    *(Opsional)* Reset & Seed Ulang:
+    
+5.  **Add Dummy Data for Testing** *(Optional)*:
     ```bash
-    python -m backend.scripts.refresh_db
+    npm run db:seed
     ```
 
-5.  **Menjalankan Server Backend**:
+6.  **Menjalankan Server Backend**:
     ```bash
-    uvicorn backend.main:app --reload
+    npm run backend
     ```
+
+### Database Management Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run db:init` | Initialize database (first-time setup) |
+| `npm run db:fresh` | Drop all data and start fresh (dev reset) |
+| `npm run db:seed` | Add dummy data for testing |
+| `npm run db:reset` | Clear operational data (keep users & leave types) |
+| `npm run db:check` | Show database status |
 
 ### 2. Setup Frontend (Tampilan)
 

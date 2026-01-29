@@ -5,6 +5,11 @@
   "scripts": {
     "backend": "node run_backend.js dev",
     "backend:prod": "node run_backend.js prod",
+    "db:init": "node run_script.js manage init",
+    "db:fresh": "node run_script.js manage fresh",
+    "db:seed": "node run_script.js manage seed",
+    "db:reset": "node run_script.js manage reset",
+    "db:check": "node run_script.js manage check",
     "frontend": "npm run dev --prefix frontend",
     "frontend:build": "npm run build --prefix frontend",
     "dev": "npx concurrently \"npm run backend\" \"npm run frontend\"",
