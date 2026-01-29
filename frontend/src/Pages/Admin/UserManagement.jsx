@@ -14,9 +14,10 @@ export default function UserManagement() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
+
   // Pagination & Sorting State
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [sortBy, setSortBy] = useState('created_at');
@@ -160,9 +161,11 @@ export default function UserManagement() {
     }
   };
 
+
+
   useEffect(() => {
     fetchUsers();
-  }, [searchQuery, roleFilter, statusFilter, currentPage, sortBy, sortOrder]);
+  }, [searchQuery, roleFilter, statusFilter, currentPage, sortBy, sortOrder, itemsPerPage]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -521,11 +524,12 @@ export default function UserManagement() {
                       </button>
                       <button
                         onClick={() => handleToggleStatus(user)}
+                        disabled={user.role === 'super_admin'}
                         className={`p-1.5 rounded-md border transition-colors ${user.status === 'active'
                           ? 'hover:bg-red-50 text-red-600 border-red-200'
                           : 'hover:bg-green-50 text-green-600 border-green-200'
-                          }`}
-                        title={user.status === 'active' ? "Non-aktifkan Pengguna" : "Aktifkan Pengguna"}
+                          } ${user.role === 'super_admin' ? 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200' : ''}`}
+                        title={user.role === 'super_admin' ? "Super Admin tidak dapat dinonaktifkan" : (user.status === 'active' ? "Non-aktifkan Pengguna" : "Aktifkan Pengguna")}
                       >
                         {user.status === 'active' ? (
                           <Unlock className="w-4 h-4" />
@@ -547,6 +551,7 @@ export default function UserManagement() {
             onPageChange={setCurrentPage}
             totalItems={totalItems}
             itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
           />
         </div>
       </div>

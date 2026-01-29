@@ -92,7 +92,6 @@ def process_excel_file(file_path: str, db: Session):
                 existing.nama = nama
                 existing.pangkat = pangkat
                 existing.jabatan = jabatan
-                existing.satker = "Polda NTB"
                 if jk: existing.jenis_kelamin = jk
                 
                 stats["updated"] += 1
@@ -105,7 +104,6 @@ def process_excel_file(file_path: str, db: Session):
                 nama=nama,
                 pangkat=pangkat,
                 jabatan=jabatan,
-                satker="Polda NTB",
                 jenis_kelamin=jk
             )
             db.add(new_p)

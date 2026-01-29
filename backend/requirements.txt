@@ -11,3 +11,4 @@ reportlab
 openpyxl
 aiofiles
 bcrypt==3.2.2
+xlsxwriter

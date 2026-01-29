@@ -4,6 +4,8 @@ from sqlalchemy.sql import func
 import enum
 from .core.database import Base
 
+from datetime import datetime
+
 class Role(str, enum.Enum):
     super_admin = "super_admin"
     admin = "admin"
@@ -40,8 +42,9 @@ class Personnel(Base):
     nama = Column(String)
     pangkat = Column(String)
     jabatan = Column(String)
-    satker = Column(String)
+
     jenis_kelamin = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     leaves = relationship("LeaveHistory", back_populates="personnel")
 

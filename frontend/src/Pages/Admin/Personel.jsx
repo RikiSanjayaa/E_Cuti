@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 
-import ConfirmationModal from '../../components/ConfirmationModal';
-import ImportDetailsModal from '../../components/ImportDetailsModal';
-import AddPersonnelModal from '../../components/AddPersonnelModal';
+import AddPersonnelModal from '@/components/AddPersonnelModal';
+import ImportDetailsModal from '@/components/ImportDetailsModal';
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
@@ -36,7 +36,7 @@ export default function Personel() {
   const [searchQuery, setSearchQuery] = useState('');
   const [personnel, setPersonnel] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedPersonnel, setSelectedPersonnel] = useState(null);
   const [leaveHistory, setLeaveHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
@@ -58,24 +58,66 @@ export default function Personel() {
 
   // Pagination & Sorting State
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [globalTotal, setGlobalTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [sortBy, setSortBy] = useState('nama');
   const [sortOrder, setSortOrder] = useState('asc');
 
+  // Filters State
+  const [filterPangkat, setFilterPangkat] = useState('');
+  const [filterJabatan, setFilterJabatan] = useState('');
+  const [rankOptions, setRankOptions] = useState([]);
+  const [jabatanOptions, setJabatanOptions] = useState([]);
+  const [stats, setStats] = useState({
+    total_personnel: 0,
+    active_personnel: 0,
+    on_leave: 0,
+    new_personnel: 0
+  });
+
+  useEffect(() => {
+    fetchFilters();
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/personnel/stats', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setStats(response.data);
+    } catch (error) {
+      console.error("Failed to fetch stats:", error);
+    }
+  };
+
+  const fetchFilters = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/personnel/filters', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRankOptions(response.data.pangkat || []);
+      setJabatanOptions(response.data.jabatan || []);
+    } catch (error) {
+      console.error("Failed to fetch filters:", error);
+    }
+  };
+
   useEffect(() => {
     fetchPersonnel();
-  }, [currentPage, sortBy, sortOrder, searchQuery]);
+  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage, filterPangkat, filterJabatan]);
 
-  // Fetch Leave History when employee selected
+  // Fetch Leave History when personel selected
   useEffect(() => {
-    if (selectedEmployee?.nrp) {
+    if (selectedPersonnel?.nrp) {
       setHistoryLoading(true);
       const token = localStorage.getItem('token');
       // Using existing /api/leaves endpoint which supports search
-      axios.get(`/api/leaves/?search=${selectedEmployee.nrp}`, {
+      axios.get(`/api/leaves/?search=${selectedPersonnel.nrp}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => {
@@ -89,7 +131,7 @@ export default function Personel() {
     } else {
       setLeaveHistory([]);
     }
-  }, [selectedEmployee]);
+  }, [selectedPersonnel]);
 
   const fetchPersonnel = async () => {
     setLoading(true);
@@ -103,6 +145,8 @@ export default function Personel() {
       };
 
       if (searchQuery) params.query = searchQuery;
+      if (filterPangkat) params.pangkat = filterPangkat;
+      if (filterJabatan) params.jabatan = filterJabatan;
 
       const response = await axios.get('/api/personnel/', {
         params,
@@ -132,7 +176,7 @@ export default function Personel() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, filterPangkat, filterJabatan]);
 
   const handleImport = async (e) => {
     const file = e.target.files[0];
@@ -152,10 +196,11 @@ export default function Personel() {
         }
       });
 
-      // Use ImportDetailsModal for detailed success report
       setImportResult(response.data.data);
 
       fetchPersonnel();
+      fetchStats();
+      fetchFilters();
 
     } catch (error) {
       setModal({
@@ -167,6 +212,34 @@ export default function Personel() {
     } finally {
       setImportLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const params = {
+        query: searchQuery,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      };
+
+      const response = await axios.get('/api/personnel/export', {
+        params,
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'personnel.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Failed to export personnel:", error);
+      alert("Gagal mengunduh data personel.");
     }
   };
 
@@ -191,30 +264,42 @@ export default function Personel() {
   return (
     <div className="relative">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Personel</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Direktori personel dan informasi cuti
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Personel</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Direktori personel dan informasi cuti
+            </p>
+          </div>
+          {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm text-sm font-medium w-full sm:w-auto justify-center cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Tambah Personel
+            </button>
+          )}
         </div>
 
-        {/* Summary Cards (Mock Data for now as backend doesn't aggregate this yet) */}
+
+        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Total Personel</p>
-            <p className="text-3xl font-semibold text-foreground mt-2">{globalTotal || totalItems}</p>
+            <p className="text-3xl font-semibold text-foreground mt-2">{stats.total_personnel}</p>
           </div>
           <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Personel Aktif</p>
-            <p className="text-3xl font-semibold text-foreground mt-2">{globalTotal || totalItems}</p>
+            <p className="text-3xl font-semibold text-foreground mt-2">{stats.active_personnel}</p>
           </div>
           <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Sedang Cuti</p>
-            <p className="text-3xl font-semibold text-foreground mt-2">-</p>
+            <p className="text-3xl font-semibold text-foreground mt-2">{stats.on_leave}</p>
           </div>
           <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Personel Baru (Bulan Ini)</p>
-            <p className="text-3xl font-semibold text-foreground mt-2">-</p>
+            <p className="text-3xl font-semibold text-foreground mt-2">{stats.new_personnel}</p>
           </div>
         </div>
 
@@ -231,12 +316,35 @@ export default function Personel() {
                 className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
+            {/* Inline Filters */}
+            <select
+              value={filterPangkat}
+              onChange={(e) => setFilterPangkat(e.target.value)}
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white min-w-[140px]"
+            >
+              <option value="">Semua Pangkat</option>
+              {rankOptions.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+
+            <select
+              value={filterJabatan}
+              onChange={(e) => setFilterJabatan(e.target.value)}
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white min-w-[140px]"
+            >
+              <option value="">Semua Jabatan</option>
+              {jabatanOptions.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+
             <div className="flex gap-2">
               {localStorage.getItem('role') !== 'atasan' && (
                 <>
                   <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm hover:bg-slate-800 flex items-center gap-2 cursor-pointer shadow-sm dark:bg-transparent dark:border dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800/50"
+                    className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm hover:bg-slate-800 flex items-center gap-2 cursor-pointer shadow-sm"
                   >
                     <div className="bg-white/20 p-0.5 rounded">
                       <Plus className="w-3 h-3" />
@@ -258,15 +366,20 @@ export default function Personel() {
                     {importLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                     Import Excel
                   </button>
+                  <button
+                    onClick={handleExport}
+                    className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    Ekspor
+                  </button>
                 </>
               )}
-              <button className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer">
-                <Download className="w-4 h-4" />
-                Ekspor
-              </button>
             </div>
           </div>
         </div>
+
+
 
         {/* Table */}
         <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
@@ -332,8 +445,8 @@ export default function Personel() {
                   filteredPersonnel.map((p) => (
                     <tr
                       key={p.id}
-                      className="hover:bg-muted/30 cursor-pointer transition-colors group"
-                      onClick={() => setSelectedEmployee(p)}
+                      className="hover:bg-muted cursor-pointer transition-colors"
+                      onClick={() => setSelectedPersonnel(p)}
                     >
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
                         <div className="flex items-center gap-2">
@@ -368,92 +481,93 @@ export default function Personel() {
               onPageChange={setCurrentPage}
               totalItems={totalItems}
               itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={setItemsPerPage}
             />
           </div>
         </div>
 
         {/* Detail Overlay & Panel */}
 
-        {selectedEmployee && createPortal(
+        {selectedPersonnel && createPortal(
           <>
             <div
               className="fixed inset-0 z-[100]"
-              onClick={() => setSelectedEmployee(null)}
+              onClick={() => setSelectedPersonnel(null)}
             />
             {/* Side Drawer Container - Fixed Right */}
-            <div className="fixed right-0 inset-y-0 w-full md:w-[450px] bg-card shadow-2xl z-[110] overflow-y-auto animate-in slide-in-from-right duration-300 flex flex-col">
-
-              {/* Simple Header */}
-              <div className="flex items-center justify-between p-6 border-b border-border bg-card sticky top-0 z-10">
-                <div>
-                  <h2 className="text-xl font-bold text-foreground leading-tight" title={selectedEmployee.nama}>
-                    {selectedEmployee.nama}
-                  </h2>
-                  <div className="flex items-center gap-2 mt-1 text-slate-500 text-sm font-medium">
-                    <Shield className="w-4 h-4" />
-                    {selectedEmployee.pangkat}
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedEmployee(null)}
-                  className="p-2 hover:bg-accent rounded-full text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Content Grid (Clean Minimalist Design) */}
-              <div className="px-6 pb-6 mt-2">
-
-                <div className="grid grid-cols-2 gap-y-6 gap-x-4">
-                  {/* NRP */}
+            <div className="fixed right-0 inset-y-0 w-full md:w-[450px] bg-white shadow-2xl z-[110] overflow-y-auto animate-in slide-in-from-right duration-300 flex flex-col">
+                
+                {/* Simple Header */}
+                <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-white sticky top-0 z-10">
                   <div>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
-                      NRP
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm text-slate-800 tracking-wide">{selectedEmployee.nrp}</span>
-                      <CopyButton text={selectedEmployee.nrp} />
+                    <h2 className="text-xl font-bold text-slate-900 leading-tight" title={selectedEmployee.nama}>
+                      {selectedEmployee.nama}
+                    </h2>
+                    <div className="flex items-center gap-2 mt-1 text-slate-500 text-sm font-medium">
+                      <Shield className="w-4 h-4" />
+                      {selectedEmployee.pangkat}
                     </div>
                   </div>
-
-                  {/* Gender */}
-                  <div>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
-                      Gender
-                    </p>
-                    <p className="font-semibold text-sm text-slate-800">
-                      {selectedEmployee.jenis_kelamin === 'L' ? 'Laki-laki' : selectedEmployee.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
-                    </p>
-                  </div>
-
-                  {/* Jabatan */}
-                  <div className="col-span-2">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Jabatan</p>
-                    <p className="font-semibold text-sm text-slate-800 leading-snug">{selectedEmployee.jabatan}</p>
-                  </div>
-
-                  {/* Sisa Cuti (Clean Progress) */}
-                  <div className="col-span-2 pt-2 pb-2">
-                    <div className="flex justify-between items-end mb-2">
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex items-center gap-1">
-                        <Calendar className="w-3 h-3" /> Sisa Cuti Tahunan
-                      </p>
-                      <div className="flex items-baseline gap-1">
-                        <span className={`text-xl font-bold ${(selectedEmployee.sisa_cuti ?? 12) === 0 ? 'text-red-600' : 'text-slate-900'}`}>
-                          {selectedEmployee.sisa_cuti ?? 12}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-medium">/ 12</span>
-                      </div>
-                    </div>
-                    <div className="h-1.5 bg-secondary rounded-full overflow-hidden w-full">
-                      <div
-                        className="h-full bg-primary rounded-full transition-all duration-500"
-                        style={{ width: `${((selectedEmployee.sisa_cuti ?? 12) / 12) * 100}%` }}
-                      />
-                    </div>
-                  </div>
+                  <button
+                    onClick={() => setSelectedEmployee(null)}
+                    className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
+
+                {/* Content Grid (Clean Minimalist Design) */}
+                <div className="px-6 pb-6 mt-2">
+                  
+                  <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+                    {/* NRP */}
+                    <div>
+                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
+                          NRP
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm text-slate-800 tracking-wide">{selectedEmployee.nrp}</span>
+                          <CopyButton text={selectedEmployee.nrp} />
+                        </div>
+                    </div>
+
+                    {/* Gender */}
+                    <div>
+                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
+                          Gender
+                        </p>
+                        <p className="font-semibold text-sm text-slate-800">
+                          {selectedEmployee.jenis_kelamin === 'L' ? 'Laki-laki' : selectedEmployee.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
+                        </p>
+                    </div>
+
+                    {/* Jabatan */}
+                    <div className="col-span-2">
+                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Jabatan</p>
+                         <p className="font-semibold text-sm text-slate-800 leading-snug">{selectedEmployee.jabatan}</p>
+                    </div>
+
+                    {/* Sisa Cuti (Clean Progress) */}
+                    <div className="col-span-2 pt-2 pb-2">
+                         <div className="flex justify-between items-end mb-2">
+                            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex items-center gap-1">
+                               <Calendar className="w-3 h-3" /> Sisa Cuti Tahunan
+                            </p>
+                             <div className="flex items-baseline gap-1">
+                                 <span className={`text-xl font-bold ${(selectedEmployee.sisa_cuti ?? 12) === 0 ? 'text-red-600' : 'text-slate-900'}`}>
+                                   {selectedEmployee.sisa_cuti ?? 12}
+                                 </span>
+                                 <span className="text-[10px] text-slate-400 font-medium">/ 12</span>
+                             </div>
+                         </div>
+                         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden w-full">
+                           <div 
+                              className="h-full bg-slate-800 rounded-full transition-all duration-500" 
+                              style={{ width: `${((selectedEmployee.sisa_cuti ?? 12) / 12) * 100}%` }}
+                           />
+                         </div>
+                    </div>
+                  </div>
 
                 {/* Leave History Section */}
                 <div className="mt-4">
@@ -487,18 +601,18 @@ export default function Personel() {
                           const totalDays = leaves.reduce((sum, item) => sum + item.jumlah_hari, 0);
                           const totalCount = leaves.length;
 
-                          return (
-                            <div key={year} className="space-y-3 animate-in slide-in-from-bottom-2 duration-500">
-                              {/* Year Header */}
-                              <div className="flex items-center gap-3 px-1">
-                                <h4 className="text-lg font-bold text-slate-900">{year}</h4>
-                                <div className="h-px bg-border flex-1" />
-                                <div className="flex gap-3 text-[10px] bg-muted px-2 py-1 rounded-full text-foreground font-medium">
-                                  <span>{totalCount}x Izin</span>
-                                  <span className="w-px bg-slate-300 h-3 self-center" />
-                                  <span>Total {totalDays} Hari</span>
-                                </div>
-                              </div>
+                             return (
+                               <div key={year} className="space-y-3 animate-in slide-in-from-bottom-2 duration-500">
+                                  {/* Year Header */}
+                                  <div className="flex items-center gap-3 px-1"> 
+                                     <h4 className="text-lg font-bold text-slate-900">{year}</h4>
+                                     <div className="h-px bg-slate-200 flex-1" />
+                                     <div className="flex gap-3 text-[10px] bg-slate-100 px-2 py-1 rounded-full text-slate-600 font-medium">
+                                        <span>{totalCount}x Izin</span>
+                                        <span className="w-px bg-slate-300 h-3 self-center" />
+                                        <span>Total {totalDays} Hari</span>
+                                     </div>
+                                  </div>
 
                               {/* Cards List */}
                               <div className="space-y-3">
@@ -515,29 +629,30 @@ export default function Personel() {
                                   const id = `LR-${year}-${String(leave.id || idx + 1).padStart(3, '0')}`;
                                   const createdDate = new Date(leave.created_at || new Date()).toLocaleDateString('id-ID');
 
-                                  return (
-                                    <div key={leave.id || idx} className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-shadow">
-                                      {/* Top Row */}
-                                      <div className="flex justify-between items-start mb-2">
-                                        <div className="flex items-center gap-2">
-                                          <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${leave.jenis_izin === 'Cuti Tahunan' ? 'bg-blue-50 text-blue-600' :
-                                            leave.jenis_izin === 'Sakit' ? 'bg-red-50 text-red-600' :
-                                              'bg-orange-50 text-orange-600'
-                                            }`}>
-                                            {leave.jenis_izin}
-                                          </span>
-                                          <span className="text-sm font-bold text-foreground">{leave.jumlah_hari} hari</span>
-                                        </div>
-                                        <span className="text-xs font-mono text-slate-400">{id}</span>
-                                      </div>
+                                       return (
+                                          <div key={leave.id || idx} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                                             {/* Top Row */}
+                                             <div className="flex justify-between items-start mb-2">
+                                                <div className="flex items-center gap-2">
+                                                   <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${
+                                                      leave.jenis_izin === 'Cuti Tahunan' ? 'bg-blue-50 text-blue-600' : 
+                                                      leave.jenis_izin === 'Sakit' ? 'bg-red-50 text-red-600' : 
+                                                      'bg-orange-50 text-orange-600'
+                                                   }`}>
+                                                      {leave.jenis_izin}
+                                                   </span>
+                                                   <span className="text-sm font-bold text-slate-900">{leave.jumlah_hari} hari</span>
+                                                </div>
+                                                <span className="text-xs font-mono text-slate-400">{id}</span>
+                                             </div>
 
-                                      {/* Date Range */}
-                                      <div className="text-sm text-muted-foreground font-medium mb-3">
-                                        {formatDate(startDate)} s/d {formatDate(endDate)}
-                                      </div>
+                                             {/* Date Range */}
+                                             <div className="text-sm text-slate-600 font-medium mb-3">
+                                                {formatDate(startDate)} s/d {formatDate(endDate)}
+                                             </div>
 
-                                      {/* Divider */}
-                                      <div className="h-px bg-border my-3" />
+                                             {/* Divider */}
+                                             <div className="h-px bg-slate-100 my-3" />
 
                                       {/* Footer */}
                                       <div className="flex justify-between items-center text-[10px] text-zinc-400">
@@ -591,6 +706,8 @@ export default function Personel() {
           onClose={() => setIsAddModalOpen(false)}
           onSuccess={(msg) => {
             fetchPersonnel();
+            fetchStats();
+            fetchFilters();
             setModal({
               isOpen: true,
               type: 'success',

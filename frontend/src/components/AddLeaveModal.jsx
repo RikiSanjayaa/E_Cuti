@@ -1,10 +1,11 @@
-import { X, Search, Calendar, FileText, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Calendar, FileText, User, AlertCircle, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 
 export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [nrp, setNrp] = useState('');
-  const [employee, setEmployee] = useState(null);
+  const [personel, setPersonnel] = useState(null);
   const [searchError, setSearchError] = useState('');
   const [leaveType, setLeaveType] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -24,7 +25,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       setStartDate(initialData.tanggal_mulai || '');
       setDays(initialData.jumlah_hari || '');
       setContext(initialData.alasan || '');
-      setEmployee(initialData.personnel ? {
+      setPersonnel(initialData.personnel ? {
         name: initialData.personnel.nama,
         nrp: initialData.personnel.nrp,
         position: initialData.personnel.jabatan ? `${initialData.personnel.pangkat} - ${initialData.personnel.jabatan}` : '',
@@ -36,9 +37,9 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   }, [initialData, isOpen]);
 
   // Handle personnel search
-  const handleEmployeeSearch = async () => {
+  const handlePersonnelSearch = async () => {
     if (!nrp || nrp.length < 4) {
-      setEmployee(null);
+      setPersonnel(null);
       return;
     }
 
@@ -49,7 +50,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setEmployee({
+      setPersonnel({
         name: res.data.nama,
         nrp: res.data.nrp,
         position: `${res.data.pangkat} - ${res.data.jabatan}`,
@@ -57,9 +58,9 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       });
 
     } catch (error) {
-      console.error("Error fetching employee:", error);
-      setEmployee(null);
-      setSearchError('Employee not found.');
+      console.error("Error fetching personel:", error);
+      setPersonnel(null);
+      setSearchError('Personnel not found.');
     }
   };
 
@@ -69,7 +70,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     if (isEditMode && nrp === initialData?.personnel?.nrp) return;
 
     const delayDebounceFn = setTimeout(() => {
-      if (nrp && nrp.length >= 4) handleEmployeeSearch();
+      if (nrp && nrp.length >= 4) handlePersonnelSearch();
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
@@ -130,7 +131,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
 
   const resetForm = () => {
     setNrp('');
-    setEmployee(null);
+    setPersonnel(null);
     setSearchError('');
     setLeaveType('');
     setStartDate('');
@@ -148,7 +149,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <>
       <div
         className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
@@ -191,7 +192,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
               </div>
             )}
 
-            {/* Step 1: Employee Search */}
+            {/* Step 1: Personnel Search */}
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
@@ -216,21 +217,21 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                   <p className="text-xs text-red-500 mt-1">{searchError}</p>
                 )}
 
-                {/* Employee Preview Card */}
-                {employee && (
+                {/* Personnel Preview Card */}
+                {personel && (
                   <div className="mt-4 bg-primary/5 border border-primary/10 rounded-lg p-4 flex items-start gap-4 animate-in fade-in slide-in-from-top-2">
                     <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold shrink-0">
-                      {employee.name ? employee.name.charAt(0) : 'P'}
+                      {personel.name ? personel.name.charAt(0) : 'P'}
                     </div>
                     <div className="space-y-1 flex-1">
-                      <p className="font-semibold text-foreground">{employee.name}</p>
-                      <p className="text-xs text-muted-foreground">NRP: {employee.nrp}</p>
+                      <p className="font-semibold text-foreground">{personel.name}</p>
+                      <p className="text-xs text-muted-foreground">NRP: {personel.nrp}</p>
                       <div className="flex flex-wrap gap-2 mt-1">
                         <p className="text-xs text-muted-foreground bg-white/50 px-2 py-0.5 rounded-full border border-border">
-                          {employee.position}
+                          {personel.position}
                         </p>
-                        <p className={`text-xs px-2 py-0.5 rounded-full border ${employee.quota > 0 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
-                          Sisa Cuti: {employee.quota} Hari
+                        <p className={`text-xs px-2 py-0.5 rounded-full border ${personel.quota > 0 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+                          Sisa Cuti: {personel.quota} Hari
                         </p>
                       </div>
                     </div>
@@ -362,6 +363,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
           </form>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

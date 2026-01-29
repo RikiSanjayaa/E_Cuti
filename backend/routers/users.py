@@ -138,14 +138,30 @@ async def update_user(
     db.refresh(db_user)
     
     # Log action
+    log_action = "UPDATE_USER"
+    log_details = "Updated user profile"
+    log_status = "success"
+    
+    # Check for deactivation
+    if user_update.status == "inactive" and db_user.status == "inactive":
+         log_action = "DEACTIVATE_USER"
+         log_details = f"Deactivated user {db_user.username}"
+         log_status = "warning"
+    # Check for activation
+    elif user_update.status == "active" and db_user.status == "active":
+         log_action = "ACTIVATE_USER"
+         log_details = f"Activated user {db_user.username}"
+         log_status = "success"
+         
     auth.log_audit(
         db, 
         current_user.id, 
-        "UPDATE_USER", 
+        log_action, 
         "User Management", 
         db_user.username, 
         "User", 
-        "Updated user profile",
+        log_details,
+        status=log_status,
         ip_address=request.client.host,
         user_agent=request.headers.get("user-agent")
     )

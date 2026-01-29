@@ -19,7 +19,7 @@ export default function AuditLogs() {
 
   // Pagination & Sorting
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [sortBy, setSortBy] = useState('timestamp');
@@ -69,7 +69,7 @@ export default function AuditLogs() {
 
   useEffect(() => {
     fetchLogs();
-  }, [actionFilter, roleFilter, categoryFilter, statusFilter, startDate, endDate, currentPage, sortBy, sortOrder]);
+  }, [actionFilter, roleFilter, categoryFilter, statusFilter, startDate, endDate, currentPage, sortBy, sortOrder, itemsPerPage]);
 
   const handleSort = (field) => {
     if (sortBy === field) {
@@ -111,6 +111,48 @@ export default function AuditLogs() {
     return '•';
   };
 
+  const getCategoryLabel = (category) => {
+    switch (category) {
+      case 'Authentication': return 'Autentikasi';
+      case 'Personnel Management': return 'Manajemen Personel';
+      case 'Leave Management': return 'Manajemen Cuti';
+      case 'User Management': return 'Manajemen Pengguna';
+      case 'Reporting': return 'Pelaporan';
+      default: return category;
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const params = {
+        action: actionFilter,
+        role: roleFilter,
+        category: categoryFilter,
+        status_filter: statusFilter, // Matches backend parameter name
+        start_date: startDate,
+        end_date: endDate
+      };
+
+      const response = await axios.get('/api/audit/export', {
+        params,
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'audit_logs.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Failed to export logs:", error);
+      alert("Gagal mengunduh data audit logs.");
+    }
+  };
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
@@ -128,6 +170,8 @@ export default function AuditLogs() {
           Refresh
         </button>
       </div>
+
+
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -246,8 +290,9 @@ export default function AuditLogs() {
                 className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="all">Semua Kategori</option>
+                <option value="User Management">Manajemen Pengguna</option>
                 <option value="Leave Management">Manajemen Cuti</option>
-                <option value="Employee Management">Manajemen Personel</option>
+                <option value="Personnel Management">Manajemen Personel</option>
                 <option value="Reporting">Pelaporan</option>
                 <option value="Authentication">Autentikasi</option>
               </select>
@@ -283,7 +328,10 @@ export default function AuditLogs() {
             >
               Reset
             </button>
-            <button className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 h-[38px]">
+            <button
+              onClick={handleExport}
+              className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 h-[38px] cursor-pointer"
+            >
               <Download className="w-4 h-4" />
               Ekspor
             </button>
@@ -385,7 +433,7 @@ export default function AuditLogs() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {log.category}
+                      {getCategoryLabel(log.category)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
@@ -422,6 +470,7 @@ export default function AuditLogs() {
             onPageChange={setCurrentPage}
             totalItems={totalItems}
             itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
           />
         </div>
       </div>
