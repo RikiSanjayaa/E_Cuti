@@ -61,7 +61,6 @@ async def export_leaves(
         data.append({
             "NRP": leave.personnel.nrp if leave.personnel else "-",
             "Personel": leave.personnel.nama if leave.personnel else "-",
-            "Satker": leave.personnel.satker if leave.personnel else "-",
             "Jenis Cuti": leave.jenis_izin.value,
             "Tanggal Mulai": leave.tanggal_mulai.strftime("%Y-%m-%d"),
             "Jumlah Hari": leave.jumlah_hari,
@@ -104,6 +103,9 @@ async def get_all_leaves(
     sort_order: str = "desc",
     search: Optional[str] = None,
     type_filter: Optional[str] = None,
+    created_by: Optional[int] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
@@ -121,6 +123,15 @@ async def get_all_leaves(
         
     if type_filter and type_filter != 'all':
         query = query.filter(models.LeaveHistory.jenis_izin == type_filter)
+        
+    if created_by:
+        query = query.filter(models.LeaveHistory.created_by == created_by)
+        
+    if start_date:
+        query = query.filter(models.LeaveHistory.tanggal_mulai >= start_date)
+        
+    if end_date:
+        query = query.filter(models.LeaveHistory.tanggal_mulai <= end_date)
     
     # Total Count
     total = query.count()

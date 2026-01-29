@@ -47,7 +47,7 @@ class PersonnelBase(BaseModel):
     nama: str
     pangkat: str
     jabatan: str
-    satker: str
+
     jenis_kelamin: Optional[str] = None
 
 class PersonnelCreate(PersonnelBase):

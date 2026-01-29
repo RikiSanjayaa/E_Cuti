@@ -65,9 +65,51 @@ export default function Personel() {
   const [sortBy, setSortBy] = useState('nama');
   const [sortOrder, setSortOrder] = useState('asc');
 
+  // Filters State
+  const [filterPangkat, setFilterPangkat] = useState('');
+  const [filterJabatan, setFilterJabatan] = useState('');
+  const [rankOptions, setRankOptions] = useState([]);
+  const [jabatanOptions, setJabatanOptions] = useState([]);
+  const [stats, setStats] = useState({
+    total_personnel: 0,
+    active_personnel: 0,
+    on_leave: 0,
+    new_personnel: 0
+  });
+
+  useEffect(() => {
+    fetchFilters();
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/personnel/stats', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setStats(response.data);
+    } catch (error) {
+      console.error("Failed to fetch stats:", error);
+    }
+  };
+
+  const fetchFilters = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/personnel/filters', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRankOptions(response.data.pangkat || []);
+      setJabatanOptions(response.data.jabatan || []);
+    } catch (error) {
+      console.error("Failed to fetch filters:", error);
+    }
+  };
+
   useEffect(() => {
     fetchPersonnel();
-  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage]);
+  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage, filterPangkat, filterJabatan]);
 
   // Fetch Leave History when personel selected
   useEffect(() => {
@@ -103,6 +145,8 @@ export default function Personel() {
       };
 
       if (searchQuery) params.query = searchQuery;
+      if (filterPangkat) params.pangkat = filterPangkat;
+      if (filterJabatan) params.jabatan = filterJabatan;
 
       const response = await axios.get('/api/personnel/', {
         params,
@@ -132,7 +176,7 @@ export default function Personel() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, filterPangkat, filterJabatan]);
 
   const handleImport = async (e) => {
     const file = e.target.files[0];
@@ -152,10 +196,11 @@ export default function Personel() {
         }
       });
 
-      // Use ImportDetailsModal for detailed success report
       setImportResult(response.data.data);
 
       fetchPersonnel();
+      fetchStats();
+      fetchFilters();
 
     } catch (error) {
       setModal({
@@ -242,19 +287,19 @@ export default function Personel() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Total Personel</p>
-            <p className="text-3xl font-semibold text-foreground mt-2">{globalTotal || totalItems}</p>
+            <p className="text-3xl font-semibold text-foreground mt-2">{stats.total_personnel}</p>
           </div>
           <div className="bg-white border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Personel Aktif</p>
-            <p className="text-3xl font-semibold text-foreground mt-2">{globalTotal || totalItems}</p>
+            <p className="text-3xl font-semibold text-foreground mt-2">{stats.active_personnel}</p>
           </div>
           <div className="bg-white border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Sedang Cuti</p>
-            <p className="text-3xl font-semibold text-foreground mt-2">-</p>
+            <p className="text-3xl font-semibold text-foreground mt-2">{stats.on_leave}</p>
           </div>
           <div className="bg-white border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Personel Baru (Bulan Ini)</p>
-            <p className="text-3xl font-semibold text-foreground mt-2">-</p>
+            <p className="text-3xl font-semibold text-foreground mt-2">{stats.new_personnel}</p>
           </div>
         </div>
 
@@ -271,18 +316,32 @@ export default function Personel() {
                 className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
+            {/* Inline Filters */}
+            <select
+              value={filterPangkat}
+              onChange={(e) => setFilterPangkat(e.target.value)}
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white min-w-[140px]"
+            >
+              <option value="">Semua Pangkat</option>
+              {rankOptions.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+
+            <select
+              value={filterJabatan}
+              onChange={(e) => setFilterJabatan(e.target.value)}
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white min-w-[140px]"
+            >
+              <option value="">Semua Jabatan</option>
+              {jabatanOptions.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+
             <div className="flex gap-2">
               {localStorage.getItem('role') !== 'atasan' && (
                 <>
-                  {/* <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm hover:bg-slate-800 flex items-center gap-2 cursor-pointer shadow-sm"
-                  >
-                    <div className="bg-white/20 p-0.5 rounded">
-                      <Plus className="w-3 h-3" />
-                    </div>
-                    Tambah
-                  </button> */}
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -310,6 +369,8 @@ export default function Personel() {
             </div>
           </div>
         </div>
+
+
 
         {/* Table */}
         <div className="bg-white border border-border rounded-lg overflow-hidden shadow-sm">
@@ -635,6 +696,8 @@ export default function Personel() {
           onClose={() => setIsAddModalOpen(false)}
           onSuccess={(msg) => {
             fetchPersonnel();
+            fetchStats();
+            fetchFilters();
             setModal({
               isOpen: true,
               type: 'success',

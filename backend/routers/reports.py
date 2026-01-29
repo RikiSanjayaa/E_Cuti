@@ -20,7 +20,6 @@ router = APIRouter(
 async def get_analytics_summary(
     start_date: date = Query(None),
     end_date: date = Query(None),
-    department: str = Query(None),
     leave_type: str = Query(None),
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
@@ -31,8 +30,7 @@ async def get_analytics_summary(
         query = query.filter(models.LeaveHistory.tanggal_mulai >= start_date)
     if end_date:
         query = query.filter(models.LeaveHistory.tanggal_mulai <= end_date)
-    if department and department != 'all':
-        query = query.filter(models.Personnel.satker == department)
+
     if leave_type and leave_type != 'all':
         query = query.filter(models.LeaveHistory.jenis_izin == leave_type)
         

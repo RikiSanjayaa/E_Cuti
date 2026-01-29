@@ -10,8 +10,7 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
     nrp: '',
     nama: '',
     pangkat: '',
-    jabatan: '',
-    satker: 'Polda NTB'
+    jabatan: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -32,7 +31,7 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setFormData({ nrp: '', nama: '', pangkat: '', jabatan: '', satker: 'Polda NTB' });
+      setFormData({ nrp: '', nama: '', pangkat: '', jabatan: '' });
       onSuccess("Personel berhasil ditambahkan!");
       onClose();
     } catch (err) {

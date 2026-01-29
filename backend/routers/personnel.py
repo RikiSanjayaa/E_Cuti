@@ -7,6 +7,7 @@ import json
 import pandas as pd
 from backend.core import database, auth
 from backend import models, schemas
+from datetime import date, timedelta, datetime
 from backend.utils import import_utils
 
 router = APIRouter(
@@ -14,9 +15,43 @@ router = APIRouter(
     tags=["Personnel"]
 )
 
+@router.get("/stats")
+async def get_personnel_stats(
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    today = date.today()
+    
+    # 1. Total Personnel
+    total_personnel = db.query(models.Personnel).count()
+    
+    # 2. On Leave (Sedang Cuti)
+    cutoff = today - timedelta(days=120) 
+    recent_leaves = db.query(models.LeaveHistory).filter(models.LeaveHistory.tanggal_mulai >= cutoff).all()
+    
+    on_leave_count = 0
+    for leave in recent_leaves:
+        start = leave.tanggal_mulai
+        end = start + timedelta(days=leave.jumlah_hari - 1)
+        if start <= today <= end:
+            on_leave_count += 1
+
+    # 3. New Personnel (This Month)
+    current_month_start = today.replace(day=1)
+    new_personnel_count = db.query(models.Personnel).filter(models.Personnel.created_at >= current_month_start).count()
+    
+    return {
+        "total_personnel": total_personnel,
+        "active_personnel": total_personnel - on_leave_count, # Active usually means available
+        "on_leave": on_leave_count,
+        "new_personnel": new_personnel_count
+    }
+
 @router.get("/export")
 async def export_personnel(
     query: str = None,
+    pangkat: str = None,
+    jabatan: str = None,
     sort_by: str = "nama",
     sort_order: str = "asc",
     current_user: models.User = Depends(auth.get_current_user),
@@ -32,6 +67,13 @@ async def export_personnel(
             (models.Personnel.jabatan.ilike(search))
         )
         
+
+    if pangkat:
+        q = q.filter(models.Personnel.pangkat == pangkat)
+
+    if jabatan:
+        q = q.filter(models.Personnel.jabatan.ilike(f"%{jabatan}%"))
+
     # Apply filtering logic same as get_all_personnel (minus limit/offset)
     if sort_by:
         valid_sort_fields = {
@@ -39,7 +81,6 @@ async def export_personnel(
             "nrp": models.Personnel.nrp,
             "jabatan": models.Personnel.jabatan,
             "pangkat": models.Personnel.pangkat,
-            "satker": models.Personnel.satker
         }
         sort_column = valid_sort_fields.get(sort_by, models.Personnel.nama)
         if sort_order == "desc":
@@ -79,7 +120,6 @@ async def export_personnel(
             "Nama": p.nama,
             "Pangkat": p.pangkat,
             "Jabatan": p.jabatan,
-            "Satuan Kerja": p.satker,
             "Sisa Cuti (Hari)": getattr(p, 'sisa_cuti', 12)
         })
         
@@ -95,12 +135,27 @@ async def export_personnel(
     }
     return StreamingResponse(output, headers=headers, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
+@router.get("/filters")
+async def get_personnel_filters(
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    pangkats = db.query(models.Personnel.pangkat).distinct().filter(models.Personnel.pangkat != None).all()
+    jabatans = db.query(models.Personnel.jabatan).distinct().filter(models.Personnel.jabatan != None).all()
+    
+    return {
+        "pangkat": sorted([p[0] for p in pangkats if p[0]]),
+        "jabatan": sorted([j[0] for j in jabatans if j[0]])
+    }
+
 @router.get("/", response_model=List[schemas.Personnel])
 async def get_all_personnel(
     response: Response,
     skip: int = 0,
     limit: int = 100,
     query: str = None,
+    pangkat: str = None,
+    jabatan: str = None,
     sort_by: str = "nama",
     sort_order: str = "asc",
     current_user: models.User = Depends(auth.get_current_user),
@@ -115,6 +170,16 @@ async def get_all_personnel(
             (models.Personnel.nrp.ilike(search)) |
             (models.Personnel.jabatan.ilike(search))
         )
+        
+
+    if pangkat:
+        q = q.filter(models.Personnel.pangkat == pangkat)
+
+    if jabatan:
+        # Jabatan matching might be partial or exact, we use partial for more flexibility 
+        # but user asked for "filter" so maybe exact? Stick to ILIKE for flexibility on roles.
+        # But filter dropdowns usually expect exact. Let's do partial but with dropdown values it will be quasi-exact.
+        q = q.filter(models.Personnel.jabatan.ilike(f"%{jabatan}%"))
         
     # Total Count (Filtered)
     total = q.count()
@@ -131,7 +196,7 @@ async def get_all_personnel(
             "nrp": models.Personnel.nrp,
             "jabatan": models.Personnel.jabatan,
             "pangkat": models.Personnel.pangkat,
-            "satker": models.Personnel.satker
+
         }
         
         sort_column = valid_sort_fields.get(sort_by, models.Personnel.nama)
@@ -186,8 +251,7 @@ async def create_personnel(
         nrp=personnel.nrp,
         nama=personnel.nama,
         pangkat=personnel.pangkat,
-        jabatan=personnel.jabatan,
-        satker=personnel.satker
+        jabatan=personnel.jabatan
     )
     
     db.add(new_personnel)
@@ -280,8 +344,7 @@ async def import_personnel(file: UploadFile = File(...), current_user: models.Us
                         nrp=nrp,
                         nama=item.get("nama"),
                         pangkat=item.get("pangkat"),
-                        jabatan=item.get("jabatan"),
-                        satker="Polda NTB"
+                        jabatan=item.get("jabatan")
                     )
                     db.add(new_p)
                 count += 1

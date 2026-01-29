@@ -14,6 +14,13 @@ export default function LeaveRecords() {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Advanced Filters State
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterStartDate, setFilterStartDate] = useState('');
+  const [filterEndDate, setFilterEndDate] = useState('');
+  const [filterCreatedBy, setFilterCreatedBy] = useState('');
+  const [adminUsers, setAdminUsers] = useState([]); // List of potential creators
+
   // States for Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -32,11 +39,28 @@ export default function LeaveRecords() {
 
   useEffect(() => {
     fetchLeaves();
-  }, [currentPage, sortBy, sortOrder, searchQuery, typeFilter, itemsPerPage]);
+  }, [currentPage, sortBy, sortOrder, searchQuery, typeFilter, itemsPerPage, filterCreatedBy, filterStartDate, filterEndDate]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, typeFilter]);
+  }, [searchQuery, typeFilter, filterCreatedBy, filterStartDate, filterEndDate]);
+
+  useEffect(() => {
+    fetchAdmins();
+  }, []);
+
+  const fetchAdmins = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/users/?limit=100', { // fetching enough potential creators
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const admins = response.data.filter(u => ['super_admin', 'admin'].includes(u.role));
+      setAdminUsers(admins);
+    } catch (error) {
+      console.error("Failed to fetch admins", error);
+    }
+  };
 
   const fetchLeaves = async () => {
     setLoading(true);
@@ -51,6 +75,9 @@ export default function LeaveRecords() {
 
       if (searchQuery) params.search = searchQuery;
       if (typeFilter !== 'all') params.type_filter = typeFilter;
+      if (filterCreatedBy) params.created_by = filterCreatedBy;
+      if (filterStartDate) params.start_date = filterStartDate;
+      if (filterEndDate) params.end_date = filterEndDate;
 
       const response = await axios.get('/api/leaves/', {
         params,
@@ -133,11 +160,14 @@ export default function LeaveRecords() {
     return styles[type] || 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
-  const formatLeaveDateRange = (startDate, days) => {
-    if (!startDate) return '-';
-    const start = new Date(startDate);
-    const end = addDays(start, days - 1); // Subtract 1 because start day is day 1
-    return `${format(start, 'd MMM yyyy', { locale: localeId })} - ${format(end, 'd MMM yyyy', { locale: localeId })}`;
+  const formatSingleDate = (date) => {
+    if (!date) return '-';
+    return format(new Date(date), 'd MMM yyyy', { locale: localeId });
+  };
+
+  const getEndDate = (startDate, days) => {
+    if (!startDate) return null;
+    return addDays(new Date(startDate), days - 1);
   };
 
 
@@ -238,7 +268,10 @@ export default function LeaveRecords() {
               <option value="Di Luar Tanggungan Negara">Di Luar Tanggungan Negara</option>
               <option value="Alasan Penting">Alasan Penting</option>
             </select>
-            <button className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`px-4 py-2 border rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer transition-colors ${showFilters ? 'bg-accent text-accent-foreground border-primary/50' : 'border-input'}`}
+            >
               <Filter className="w-4 h-4" />
               Filter Lainnya
             </button>
@@ -250,7 +283,75 @@ export default function LeaveRecords() {
             </button>
           </div>
         </div>
+
+        {/* Advanced Filter Panel */}
+        {showFilters && (
+          <div className="mt-4 pt-4 border-t border-dashed animate-in slide-in-from-top-2 duration-200">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Date Range */}
+              {/* Date Range */}
+              <div className="space-y-2">
+
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <label className="text-[10px] text-muted-foreground mb-1 block">Dari Tanggal</label>
+                    <input
+                      type="date"
+                      value={filterStartDate}
+                      onChange={(e) => setFilterStartDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-[10px] text-muted-foreground mb-1 block">Sampai Tanggal</label>
+                    <input
+                      type="date"
+                      value={filterEndDate}
+                      onChange={(e) => setFilterEndDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Created By */}
+              <div className="space-y-2">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] text-muted-foreground block">Dicatat Oleh</label>
+                  <select
+                    value={filterCreatedBy}
+                    onChange={(e) => setFilterCreatedBy(e.target.value)}
+                    className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white"
+                  >
+                    <option value="">Semua Admin</option>
+                    {adminUsers.map(admin => (
+                      <option key={admin.id} value={admin.id}>
+                        {admin.full_name || admin.username}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Reset Actions */}
+              <div className="flex items-end pb-0.5">
+                <button
+                  onClick={() => {
+                    setFilterStartDate('');
+                    setFilterEndDate('');
+                    setFilterCreatedBy('');
+                  }}
+                  className="text-xs text-red-600 hover:text-red-700 font-medium flex items-center gap-1 px-2 py-2 hover:bg-red-50 rounded-md transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                  Reset Filter
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
 
       {/* Table */}
       <div className="bg-white border border-border rounded-lg overflow-hidden shadow-sm">
@@ -281,9 +382,12 @@ export default function LeaveRecords() {
                   onClick={() => handleSort('tanggal_mulai')}
                 >
                   <div className="flex items-center">
-                    Tanggal (Mulai - Selesai)
+                    Tanggal Mulai
                     <SortIcon field="tanggal_mulai" />
                   </div>
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Tanggal Selesai
                 </th>
                 <th
                   className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
@@ -334,7 +438,10 @@ export default function LeaveRecords() {
                       {leave.personnel?.nama}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {formatLeaveDateRange(leave.tanggal_mulai, leave.jumlah_hari)}
+                      {formatSingleDate(leave.tanggal_mulai)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      {formatSingleDate(getEndDate(leave.tanggal_mulai, leave.jumlah_hari))}
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
                       <div className="flex flex-col">

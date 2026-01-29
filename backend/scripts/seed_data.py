@@ -15,7 +15,7 @@ def seed_data():
         print("Seeding Personnel...")
         ranks = ["Bripda", "Briptu", "Brigadir", "Bripka", "Aipda", "Aiptu", "Ipda", "Iptu", "AKP", "Kompol", "AKBP", "Kombes"]
         jabatan_list = ["Anggota", "Kanit", "Kasubnit", "Pamin", "Kaur", "Kabag", "Kasat"]
-        satkers = ["Reskrim", "Intelkam", "Lantas", "Sabhara", "Binmas", "SDM", "Propam"]
+        jabatan_list = ["Anggota", "Kanit", "Kasubnit", "Pamin", "Kaur", "Kabag", "Kasat"]
         names = [
             "Adi Pratama", "Budi Santoso", "Citra Dewi", "Dedi Kurniawan", "Eko Prasetyo", 
             "Fajar Nugroho", "Gita Pertiwi", "Hadi Sucipto", "Indah Sari", "Joko Susilo",
@@ -29,8 +29,7 @@ def seed_data():
                 nrp=f"8501{1000+i}",
                 nama=name,
                 pangkat=random.choice(ranks),
-                jabatan=f"{random.choice(jabatan_list)} {random.choice(satkers)}",
-                satker="Polda NTB",
+                jabatan=f"{random.choice(jabatan_list)}",
                 jenis_kelamin=random.choice(["L", "P"])
             )
             db.add(p)
