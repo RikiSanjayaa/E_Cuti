@@ -40,7 +40,7 @@ export default function ConfirmationModal({
         onClick={onClose}
       />
 
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-xl shadow-2xl z-50 p-6 animate-in zoom-in-95 slide-in-from-bottom-4 duration-200 border border-white/20">
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-card rounded-xl shadow-2xl z-50 p-6 animate-in zoom-in-95 slide-in-from-bottom-4 duration-200 border border-white/20">
         <button
           onClick={onClose}
           className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
@@ -51,17 +51,17 @@ export default function ConfirmationModal({
 
         <div className="flex flex-col items-center text-center">
           <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${type === 'danger' ? 'bg-red-50' :
-              type === 'success' ? 'bg-green-50' :
-                type === 'info' ? 'bg-blue-50' : 'bg-orange-50'
+            type === 'success' ? 'bg-green-50' :
+              type === 'info' ? 'bg-blue-50' : 'bg-orange-50'
             }`}>
             {getIcon()}
           </div>
 
-          <h3 className="text-lg font-bold text-gray-900 mb-2">
+          <h3 className="text-lg font-bold text-foreground mb-2">
             {title}
           </h3>
 
-          <p className="text-sm text-gray-500 mb-6 leading-relaxed whitespace-pre-line">
+          <p className="text-sm text-muted-foreground mb-6 leading-relaxed whitespace-pre-line">
             {message}
           </p>
 
@@ -70,7 +70,7 @@ export default function ConfirmationModal({
               <button
                 onClick={onClose}
                 disabled={isLoading}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
+                className="flex-1 px-4 py-2 text-sm font-medium text-secondary-foreground bg-secondary hover:bg-secondary/80 rounded-lg transition-colors border border-border"
               >
                 {cancelText}
               </button>

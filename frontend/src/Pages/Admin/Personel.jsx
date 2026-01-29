@@ -24,7 +24,7 @@ const CopyButton = ({ text }) => {
       onClick={handleCopy}
       className={`p-1.5 rounded-md transition-all duration-200 flex items-center justify-center ${copied
         ? 'bg-green-100 text-green-600'
-        : 'text-muted-foreground hover:text-primary hover:bg-slate-100 opacity-0 group-hover:opacity-100'
+        : 'text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'
         }`}
       title={copied ? "Tersalin!" : "Salin NRP"}
     >
@@ -302,26 +302,26 @@ export default function Personel() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-border rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Total Personel</p>
             <p className="text-3xl font-semibold text-foreground mt-2">{stats.total_personnel}</p>
           </div>
-          <div className="bg-white border border-border rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Personel Aktif</p>
             <p className="text-3xl font-semibold text-foreground mt-2">{stats.active_personnel}</p>
           </div>
-          <div className="bg-white border border-border rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Sedang Cuti</p>
             <p className="text-3xl font-semibold text-foreground mt-2">{stats.on_leave}</p>
           </div>
-          <div className="bg-white border border-border rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Personel Baru (Bulan Ini)</p>
             <p className="text-3xl font-semibold text-foreground mt-2">{stats.new_personnel}</p>
           </div>
         </div>
 
         {/* Filters and Actions */}
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -368,7 +368,7 @@ export default function Personel() {
                   />
                   <button
                     onClick={() => fileInputRef.current.click()}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
+                    className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm dark:bg-transparent dark:border dark:border-green-800 dark:text-green-500 dark:hover:bg-green-900/20"
                     disabled={importLoading}
                   >
                     {importLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
@@ -390,7 +390,7 @@ export default function Personel() {
 
 
         {/* Table */}
-        <div className="bg-white border border-border rounded-lg overflow-hidden shadow-sm">
+        <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -500,7 +500,7 @@ export default function Personel() {
               </tbody>
             </table>
           </div>
-          <div className="border-t border-border bg-white px-4">
+          <div className="border-t border-border bg-card px-4">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

@@ -52,32 +52,32 @@ export default function Dashboard() {
       value: statsData.total_leave_entries.toLocaleString(),
       change: 'Total catatan',
       icon: Database,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
+      color: 'text-blue-600 dark:text-blue-400',
+      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
     },
     {
       label: 'Tercatat Bulan Ini',
       value: statsData.leaves_this_month.toLocaleString(),
       change: 'Entri baru',
       icon: FileText,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      color: 'text-green-600 dark:text-green-400',
+      bgColor: 'bg-green-50 dark:bg-green-900/20',
     },
     {
       label: 'Total Personel',
       value: statsData.total_personel.toLocaleString(),
       change: 'Personel aktif',
       icon: Users,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
+      color: 'text-purple-600 dark:text-purple-400',
+      bgColor: 'bg-purple-50 dark:bg-purple-900/20',
     },
     {
       label: 'Rata-rata Durasi Cuti',
       value: `${statsData.average_duration} hari`,
       change: 'per pengajuan',
       icon: TrendingUp,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
+      color: 'text-orange-600 dark:text-orange-400',
+      bgColor: 'bg-orange-50 dark:bg-orange-900/20',
     },
   ];
 
@@ -120,7 +120,7 @@ export default function Dashboard() {
           return (
             <div
               key={index}
-              className="bg-white border border-border rounded-lg p-6 shadow-sm"
+              className="bg-card border border-border rounded-lg p-6 shadow-sm"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -142,7 +142,7 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white border border-border rounded-lg shadow-sm">
+      <div className="bg-card border border-border rounded-lg shadow-sm">
         <div className="px-6 py-4 border-b border-border">
           <h2 className="text-lg font-semibold text-foreground">Aktivitas Terbaru</h2>
           <p className="text-sm text-muted-foreground mt-1">
@@ -188,7 +188,7 @@ export default function Dashboard() {
 
       {/* Quick Stats - Hardcoded for demo visualization as backend doesn't provide this yet */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-border rounded-lg p-6 shadow-sm">
+        <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
           <h3 className="font-semibold text-foreground mb-4">Distribusi Jenis Cuti (Data Demo)</h3>
           <div className="space-y-3">
             {[
@@ -213,7 +213,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white border border-border rounded-lg p-6 shadow-sm">
+        <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
           <h3 className="font-semibold text-foreground mb-4">Ringkasan Departemen (Data Demo)</h3>
           <div className="space-y-4">
             {[

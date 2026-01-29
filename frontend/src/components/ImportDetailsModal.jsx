@@ -19,16 +19,16 @@ export default function ImportDetailsModal({ isOpen, onClose, data }) {
                 onClick={onClose}
             />
 
-            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-xl shadow-2xl z-50 flex flex-col max-h-[85vh] animate-in zoom-in-95 slide-in-from-bottom-4 duration-200">
+            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-card rounded-xl shadow-2xl z-50 flex flex-col max-h-[85vh] animate-in zoom-in-95 slide-in-from-bottom-4 duration-200">
 
                 {/* Header */}
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 rounded-t-xl">
+                <div className="p-6 border-b border-border flex justify-between items-center bg-muted/50 rounded-t-xl">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
                             <CheckCircle className="w-6 h-6 text-green-600" />
                             Import Selesai
                         </h2>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                             Rincian hasil proses import data personel.
                         </p>
                     </div>
@@ -41,7 +41,7 @@ export default function ImportDetailsModal({ isOpen, onClose, data }) {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="p-6 grid grid-cols-4 gap-4 bg-white">
+                <div className="p-6 grid grid-cols-4 gap-4 bg-card">
                     <StatCard label="Total" value={stats.total} color="bg-gray-100 text-gray-700" />
                     <StatCard label="Baru" value={stats.added} color="bg-green-100 text-green-700" />
                     <StatCard label="Update" value={stats.updated} color="bg-blue-100 text-blue-700" />
@@ -67,14 +67,14 @@ export default function ImportDetailsModal({ isOpen, onClose, data }) {
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30">
+                <div className="flex-1 overflow-y-auto p-6 bg-muted/30">
                     {activeTab === 'updated' && (
                         <div className="space-y-4">
                             {updatedRecords.length === 0 ? (
                                 <EmptyState message="Tidak ada data yang diperbarui." />
                             ) : (
                                 updatedRecords.map((item, idx) => (
-                                    <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                    <div key={idx} className="bg-card border border-border rounded-lg p-4 shadow-sm">
                                         <div className="flex justify-between items-start mb-3">
                                             <div>
                                                 <p className="font-semibold text-gray-900">{item.nama}</p>
@@ -106,7 +106,7 @@ export default function ImportDetailsModal({ isOpen, onClose, data }) {
                                 <EmptyState message="Tidak ada data baru ditambahkan." />
                             ) : (
                                 addedRecords.map((item, idx) => (
-                                    <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4 flex justify-between items-center shadow-sm hover:shadow-md transition-shadow">
+                                    <div key={idx} className="bg-card border border-border rounded-lg p-4 flex justify-between items-center shadow-sm hover:shadow-md transition-shadow">
                                         <div className="flex gap-4 items-center">
                                             <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm">
                                                 NEW
@@ -130,7 +130,7 @@ export default function ImportDetailsModal({ isOpen, onClose, data }) {
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-100 bg-white rounded-b-xl">
+                <div className="p-6 border-t border-border bg-card rounded-b-xl">
                     <button
                         onClick={onClose}
                         className="w-full py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-medium transition-all shadow-lg shadow-gray-900/10 active:scale-[0.99]"
@@ -159,8 +159,8 @@ function TabButton({ active, onClick, count, label, icon }) {
         <button
             onClick={onClick}
             className={`pb-3 pt-4 text-sm font-medium flex items-center gap-2 border-b-2 transition-all ${active
-                    ? 'border-gray-900 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-gray-900 text-gray-900'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
         >
             {icon}

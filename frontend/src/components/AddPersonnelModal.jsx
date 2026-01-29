@@ -48,7 +48,7 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
         onClick={onClose}
       />
 
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-xl shadow-2xl z-50 animate-in zoom-in-95 slide-in-from-bottom-4 duration-200">
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-card rounded-xl shadow-2xl z-50 animate-in zoom-in-95 slide-in-from-bottom-4 duration-200">
 
         {/* Header */}
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 rounded-t-xl">

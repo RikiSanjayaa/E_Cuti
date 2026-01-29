@@ -1,10 +1,23 @@
-import { Bell, User, ChevronDown, PanelLeft, LogOut } from 'lucide-react';
-import { useState } from 'react';
+import { Bell, User, ChevronDown, PanelLeft, LogOut, Moon, Sun } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export function Header({ userRole, onToggleSidebar }) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = (e) => {
+    e.stopPropagation(); // Prevent menu from closing if desired, or let it stay open to see toggle
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -13,11 +26,11 @@ export function Header({ userRole, onToggleSidebar }) {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-border flex items-center justify-between px-6">
+    <header className="h-16 bg-background border-b border-border flex items-center justify-between px-6 transition-colors duration-300">
       <div className="flex items-center gap-4">
         <button
           onClick={onToggleSidebar}
-          className="p-2 hover:bg-accent rounded-md transition-colors lg:block cursor-pointer"
+          className="p-2 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors lg:block cursor-pointer"
           aria-label="Toggle sidebar"
         >
           <PanelLeft className="w-5 h-5 text-muted-foreground" />
@@ -26,7 +39,7 @@ export function Header({ userRole, onToggleSidebar }) {
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="relative p-2 hover:bg-accent rounded-md transition-colors cursor-pointer">
+        <button className="relative p-2 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors cursor-pointer">
           <Bell className="w-5 h-5 text-muted-foreground" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full"></span>
         </button>
@@ -36,26 +49,53 @@ export function Header({ userRole, onToggleSidebar }) {
         <div className="relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-3 hover:bg-accent px-3 py-2 rounded-md transition-colors cursor-pointer"
+            className="flex items-center gap-3 hover:bg-accent hover:text-accent-foreground px-3 py-2 rounded-md transition-colors cursor-pointer"
           >
             <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
               <User className="w-4 h-4" />
             </div>
             <div className="text-left hidden md:block">
-              <p className="text-sm font-medium capitalize">{userRole || 'User'}</p>
+              <p className="text-sm font-medium capitalize text-foreground">{userRole || 'User'}</p>
               <p className="text-xs text-muted-foreground">Portal Pengguna</p>
             </div>
             <ChevronDown className="w-4 h-4 text-muted-foreground hidden md:block" />
           </button>
 
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white border border-border rounded-md shadow-lg py-1 z-50">
-              <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent">Profil</button>
-              <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent">Preferensi</button>
+            <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-md shadow-lg py-1 z-50">
+              <button
+                onClick={() => {
+                  const targetRole = localStorage.getItem('role') || userRole;
+                  const profilePath = targetRole === 'atasan' ? '/atasan/profile' : '/admin/profile';
+                  navigate(profilePath);
+                  setShowUserMenu(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-2"
+              >
+                <User className="w-4 h-4 text-muted-foreground" />
+                Profil
+              </button>
+
+              <div
+                className="w-full px-4 py-2 flex items-center gap-2 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
+                onClick={toggleTheme}
+                role="button"
+                tabIndex={0}
+              >
+                {theme === 'light' ? (
+                  <Sun className="w-4 h-4 text-orange-500" />
+                ) : (
+                  <Moon className="w-4 h-4 text-blue-500" />
+                )}
+                <span className="flex-1 text-foreground">
+                  {theme === 'light' ? 'Mode Terang' : 'Mode Gelap'}
+                </span>
+              </div>
+
               <div className="border-t border-border my-1"></div>
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm hover:bg-accent text-destructive flex items-center gap-2"
+                className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 flex items-center gap-2"
               >
                 <LogOut className="w-4 h-4" />
                 Keluar

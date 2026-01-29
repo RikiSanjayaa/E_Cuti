@@ -50,7 +50,7 @@ export default function Reports() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900">Laporan & Export</h2>
+      <h2 className="text-2xl font-bold tracking-tight text-foreground">Laporan & Export</h2>
 
       <Card className="max-w-2xl">
         <CardHeader>
@@ -98,14 +98,14 @@ export default function Reports() {
 
           <div className="flex gap-4 pt-4">
             <Button
-              className="flex-1 bg-red-600 hover:bg-red-700 h-16 text-lg"
+              className="flex-1 bg-red-600 hover:bg-red-700 h-16 text-lg dark:bg-transparent dark:border dark:border-red-800 dark:text-red-500 dark:hover:bg-red-900/20"
               onClick={() => handleExport('pdf')}
               disabled={loading}
             >
               <FileDown className="mr-2 h-6 w-6" /> Download PDF
             </Button>
             <Button
-              className="flex-1 bg-green-600 hover:bg-green-700 h-16 text-lg"
+              className="flex-1 bg-green-600 hover:bg-green-700 h-16 text-lg dark:bg-transparent dark:border dark:border-green-800 dark:text-green-500 dark:hover:bg-green-900/20"
               onClick={() => handleExport('excel')}
               disabled={loading}
             >

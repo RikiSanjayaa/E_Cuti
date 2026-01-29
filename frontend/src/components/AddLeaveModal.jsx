@@ -233,7 +233,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
         onClick={handleClose}
       />
 
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] bg-white rounded-lg shadow-2xl z-50 overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] bg-card rounded-lg shadow-2xl z-50 overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="sticky top-0 bg-primary text-primary-foreground px-6 py-4 flex items-center justify-between border-b border-border">
           <div>
             <h2 className="text-xl font-semibold">{isEditMode ? 'Edit Catatan Cuti' : 'Tambah Catatan Cuti'}</h2>

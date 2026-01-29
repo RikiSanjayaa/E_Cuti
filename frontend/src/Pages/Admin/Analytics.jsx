@@ -103,7 +103,7 @@ export default function Analytics() {
       </div>
 
       {/* Filter Panel */}
-      <div className="bg-white border border-border rounded-lg p-6">
+      <div className="bg-card border border-border rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-5 h-5 text-muted-foreground" />
           <h2 className="font-semibold text-foreground">Parameter Laporan</h2>
@@ -165,14 +165,14 @@ export default function Analytics() {
         <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-border">
           <button
             onClick={() => handleExport('excel')}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 dark:bg-transparent dark:border dark:border-green-800 dark:text-green-500 dark:hover:bg-green-900/20 transition-colors cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4" />
             Ekspor ke Excel
           </button>
           <button
             onClick={() => handleExport('pdf')}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 dark:bg-transparent dark:border dark:border-red-800 dark:text-red-500 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
           >
             <FileText className="w-4 h-4" />
             Ekspor ke PDF
@@ -189,24 +189,24 @@ export default function Analytics() {
 
       {/* Report Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <p className="text-sm text-muted-foreground">Total Dokumen</p>
           <p className="text-3xl font-semibold text-foreground mt-2">{reportData.total_records}</p>
         </div>
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <p className="text-sm text-muted-foreground">Total Hari Cuti</p>
           <p className="text-3xl font-semibold text-foreground mt-2">{reportData.total_days}</p>
         </div>
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <p className="text-sm text-muted-foreground">Personel Unik</p>
           <p className="text-3xl font-semibold text-foreground mt-2">{reportData.unique_personel}</p>
         </div>
       </div>
 
       {/* Report Preview */}
-      <div className="bg-white border border-border rounded-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
         {/* Document Header */}
-        <div className="bg-primary text-primary-foreground px-6 py-8 text-center border-b border-border">
+        <div className="bg-blue-50/50 dark:bg-slate-800/50 text-foreground px-6 py-8 text-center border-b border-border">
           <h2 className="text-2xl font-semibold mb-2">Laporan Manajemen Cuti</h2>
           <p className="text-sm opacity-90">Portal Pemerintah - Dokumen Resmi</p>
           <div className="mt-4 text-sm opacity-90">

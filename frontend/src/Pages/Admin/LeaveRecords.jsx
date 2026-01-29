@@ -164,8 +164,6 @@ export default function LeaveRecords() {
     }
   };
 
-
-
   const formatSingleDate = (date) => {
     if (!date) return '-';
     return format(new Date(date), 'd MMM yyyy', { locale: localeId });
@@ -252,7 +250,7 @@ export default function LeaveRecords() {
       </div>
 
       {/* Filters and Actions */}
-      <div className="bg-white border border-border rounded-lg p-4">
+      <div className="bg-card border border-border rounded-lg p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -361,7 +359,7 @@ export default function LeaveRecords() {
 
 
       {/* Table */}
-      <div className="bg-white border border-border rounded-lg overflow-hidden shadow-sm">
+      <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -519,7 +517,7 @@ export default function LeaveRecords() {
         </div>
 
         {/* Pagination */}
-        <div className="border-t border-border bg-white px-4">
+        <div className="border-t border-border bg-card px-4">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
