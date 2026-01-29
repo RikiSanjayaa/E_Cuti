@@ -23,7 +23,7 @@ const CopyButton = ({ text }) => {
       onClick={handleCopy}
       className={`p-1.5 rounded-md transition-all duration-200 flex items-center justify-center ${copied
         ? 'bg-green-100 text-green-600'
-        : 'text-muted-foreground hover:text-primary hover:bg-slate-100 opacity-0 group-hover:opacity-100'
+        : 'text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'
         }`}
       title={copied ? "Tersalin!" : "Salin NRP"}
     >
