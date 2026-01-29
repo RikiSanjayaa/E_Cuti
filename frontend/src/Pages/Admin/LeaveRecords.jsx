@@ -1,4 +1,4 @@
-import { Search, Filter, Download, Eye, Edit, Trash2, AlertTriangle, X, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Filter, Download, Eye, Edit, Trash2, AlertTriangle, X, ArrowUpDown, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -15,6 +15,7 @@ export default function LeaveRecords() {
   const [loading, setLoading] = useState(true);
 
   // States for Modals
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -71,6 +72,11 @@ export default function LeaveRecords() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCloseAdd = () => {
+    setIsAddModalOpen(false);
+    fetchLeaves();
   };
 
   const handleEdit = (leave) => {
@@ -186,11 +192,22 @@ export default function LeaveRecords() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Riwayat Cuti</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Lihat dan kelola riwayat cuti personel
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Riwayat Cuti</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Lihat dan kelola riwayat cuti personel
+          </p>
+        </div>
+        {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm text-sm font-medium w-full sm:w-auto justify-center cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Tambah Izin Cuti
+          </button>
+        )}
       </div>
 
       {/* Filters and Actions */}
@@ -259,9 +276,6 @@ export default function LeaveRecords() {
                     <SortIcon field="nama" />
                   </div>
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Satker
-                </th>
                 <th
                   className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => handleSort('tanggal_mulai')}
@@ -320,9 +334,6 @@ export default function LeaveRecords() {
                       {leave.personnel?.nama}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {leave.personnel?.satker || '-'}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
                       {formatLeaveDateRange(leave.tanggal_mulai, leave.jumlah_hari)}
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
@@ -354,20 +365,24 @@ export default function LeaveRecords() {
                         >
                           <Eye className="w-4 h-4 text-muted-foreground" />
                         </button>
-                        <button
-                          onClick={() => handleEdit(leave)}
-                          className="p-1 hover:bg-blue-50 rounded cursor-pointer"
-                          title="Edit"
-                        >
-                          <Edit className="w-4 h-4 text-blue-600" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(leave)}
-                          className="p-1 hover:bg-red-50 rounded cursor-pointer"
-                          title="Hapus"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </button>
+                        {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
+                          <>
+                            <button
+                              onClick={() => handleEdit(leave)}
+                              className="p-1 hover:bg-blue-50 rounded cursor-pointer"
+                              title="Edit"
+                            >
+                              <Edit className="w-4 h-4 text-blue-600" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(leave)}
+                              className="p-1 hover:bg-red-50 rounded cursor-pointer"
+                              title="Hapus"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -391,6 +406,11 @@ export default function LeaveRecords() {
       </div >
 
       {/* Modals and Dialogs */}
+      <AddLeaveModal
+        isOpen={isAddModalOpen}
+        onClose={handleCloseAdd}
+      />
+
       {/* Edit Modal (reuses Add Modal) */}
       <AddLeaveModal
         isOpen={isEditModalOpen}

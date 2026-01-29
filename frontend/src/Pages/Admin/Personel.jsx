@@ -1,4 +1,4 @@
-import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown, Copy, Check, User, Briefcase, Shield, Award } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
@@ -8,11 +8,37 @@ import AddPersonnelModal from '@/components/AddPersonnelModal';
 import ImportDetailsModal from '@/components/ImportDetailsModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
 
+const CopyButton = ({ text }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e) => {
+    e.stopPropagation(); // Prevent row click
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className={`p-1.5 rounded-md transition-all duration-200 flex items-center justify-center ${copied
+          ? 'bg-green-100 text-green-600'
+          : 'text-muted-foreground hover:text-primary hover:bg-slate-100 opacity-0 group-hover:opacity-100'
+        }`}
+      title={copied ? "Tersalin!" : "Salin NRP"}
+    >
+      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+    </button>
+  );
+};
+
 export default function Personel() {
   const [searchQuery, setSearchQuery] = useState('');
   const [personnel, setPersonnel] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPersonnel, setSelectedPersonnel] = useState(null);
+  const [leaveHistory, setLeaveHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   // Import State
   const fileInputRef = useRef(null);
@@ -34,6 +60,7 @@ export default function Personel() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
+  const [globalTotal, setGlobalTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [sortBy, setSortBy] = useState('nama');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -41,6 +68,28 @@ export default function Personel() {
   useEffect(() => {
     fetchPersonnel();
   }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage]);
+
+  // Fetch Leave History when personel selected
+  useEffect(() => {
+    if (selectedPersonnel?.nrp) {
+      setHistoryLoading(true);
+      const token = localStorage.getItem('token');
+      // Using existing /api/leaves endpoint which supports search
+      axios.get(`/api/leaves/?search=${selectedPersonnel.nrp}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => {
+          setLeaveHistory(res.data);
+          setHistoryLoading(false);
+        })
+        .catch(err => {
+          console.error("Failed to fetch history:", err);
+          setHistoryLoading(false);
+        });
+    } else {
+      setLeaveHistory([]);
+    }
+  }, [selectedPersonnel]);
 
   const fetchPersonnel = async () => {
     setLoading(true);
@@ -63,7 +112,15 @@ export default function Personel() {
       setPersonnel(response.data);
 
       const total = parseInt(response.headers['x-total-count'] || '0', 10);
+      const global = parseInt(response.headers['x-global-count'] || '0', 10);
       setTotalItems(total);
+      if (!searchQuery) {
+        // If no search, global total is same as total
+        setGlobalTotal(total);
+      } else if (global > 0) {
+        // If search and we have global count from backend
+        setGlobalTotal(global);
+      }
       setTotalPages(Math.ceil(total / itemsPerPage));
 
     } catch (error) {
@@ -173,11 +230,11 @@ export default function Personel() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Total Personel</p>
-            <p className="text-3xl font-semibold text-foreground mt-2">{totalItems}</p>
+            <p className="text-3xl font-semibold text-foreground mt-2">{globalTotal || totalItems}</p>
           </div>
           <div className="bg-white border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Personel Aktif</p>
-            <p className="text-3xl font-semibold text-foreground mt-2">{totalItems}</p>
+            <p className="text-3xl font-semibold text-foreground mt-2">{globalTotal || totalItems}</p>
           </div>
           <div className="bg-white border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Sedang Cuti</p>
@@ -203,37 +260,41 @@ export default function Personel() {
               />
             </div>
             <div className="flex gap-2">
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm hover:bg-slate-800 flex items-center gap-2 cursor-pointer shadow-sm"
-              >
-                <div className="bg-white/20 p-0.5 rounded">
-                  <Plus className="w-3 h-3" />
-                </div>
-                Tambah
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImport}
-                className="hidden"
-                accept=".xlsx, .xls"
-              />
-              <button
-                onClick={() => fileInputRef.current.click()}
-                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
-                disabled={importLoading}
-              >
-                {importLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                Import Excel
-              </button>
-              <button
-                onClick={handleExport}
-                className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer"
-              >
-                <Download className="w-4 h-4" />
-                Ekspor
-              </button>
+              {localStorage.getItem('role') !== 'atasan' && (
+                <>
+                  <button
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm hover:bg-slate-800 flex items-center gap-2 cursor-pointer shadow-sm"
+                  >
+                    <div className="bg-white/20 p-0.5 rounded">
+                      <Plus className="w-3 h-3" />
+                    </div>
+                    Tambah
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImport}
+                    className="hidden"
+                    accept=".xlsx, .xls"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current.click()}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 flex items-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm"
+                    disabled={importLoading}
+                  >
+                    {importLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    Import Excel
+                  </button>
+                  <button
+                    onClick={handleExport}
+                    className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    Ekspor
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -280,15 +341,6 @@ export default function Personel() {
                       <SortIcon field="jabatan" />
                     </div>
                   </th>
-                  <th
-                    className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
-                    onClick={() => handleSort('satker')}
-                  >
-                    <div className="flex items-center">
-                      Satker
-                      <SortIcon field="satker" />
-                    </div>
-                  </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Sisa Cuti
                   </th>
@@ -315,7 +367,10 @@ export default function Personel() {
                       onClick={() => setSelectedPersonnel(p)}
                     >
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
-                        {p.nrp}
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono">{p.nrp}</span>
+                          <CopyButton text={p.nrp} />
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-foreground">
                         {p.nama}
@@ -325,9 +380,6 @@ export default function Personel() {
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">
                         {p.jabatan}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-foreground">
-                        {p.satker}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
                         <span className={p.sisa_cuti < 5 ? 'text-red-600' : 'text-green-600'}>
@@ -353,74 +405,198 @@ export default function Personel() {
         </div>
 
         {/* Detail Overlay & Panel */}
+
         {selectedPersonnel && createPortal(
           <>
             <div
-              className="fixed inset-0 bg-black/50 z-[100] animate-in fade-in duration-300"
+              className="fixed inset-0 z-[100]"
               onClick={() => setSelectedPersonnel(null)}
             />
-            <div className="fixed right-0 inset-y-0 w-full md:w-[600px] bg-white shadow-2xl z-[110] overflow-y-auto animate-in slide-in-from-right duration-300 flex flex-col">
-              <div className="sticky top-0 bg-white border-b border-border px-6 py-4 flex items-center justify-between z-10">
+            {/* Side Drawer Container - Fixed Right */}
+            <div className="fixed right-0 inset-y-0 w-full md:w-[450px] bg-white shadow-2xl z-[110] overflow-y-auto animate-in slide-in-from-right duration-300 flex flex-col">
+
+              {/* Simple Header */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-white sticky top-0 z-10">
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground">Detail Personel</h2>
-                  <p className="text-sm text-muted-foreground mt-1">{selectedPersonnel.nrp}</p>
+                  <h2 className="text-xl font-bold text-slate-900 leading-tight" title={selectedPersonnel.nama}>
+                    {selectedPersonnel.nama}
+                  </h2>
+                  <div className="flex items-center gap-2 mt-1 text-slate-500 text-sm font-medium">
+                    <Shield className="w-4 h-4" />
+                    {selectedPersonnel.pangkat}
+                  </div>
                 </div>
                 <button
                   onClick={() => setSelectedPersonnel(null)}
-                  className="p-2 hover:bg-accent rounded-md transition-colors cursor-pointer"
+                  className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
                 >
-                  <X className="w-5 h-5 text-muted-foreground" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="p-6 space-y-6">
-                <div>
-                  <h3 className="font-semibold text-foreground mb-4">Informasi Profil</h3>
-                  <div className="bg-muted/30 rounded-lg p-4 space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-semibold">
-                        {selectedPersonnel.nama?.split(' ').slice(0, 2).map(n => n[0]).join('') || 'P'}
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold text-foreground">{selectedPersonnel.nama}</p>
-                        <p className="text-sm text-muted-foreground">{selectedPersonnel.jabatan}</p>
+              {/* Content Grid (Clean Minimalist Design) */}
+              <div className="px-6 pb-6 mt-2">
+
+                <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+                  {/* NRP */}
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
+                      NRP
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-slate-800 tracking-wide">{selectedPersonnel.nrp}</span>
+                      <CopyButton text={selectedPersonnel.nrp} />
+                    </div>
+                  </div>
+
+                  {/* Gender */}
+                  <div>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
+                      Gender
+                    </p>
+                    <p className="font-semibold text-sm text-slate-800">
+                      {selectedPersonnel.jenis_kelamin === 'L' ? 'Laki-laki' : selectedPersonnel.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
+                    </p>
+                  </div>
+
+                  {/* Jabatan */}
+                  <div className="col-span-2">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Jabatan</p>
+                    <p className="font-semibold text-sm text-slate-800 leading-snug">{selectedPersonnel.jabatan}</p>
+                  </div>
+
+                  {/* Sisa Cuti (Clean Progress) */}
+                  <div className="col-span-2 pt-2 pb-2">
+                    <div className="flex justify-between items-end mb-2">
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex items-center gap-1">
+                        <Calendar className="w-3 h-3" /> Sisa Cuti Tahunan
+                      </p>
+                      <div className="flex items-baseline gap-1">
+                        <span className={`text-xl font-bold ${(selectedPersonnel.sisa_cuti ?? 12) === 0 ? 'text-red-600' : 'text-slate-900'}`}>
+                          {selectedPersonnel.sisa_cuti ?? 12}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium">/ 12</span>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 gap-3 pt-2">
-                      <div className="flex items-center gap-3">
-                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Satuan Kerja</p>
-                          <p className="text-sm text-foreground">{selectedPersonnel.satker}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Pangkat</p>
-                          <p className="text-sm text-foreground">{selectedPersonnel.pangkat}</p>
-                        </div>
-                      </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden w-full">
+                      <div
+                        className="h-full bg-slate-800 rounded-full transition-all duration-500"
+                        style={{ width: `${((selectedPersonnel.sisa_cuti ?? 12) / 12) * 100}%` }}
+                      />
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="font-semibold text-foreground mb-4">Saldo Cuti</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <p className="text-xs text-blue-700 mb-1">Sisa Cuti Tahunan</p>
-                      <p className="text-2xl font-semibold text-blue-900">{selectedPersonnel.sisa_cuti ?? 12}</p>
-                      <p className="text-xs text-blue-600 mt-1">hari tersisa dari 12 hari</p>
-                    </div>
-                    {/* Additional quota info could go here */}
+                {/* Leave History Section */}
+                <div className="mt-4">
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                      Riwayat Izin
+                    </h3>
+                    <span className="text-xs text-muted-foreground font-medium">{leaveHistory.length} riwayat</span>
+                  </div>
+
+                  <div className="rounded-xl p-1 space-y-6">
+                    {historyLoading ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : leaveHistory.length > 0 ? (
+                      (() => {
+                        // Group by Year
+                        const grouped = leaveHistory.reduce((acc, leave) => {
+                          const year = new Date(leave.tanggal_mulai).getFullYear();
+                          if (!acc[year]) acc[year] = [];
+                          acc[year].push(leave);
+                          return acc;
+                        }, {});
+
+                        // Sort Years Descending
+                        const sortedYears = Object.keys(grouped).sort((a, b) => b - a);
+
+                        return sortedYears.map(year => {
+                          const leaves = grouped[year];
+                          const totalDays = leaves.reduce((sum, item) => sum + item.jumlah_hari, 0);
+                          const totalCount = leaves.length;
+
+                          return (
+                            <div key={year} className="space-y-3 animate-in slide-in-from-bottom-2 duration-500">
+                              {/* Year Header */}
+                              <div className="flex items-center gap-3 px-1">
+                                <h4 className="text-lg font-bold text-slate-900">{year}</h4>
+                                <div className="h-px bg-slate-200 flex-1" />
+                                <div className="flex gap-3 text-[10px] bg-slate-100 px-2 py-1 rounded-full text-slate-600 font-medium">
+                                  <span>{totalCount}x Izin</span>
+                                  <span className="w-px bg-slate-300 h-3 self-center" />
+                                  <span>Total {totalDays} Hari</span>
+                                </div>
+                              </div>
+
+                              {/* Cards List */}
+                              <div className="space-y-3">
+                                {leaves.map((leave, idx) => {
+                                  // Helper: Calculate End Date
+                                  const startDate = new Date(leave.tanggal_mulai);
+                                  const endDate = new Date(startDate);
+                                  endDate.setDate(endDate.getDate() + (leave.jumlah_hari - 1));
+
+                                  // Helper: Format Date
+                                  const formatDate = (d) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                                  // Helper: ID formatting (Mock ID)
+                                  const id = `LR-${year}-${String(leave.id || idx + 1).padStart(3, '0')}`;
+                                  const createdDate = new Date(leave.created_at || new Date()).toLocaleDateString('id-ID');
+
+                                  return (
+                                    <div key={leave.id || idx} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                                      {/* Top Row */}
+                                      <div className="flex justify-between items-start mb-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${leave.jenis_izin === 'Cuti Tahunan' ? 'bg-blue-50 text-blue-600' :
+                                              leave.jenis_izin === 'Sakit' ? 'bg-red-50 text-red-600' :
+                                                'bg-orange-50 text-orange-600'
+                                            }`}>
+                                            {leave.jenis_izin}
+                                          </span>
+                                          <span className="text-sm font-bold text-slate-900">{leave.jumlah_hari} hari</span>
+                                        </div>
+                                        <span className="text-xs font-mono text-slate-400">{id}</span>
+                                      </div>
+
+                                      {/* Date Range */}
+                                      <div className="text-sm text-slate-600 font-medium mb-3">
+                                        {formatDate(startDate)} s/d {formatDate(endDate)}
+                                      </div>
+
+                                      {/* Divider */}
+                                      <div className="h-px bg-slate-100 my-3" />
+
+                                      {/* Footer */}
+                                      <div className="flex justify-between items-center text-[10px] text-zinc-400">
+                                        <span>Dicatat oleh Admin pada {createdDate}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()
+                    ) : (
+                      <div className="text-center py-8 border-2 border-dashed border-slate-100 rounded-xl">
+                        <p className="text-sm text-muted-foreground">Belum ada riwayat izin ditemukan</p>
+                      </div>
+                    )}
                   </div>
                 </div>
+
               </div>
             </div>
           </>,
           document.body
         )}
+
 
         {/* Import Notification Modal */}
         <ConfirmationModal

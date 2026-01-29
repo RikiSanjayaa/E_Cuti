@@ -78,30 +78,17 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">NRP / NIP <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                name="nrp"
-                value={formData.nrp}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
-                placeholder="Contoh: 12345678"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Satuan Kerja <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                name="satker"
-                value={formData.satker}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">NRP / NIP <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              name="nrp"
+              value={formData.nrp}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+              placeholder="Contoh: 12345678"
+              required
+            />
           </div>
 
           <div className="space-y-2">

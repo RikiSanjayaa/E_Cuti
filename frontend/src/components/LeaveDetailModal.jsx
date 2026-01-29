@@ -53,8 +53,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
                                 <p className="font-semibold text-lg">{leave.personnel?.nama}</p>
                                 <div className="flex flex-col text-sm text-muted-foreground mt-1">
                                     <span>NRP: {leave.personnel?.nrp}</span>
-                                    <span>{leave.personnel?.pangkat} - {leave.personnel?.jabatan}</span>
-                                    <span>Satker: {leave.personnel?.satker}</span>
+                                    <span>{leave.personnel?.pangkat} - {leave.personnel?.jabatan}</span>;
                                 </div>
                             </div>
                         </div>
