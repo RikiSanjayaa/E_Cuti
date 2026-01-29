@@ -167,7 +167,7 @@ export default function LeaveRecords() {
             Lihat dan kelola riwayat cuti personel
           </p>
         </div>
-        {localStorage.getItem('role') !== 'atasan' && (
+        {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
           <button
             onClick={() => setIsAddModalOpen(true)}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm text-sm font-medium w-full sm:w-auto justify-center cursor-pointer"
@@ -331,7 +331,7 @@ export default function LeaveRecords() {
                         >
                           <Eye className="w-4 h-4 text-muted-foreground" />
                         </button>
-                        {localStorage.getItem('role') !== 'atasan' && (
+                        {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
                           <>
                             <button
                               onClick={() => handleEdit(leave)}
