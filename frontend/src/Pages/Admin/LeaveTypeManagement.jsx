@@ -88,7 +88,6 @@ export default function LeaveTypeManagement() {
     });
     setEditingId(null);
     setShowModal(false);
-    setMessage({ type: '', text: '' });
     setColorDropdownOpen(false);
   };
 
