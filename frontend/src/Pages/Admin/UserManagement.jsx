@@ -542,9 +542,9 @@ export default function UserManagement() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleResetPasswordClick(user)}
-                        className={`p-1.5 rounded border ${currentUser?.role === 'super_admin'
-                          ? 'hover:bg-blue-50 text-blue-600 border-blue-200 cursor-pointer'
-                          : 'opacity-50 text-gray-400 border-gray-200 cursor-not-allowed'
+                        className={`p-1.5 rounded border transition-colors ${currentUser?.role === 'super_admin'
+                          ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 cursor-pointer'
+                          : 'opacity-50 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-800 cursor-not-allowed'
                           }`}
                         title={currentUser?.role === 'super_admin' ? "Reset Password" : "Hanya Super Admin"}
                         disabled={currentUser?.role !== 'super_admin'}
@@ -555,9 +555,9 @@ export default function UserManagement() {
                         onClick={() => handleToggleStatus(user)}
                         disabled={user.role === 'super_admin' || currentUser?.role !== 'super_admin'}
                         className={`p-1.5 rounded-md border transition-colors ${user.status === 'active'
-                          ? 'hover:bg-red-50 text-red-600 border-red-200'
-                          : 'hover:bg-green-50 text-green-600 border-green-200'
-                          } ${user.role === 'super_admin' || currentUser?.role !== 'super_admin' ? 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200' : ''}`}
+                          ? 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800'
+                          : 'hover:bg-green-50 dark:hover:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800'
+                          } ${user.role === 'super_admin' || currentUser?.role !== 'super_admin' ? 'opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700' : ''}`}
                         title={
                           user.role === 'super_admin'
                             ? "Super Admin tidak dapat dinonaktifkan"

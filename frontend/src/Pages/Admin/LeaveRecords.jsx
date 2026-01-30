@@ -488,26 +488,26 @@ export default function LeaveRecords() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleView(leave)}
-                          className="p-1 hover:bg-accent rounded cursor-pointer"
-                          title="Lihat detail"
+                          className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 cursor-pointer"
+                          title="Lihat Detail"
                         >
-                          <Eye className="w-4 h-4 text-muted-foreground" />
+                          <Eye className="w-4 h-4" />
                         </button>
                         {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
                           <>
                             <button
                               onClick={() => handleEdit(leave)}
-                              className="p-1 hover:bg-blue-50 rounded cursor-pointer"
+                              className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
                               title="Edit"
                             >
-                              <Edit className="w-4 h-4 text-blue-600" />
+                              <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteClick(leave)}
-                              className="p-1 hover:bg-red-50 rounded cursor-pointer"
+                              className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800"
                               title="Hapus"
                             >
-                              <Trash2 className="w-4 h-4 text-red-600" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </>
                         )}

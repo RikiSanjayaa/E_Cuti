@@ -17,12 +17,12 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
                 onClick={onClose}
             />
 
-            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[90vh] bg-card rounded-lg shadow-2xl z-50 overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[90vh] bg-card dark:bg-neutral-900 rounded-lg shadow-2xl z-50 overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="sticky top-0 bg-card px-6 py-4 flex items-center justify-between border-b border-border">
                     <h2 className="text-xl font-semibold">Detail Pengajuan Cuti</h2>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md transition-colors"
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-md transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -30,10 +30,10 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
 
                 <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)] space-y-6">
                     {/* Personnel Info */}
-                    <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-800">
+                    <div className="bg-slate-50 dark:bg-neutral-900 p-4 rounded-lg border border-slate-100 dark:border-neutral-800">
                         <div className="flex items-start gap-3">
-                            <div className="bg-white dark:bg-slate-800 p-2 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
-                                <User className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                            <div className="bg-white dark:bg-neutral-800 p-2 rounded-full border border-slate-200 dark:border-neutral-700 shadow-sm">
+                                <User className="w-5 h-5 text-slate-600 dark:text-neutral-400" />
                             </div>
                             <div>
                                 <p className="font-semibold text-lg">{leave.personnel?.nama}</p>
@@ -103,7 +103,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
 
                         <div className="space-y-1 pt-2">
                             <p className="text-xs text-muted-foreground">Alasan / Keterangan</p>
-                            <div className="bg-gray-50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-800 rounded-md p-3 text-sm leading-relaxed">
+                            <div className="bg-gray-50 dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-md p-3 text-sm leading-relaxed">
                                 {leave.alasan || '-'}
                             </div>
                         </div>
@@ -125,10 +125,10 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
                     </div>
                 </div>
 
-                <div className="border-t border-border p-4 bg-gray-50 dark:bg-slate-900/50 flex justify-end">
+                <div className="border-t border-border p-4 bg-gray-50 dark:bg-neutral-900 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-md text-sm font-medium bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm"
+                        className="px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-sm font-medium bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 shadow-sm text-foreground dark:text-neutral-200"
                     >
                         Tutup
                     </button>
