@@ -83,7 +83,6 @@ class PersonnelCreate(PersonnelBase):
 
 class Personnel(PersonnelBase):
     id: int
-    # Per-type leave balances: {"Cuti Tahunan": 10, "Sakit": 14, ...}
     # Per-type leave balances: {"Cuti Tahunan": {"remaining": 10, "quota": 12}, ...}
     balances: Optional[Dict[str, Dict[str, int]]] = None
     
@@ -127,6 +126,8 @@ class DashboardStats(BaseModel):
     average_duration: float
     top_frequent: List[dict]
     recent_activity: List[LeaveHistory]
+    leave_distribution: List[dict]
+    department_summary: List[dict]
 
 class AuditLogBase(BaseModel):
     action: str
