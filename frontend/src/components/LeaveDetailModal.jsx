@@ -112,7 +112,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
                             <div className="space-y-1 pt-2">
                                 <p className="text-xs text-muted-foreground">Dokumen Bukti</p>
                                 <a
-                                    href={`http://localhost:8000/static/${leave.file_path.split('/').pop()}`}
+                                    href={`http://localhost:8000/static/${leave.file_path.replace(/^uploads\//, '')}`}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline bg-blue-50 px-3 py-2 rounded-md border border-blue-100 w-full"
