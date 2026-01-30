@@ -305,7 +305,7 @@ export default function UserManagement() {
                   type="text"
                   value={formData.username}
                   onChange={e => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full px-3 py-2 border border-input rounded-md bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-input rounded-md bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 dark:[color-scheme:dark]"
                 />
               </div>
               <div className="space-y-2">
@@ -315,7 +315,7 @@ export default function UserManagement() {
                   type="text"
                   value={formData.full_name}
                   onChange={e => setFormData({ ...formData, full_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-input rounded-md bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-input rounded-md bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 dark:[color-scheme:dark]"
                 />
               </div>
 
@@ -327,7 +327,7 @@ export default function UserManagement() {
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={e => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-3 py-2 border border-input rounded-md pr-10 bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full px-3 py-2 border border-input rounded-md pr-10 bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 dark:[color-scheme:dark]"
                   />
                   <button
                     type="button"
@@ -343,7 +343,7 @@ export default function UserManagement() {
                 <select
                   value={formData.role}
                   onChange={e => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-3 py-2 border border-input rounded-md bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-input rounded-md bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 dark:[color-scheme:dark] *:dark:bg-neutral-900"
                 >
                   <option value="admin">Admin</option>
                   <option value="super_admin">Super Admin</option>
@@ -444,7 +444,7 @@ export default function UserManagement() {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
+              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:bg-neutral-900 dark:[color-scheme:dark]"
             >
               <option value="all">Semua Peran</option>
               <option value="super_admin">Super Admin</option>
@@ -454,7 +454,7 @@ export default function UserManagement() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
+              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:bg-neutral-900 dark:[color-scheme:dark]"
             >
               <option value="all">Semua Status</option>
               <option value="active">Aktif</option>

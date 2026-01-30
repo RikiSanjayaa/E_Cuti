@@ -390,7 +390,7 @@ export default function Personel() {
             <select
               value={filterPangkat}
               onChange={(e) => setFilterPangkat(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px]"
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px] bg-background dark:bg-neutral-900 dark:[color-scheme:dark]"
             >
               <option value="">Semua Pangkat</option>
               {rankOptions.map(opt => (
@@ -401,7 +401,7 @@ export default function Personel() {
             <select
               value={filterJabatan}
               onChange={(e) => setFilterJabatan(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px]"
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px] bg-background dark:bg-neutral-900 dark:[color-scheme:dark]"
             >
               <option value="">Semua Jabatan</option>
               {jabatanOptions.map(opt => (
@@ -412,7 +412,7 @@ export default function Personel() {
             <select
               value={filterBag}
               onChange={(e) => setFilterBag(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px]"
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px] bg-background dark:bg-neutral-900 dark:[color-scheme:dark]"
             >
               <option value="">Semua Bagian</option>
               {bagOptions.map(opt => (
@@ -794,7 +794,7 @@ export default function Personel() {
                                       </div>
 
                                       {/* Date Range */}
-                                      <div className="text-sm text-slate-600 font-medium mb-3">
+                                      <div className="text-sm text-slate-600 dark:text-slate-400 font-medium mb-3">
                                         {formatDate(startDate)} s/d {formatDate(endDate)}
                                       </div>
 

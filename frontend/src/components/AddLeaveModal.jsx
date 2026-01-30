@@ -397,7 +397,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 <select
                   value={leaveTypeId}
                   onChange={(e) => setLeaveTypeId(e.target.value)}
-                  className="w-full px-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
+                  className="w-full px-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark] *:bg-card *:text-foreground"
                   required
                   disabled={isSubmitting || loadingLeaveTypes || !personel}
                 >

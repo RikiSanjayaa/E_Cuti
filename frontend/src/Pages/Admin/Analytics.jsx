@@ -262,7 +262,7 @@ export default function Analytics() {
                   setStartDate(e.target.value);
                   setActiveFilter(''); // Reset active filter on manual change
                 }}
-                className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
               />
             </div>
           </div>
@@ -280,7 +280,7 @@ export default function Analytics() {
                   setEndDate(e.target.value);
                   setActiveFilter(''); // Reset active filter on manual change
                 }}
-                className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
               />
             </div>
           </div>
@@ -295,7 +295,7 @@ export default function Analytics() {
             <select
               value={leaveTypeFilter}
               onChange={(e) => setLeaveTypeFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-neutral-900 dark:[color-scheme:dark]"
             >
               <option value="all">Semua Jenis</option>
               {leaveTypes.map(lt => (

@@ -257,7 +257,7 @@ export default function AuditLogs() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
               />
             </div>
             <div className="flex-1">
@@ -266,7 +266,7 @@ export default function AuditLogs() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
               />
             </div>
           </div>
@@ -279,7 +279,7 @@ export default function AuditLogs() {
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-neutral-900 dark:[color-scheme:dark]"
               >
                 <option value="all">Semua Peran</option>
                 <option value="super_admin">Super Admin</option>
@@ -294,7 +294,7 @@ export default function AuditLogs() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-neutral-900 dark:[color-scheme:dark]"
               >
                 <option value="all">Semua Kategori</option>
                 <option value="User Management">Manajemen Pengguna</option>
@@ -311,7 +311,7 @@ export default function AuditLogs() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-neutral-900 dark:[color-scheme:dark]"
               >
                 <option value="all">Semua Status</option>
                 <option value="success">Berhasil</option>

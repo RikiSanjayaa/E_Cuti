@@ -390,7 +390,7 @@ export default function LeaveTypeManagement() {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-background dark:bg-card rounded-lg shadow-xl w-full max-w-lg animate-in fade-in zoom-in-95">
             <div className="p-6 border-b border-border">
               <h2 className="text-lg font-semibold">
@@ -407,7 +407,7 @@ export default function LeaveTypeManagement() {
                   placeholder="contoh: Cuti Tahunan"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
                 />
               </div>
 
@@ -419,7 +419,7 @@ export default function LeaveTypeManagement() {
                   placeholder="contoh: cuti_tahunan"
                   value={formData.code}
                   onChange={e => setFormData({ ...formData, code: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono bg-transparent text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono bg-transparent text-foreground dark:[color-scheme:dark]"
                 />
                 <p className="text-xs text-muted-foreground">Kode unik untuk identifikasi internal (huruf kecil, tanpa spasi)</p>
               </div> 
@@ -433,7 +433,7 @@ export default function LeaveTypeManagement() {
                   max="365"
                   value={formData.default_quota}
                   onChange={e => setFormData({ ...formData, default_quota: parseInt(e.target.value) || 1 })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
                 />
               </div>
 
@@ -442,7 +442,7 @@ export default function LeaveTypeManagement() {
                 <select
                   value={formData.gender_specific || ''}
                   onChange={e => setFormData({ ...formData, gender_specific: e.target.value || null })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark] *:dark:bg-neutral-900"
                 >
                   <option value="">Semua Gender</option>
                   <option value="P">Khusus Perempuan</option>
