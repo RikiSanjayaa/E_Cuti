@@ -257,7 +257,7 @@ export default function AuditLogs() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
               />
             </div>
             <div className="flex-1">
@@ -266,7 +266,7 @@ export default function AuditLogs() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
               />
             </div>
           </div>
@@ -279,7 +279,7 @@ export default function AuditLogs() {
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="all">Semua Peran</option>
                 <option value="super_admin">Super Admin</option>
@@ -294,7 +294,7 @@ export default function AuditLogs() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="all">Semua Kategori</option>
                 <option value="User Management">Manajemen Pengguna</option>
@@ -311,7 +311,7 @@ export default function AuditLogs() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="all">Semua Status</option>
                 <option value="success">Berhasil</option>
@@ -416,6 +416,9 @@ export default function AuditLogs() {
                     <SortIcon field="ip_address" />
                   </div>
                 </th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  User Agent
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -457,11 +460,16 @@ export default function AuditLogs() {
                     <td className="px-6 py-4 text-sm text-muted-foreground font-mono">
                       {log.ip_address || '-'}
                     </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground max-w-[200px] truncate" title={log.user_agent || '-'}>
+                      {log.user_agent ? (
+                        <span className="text-xs">{log.user_agent.length > 50 ? log.user_agent.substring(0, 50) + '...' : log.user_agent}</span>
+                      ) : '-'}
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan="9" className="px-6 py-12 text-center text-muted-foreground">
                     <Shield className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
                     Tidak ada log audit yang ditemukan
                   </td>

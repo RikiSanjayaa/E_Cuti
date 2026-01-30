@@ -407,7 +407,7 @@ export default function LeaveTypeManagement() {
                   placeholder="contoh: Cuti Tahunan"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
                 />
               </div>
 
@@ -419,7 +419,7 @@ export default function LeaveTypeManagement() {
                   placeholder="contoh: cuti_tahunan"
                   value={formData.code}
                   onChange={e => setFormData({ ...formData, code: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono bg-background text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono bg-transparent text-foreground"
                 />
                 <p className="text-xs text-muted-foreground">Kode unik untuk identifikasi internal (huruf kecil, tanpa spasi)</p>
               </div>
@@ -433,7 +433,7 @@ export default function LeaveTypeManagement() {
                   max="365"
                   value={formData.default_quota}
                   onChange={e => setFormData({ ...formData, default_quota: parseInt(e.target.value) || 1 })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
                 />
               </div>
 
@@ -442,7 +442,7 @@ export default function LeaveTypeManagement() {
                 <select
                   value={formData.gender_specific || ''}
                   onChange={e => setFormData({ ...formData, gender_specific: e.target.value || null })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
                 >
                   <option value="">Semua Gender</option>
                   <option value="P">Khusus Perempuan</option>
@@ -461,7 +461,7 @@ export default function LeaveTypeManagement() {
                   <button
                     type="button"
                     onClick={() => setColorDropdownOpen(!colorDropdownOpen)}
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground flex items-center justify-between"
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground flex items-center justify-between"
                   >
                     <span className="flex items-center gap-2">
                       {PRESET_COLORS.find(c => c.value === formData.color)?.label || 'Pilih Warna'}

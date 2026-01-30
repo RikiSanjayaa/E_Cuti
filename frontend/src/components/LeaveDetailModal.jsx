@@ -124,15 +124,6 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
                         )}
                     </div>
                 </div>
-
-                <div className="border-t border-border p-4 bg-gray-50 dark:bg-neutral-900 flex justify-end">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-md text-sm font-medium bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 shadow-sm text-foreground dark:text-neutral-200"
-                    >
-                        Tutup
-                    </button>
-                </div>
             </div>
         </>,
         document.body

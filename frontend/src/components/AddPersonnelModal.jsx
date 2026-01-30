@@ -112,7 +112,7 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
                 name="pangkat"
                 value={formData.pangkat}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white dark:placeholder-neutral-500"
+                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-transparent text-foreground placeholder:text-muted-foreground"
                 placeholder="Contoh: BRIPKA"
                 required
               />
@@ -124,7 +124,7 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
                 name="jabatan"
                 value={formData.jabatan}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white dark:placeholder-neutral-500"
+                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-transparent text-foreground placeholder:text-muted-foreground"
                 placeholder="Contoh: BA UR TU"
                 required
               />
@@ -142,7 +142,7 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-slate-900 dark:bg-black hover:bg-slate-800 dark:hover:bg-neutral-900 rounded-lg shadow-lg shadow-slate-900/20 dark:shadow-none border border-transparent dark:border-neutral-800 flex items-center gap-2 transition-all active:scale-[0.98]"
+              className="px-4 py-2 text-sm font-medium text-white dark:text-black bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-gray-200 rounded-lg shadow-lg shadow-slate-900/20 dark:shadow-none border border-transparent flex items-center gap-2 transition-all active:scale-[0.98]"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Simpan Personel

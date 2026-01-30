@@ -105,7 +105,7 @@ export function Header({ userRole, onToggleSidebar }) {
   };
 
   return (
-    <header className="h-16 bg-background border-b border-border flex items-center justify-between px-6 transition-colors duration-300">
+    <header className="h-16 bg-sidebar border-b border-border flex items-center justify-between px-6 transition-colors duration-300">
       <div className="flex items-center gap-4">
         <button
           onClick={onToggleSidebar}
@@ -196,8 +196,8 @@ export function Header({ userRole, onToggleSidebar }) {
 
                         {/* Icon */}
                         <div className={`p-2 rounded-lg ${notification.type === 'warning'
-                            ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
-                            : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                          ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+                          : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
                           }`}>
                           {getEntityIcon(notification.entity)}
                         </div>

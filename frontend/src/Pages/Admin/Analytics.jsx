@@ -16,7 +16,7 @@ export default function Analytics() {
   const [activeFilter, setActiveFilter] = useState(''); // Track active quick filter
   const [searchParams] = useSearchParams();
   const personnelId = searchParams.get('personnel_id');
-  
+
   const [reportData, setReportData] = useState({
     total_records: 0,
     total_days: 0,
@@ -132,7 +132,7 @@ export default function Analytics() {
 
     // Old Logic
     // window.location.href = `/api/reports/export?${params.toString()}&token=${token}`;
-    
+
     if (formatType === 'pdf') {
       generatePDF();
     } else {
@@ -148,7 +148,7 @@ export default function Analytics() {
     doc.text('POLDA NUSA TENGGARA BARAT', 148.5, 20, { align: 'center' });
     doc.setFontSize(14);
     doc.text('LAPORAN MANAJEMEN CUTI PERSONEL', 148.5, 30, { align: 'center' });
-    
+
     doc.setFontSize(10);
     doc.text(`Periode: ${format(new Date(startDate), 'dd MMMM yyyy', { locale: localeId })} - ${format(new Date(endDate), 'dd MMMM yyyy', { locale: localeId })}`, 148.5, 40, { align: 'center' });
 
@@ -170,16 +170,16 @@ export default function Analytics() {
         ];
       }),
       theme: 'plain', // Clean B&W look
-      headStyles: { 
-        fillColor: [255, 255, 255], 
-        textColor: 0, 
-        fontStyle: 'bold', 
-        lineWidth: 0.1, 
-        lineColor: 0 
+      headStyles: {
+        fillColor: [255, 255, 255],
+        textColor: 0,
+        fontStyle: 'bold',
+        lineWidth: 0.1,
+        lineColor: 0
       },
-      styles: { 
-        fontSize: 9, 
-        cellPadding: 3, 
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
         textColor: 0,
         lineWidth: 0.1,
         lineColor: 0
@@ -187,9 +187,9 @@ export default function Analytics() {
       // Remove alternate row color for strict B&W professional look
       alternateRowStyles: { fillColor: [255, 255, 255] },
       foot: [['', '', '', '', '', '', 'Jumlah Personel', `${reportData.unique_personel} Orang`]],
-      footStyles: { 
-        fillColor: [240, 240, 240], 
-        textColor: 0, 
+      footStyles: {
+        fillColor: [240, 240, 240],
+        textColor: 0,
         fontStyle: 'bold',
         lineWidth: 0.1,
         lineColor: 0
@@ -199,12 +199,12 @@ export default function Analytics() {
 
     // -- Signature Section --
     const finalY = doc.lastAutoTable.finalY + 20;
-    
+
     // Check if we need a new page for signature
     if (finalY > 250) {
       doc.addPage();
     }
-    
+
     const signatureY = finalY > 250 ? 40 : finalY;
     const signatureCenterX = 230; // Centered on the right side for Landscape A4 (297mm width)
 
@@ -215,10 +215,10 @@ export default function Analytics() {
     doc.text('KASUBAGRENMIN', signatureCenterX, signatureY + 10, { align: 'center' });
 
     // Space for signature/stamp
-    
+
     doc.setFont('helvetica', 'bold');
     doc.text('ETEK RIAWAN, S.E.', signatureCenterX, signatureY + 40, { align: 'center' });
-    
+
     // Manual Underline for Name
     const nameWidth = doc.getTextWidth('ETEK RIAWAN, S.E.');
     doc.setLineWidth(0.5);
@@ -230,13 +230,13 @@ export default function Analytics() {
     // -- Footer --
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        // doc.text(`Dicetak pada: ${format(new Date(), 'dd MMMM yyyy HH:mm', { locale: localeId })}`, 14, 285);
-        // User requested B&W professional - maybe keep print time or remove if too cluttered? 
-        // Keeping it small is usually standard for system reports.
-        doc.text(`Halaman ${i} dari ${pageCount}`, 280, 200, { align: 'right' }); // Adjusted for Landscape width
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      // doc.text(`Dicetak pada: ${format(new Date(), 'dd MMMM yyyy HH:mm', { locale: localeId })}`, 14, 285);
+      // User requested B&W professional - maybe keep print time or remove if too cluttered? 
+      // Keeping it small is usually standard for system reports.
+      doc.text(`Halaman ${i} dari ${pageCount}`, 280, 200, { align: 'right' }); // Adjusted for Landscape width
     }
 
     doc.save(`Laporan_Cuti_${startDate}_${endDate}.pdf`);
@@ -244,7 +244,7 @@ export default function Analytics() {
 
   const generateExcel = () => {
     const wb = XLSX.utils.book_new();
-    
+
     // 1. Prepare Data
     const data = reportData.data.map((item, index) => {
       const endDate = item.tanggal_mulai ? addDays(new Date(item.tanggal_mulai), (item.jumlah_hari || 1) - 1) : null;
@@ -336,51 +336,46 @@ export default function Analytics() {
         <div className="flex flex-wrap gap-2 mb-6">
           <button
             onClick={() => applyQuickFilter('this_year')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeFilter === 'this_year' 
-              ? 'bg-primary text-primary-foreground' 
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'this_year'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
+              }`}
           >
             Tahun Ini
           </button>
           <button
             onClick={() => applyQuickFilter('this_month')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeFilter === 'this_month' 
-              ? 'bg-primary text-primary-foreground' 
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'this_month'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
+              }`}
           >
             Bulan Ini
           </button>
           <button
             onClick={() => applyQuickFilter('last_month')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeFilter === 'last_month' 
-              ? 'bg-primary text-primary-foreground' 
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'last_month'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
+              }`}
           >
             Bulan Lalu
           </button>
           <button
             onClick={() => applyQuickFilter('last_3_months')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeFilter === 'last_3_months' 
-              ? 'bg-primary text-primary-foreground' 
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'last_3_months'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
+              }`}
           >
             3 Bulan Terakhir
           </button>
           <button
             onClick={() => applyQuickFilter('last_year')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeFilter === 'last_year' 
-              ? 'bg-primary text-primary-foreground' 
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'last_year'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
+              }`}
           >
             Tahun Lalu
           </button>
@@ -434,7 +429,7 @@ export default function Analytics() {
             <select
               value={leaveTypeFilter}
               onChange={(e) => setLeaveTypeFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+              className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="all">Semua Jenis</option>
               {leaveTypes.map(lt => (
@@ -491,8 +486,8 @@ export default function Analytics() {
         {/* Document Header */}
         <div className="bg-blue-50/50 dark:bg-slate-800/50 text-foreground px-6 py-8 text-center border-b border-border">
           <h2 className="text-2xl font-semibold mb-2">
-            {personnelId && reportData.data.length > 0 
-              ? `Laporan Cuti: ${reportData.data[0].personnel?.nama}` 
+            {personnelId && reportData.data.length > 0
+              ? `Laporan Cuti: ${reportData.data[0].personnel?.nama}`
               : 'Laporan Manajemen Cuti'}
           </h2>
           <p className="text-sm opacity-90">Portal Pemerintah - Dokumen Resmi</p>
@@ -544,34 +539,34 @@ export default function Analytics() {
                   </td>
                 </tr>
               ) : (
-                  reportData.data.map((record) => {
-                    const endDate = record.tanggal_mulai ? addDays(new Date(record.tanggal_mulai), (record.jumlah_hari || 1) - 1) : null;
-                    return (
-                      <tr key={record.id} className="hover:bg-muted/30">
-                        <td className="px-6 py-4 text-sm font-medium text-foreground">
-                          {record.personnel?.nrp}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-foreground">
-                          {record.personnel?.nama}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-foreground">
-                          {record.personnel?.jabatan || '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-foreground">
-                          {record.leave_type?.name || '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-muted-foreground">
-                          {record.tanggal_mulai ? format(new Date(record.tanggal_mulai), 'd MMM yyyy', { locale: localeId }) : '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-muted-foreground">
-                          {endDate ? format(endDate, 'd MMM yyyy', { locale: localeId }) : '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm font-medium text-foreground">
-                          {record.jumlah_hari} Hari
-                        </td>
-                      </tr>
-                    );
-                  })
+                reportData.data.map((record) => {
+                  const endDate = record.tanggal_mulai ? addDays(new Date(record.tanggal_mulai), (record.jumlah_hari || 1) - 1) : null;
+                  return (
+                    <tr key={record.id} className="hover:bg-muted/30">
+                      <td className="px-6 py-4 text-sm font-medium text-foreground">
+                        {record.personnel?.nrp}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground">
+                        {record.personnel?.nama}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground">
+                        {record.personnel?.jabatan || '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground">
+                        {record.leave_type?.name || '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {record.tanggal_mulai ? format(new Date(record.tanggal_mulai), 'd MMM yyyy', { locale: localeId }) : '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {endDate ? format(endDate, 'd MMM yyyy', { locale: localeId }) : '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-foreground">
+                        {record.jumlah_hari} Hari
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
             <tfoot>

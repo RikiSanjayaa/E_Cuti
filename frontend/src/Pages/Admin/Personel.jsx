@@ -347,14 +347,14 @@ export default function Personel() {
                 placeholder="Cari berdasarkan nama, NRP, atau jabatan..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent"
               />
             </div>
 
             <select
               value={filterPangkat}
               onChange={(e) => setFilterPangkat(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background text-foreground min-w-[140px]"
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px]"
             >
               <option value="">Semua Pangkat</option>
               {rankOptions.map(opt => (
@@ -365,7 +365,7 @@ export default function Personel() {
             <select
               value={filterJabatan}
               onChange={(e) => setFilterJabatan(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background text-foreground min-w-[140px]"
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px]"
             >
               <option value="">Semua Jabatan</option>
               {jabatanOptions.map(opt => (
@@ -645,11 +645,11 @@ export default function Personel() {
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-3 px-1">
                     <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                       Riwayat Izin
+                      Riwayat Izin
                     </h3>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-muted-foreground font-medium">{leaveHistory.length} riwayat</span>
-                      <button 
+                      <button
                         onClick={() => navigate(`/admin/analytics?personnel_id=${selectedPersonnel.id}`)}
                         className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-md border border-blue-100 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                         title="Cetak Riwayat Lengkap"
