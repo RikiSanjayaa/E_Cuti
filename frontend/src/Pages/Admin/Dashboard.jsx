@@ -164,7 +164,7 @@ export default function Dashboard() {
                   className="px-6 py-4 flex items-center justify-between hover:bg-accent/50 transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="text-green-600">
+                    <div className="text-green-600 dark:text-green-500">
                       <CheckCircle className="w-5 h-5" />
                     </div>
                     <div>
@@ -227,10 +227,10 @@ export default function Dashboard() {
                 <span className="text-sm text-foreground">{dept.dept}</span>
                 <div className="flex gap-4">
                   <span className="text-sm text-muted-foreground">
-                    <span className="text-blue-600">{dept.entries}</span> entries
+                    <span className="text-blue-600 dark:text-blue-400">{dept.entries}</span> entries
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    <span className="text-purple-600">{dept.personel}</span> personel
+                    <span className="text-purple-600 dark:text-purple-400">{dept.personel}</span> personel
                   </span>
                 </div>
               </div>

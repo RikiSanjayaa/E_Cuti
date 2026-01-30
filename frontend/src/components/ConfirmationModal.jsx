@@ -43,16 +43,17 @@ export default function ConfirmationModal({
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-card rounded-xl shadow-2xl z-50 p-6 animate-in zoom-in-95 slide-in-from-bottom-4 duration-200 border border-white/20">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
           disabled={isLoading}
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex flex-col items-center text-center">
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${type === 'danger' ? 'bg-red-50' :
-            type === 'success' ? 'bg-green-50' :
-              type === 'info' ? 'bg-blue-50' : 'bg-orange-50'
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${type === 'danger' ? 'bg-red-50 dark:bg-red-900/20' :
+              type === 'success' ? 'bg-green-50 dark:bg-green-900/20' :
+                type === 'info' ? 'bg-blue-50 dark:bg-blue-900/20' :
+                  'bg-orange-50 dark:bg-orange-900/20'
             }`}>
             {getIcon()}
           </div>
