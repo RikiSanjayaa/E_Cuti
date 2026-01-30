@@ -126,18 +126,7 @@ class LeaveHistory(BaseModel):
     class Config:
         from_attributes = True
 
-# ===== Dashboard & Analytics Schemas =====
-class DashboardStats(BaseModel):
-    total_leaves_today: int
-    total_leave_entries: int
-    leaves_this_month: int
-    total_personel: int
-    average_duration: float
-    top_frequent: List[dict]
-    recent_activity: List[LeaveHistory]
-    leave_distribution: List[dict]
-    department_summary: List[dict]
-
+# ===== Audit Log Schemas =====
 class AuditLogBase(BaseModel):
     action: str
     category: str
@@ -160,8 +149,21 @@ class AuditLog(AuditLogBase):
     class Config:
         from_attributes = True
 
+# ===== Dashboard & Analytics Schemas =====
+class DashboardStats(BaseModel):
+    total_leaves_today: int
+    total_leave_entries: int
+    leaves_this_month: int
+    total_personel: int
+    average_duration: float
+    top_frequent: List[dict]
+    recent_activity: List[AuditLog]
+    leave_distribution: List[dict]
+    department_summary: List[dict]
+
 class AnalyticsSummary(BaseModel):
     total_records: int
     total_days: int
     unique_personel: int
     data: List[LeaveHistory]
+

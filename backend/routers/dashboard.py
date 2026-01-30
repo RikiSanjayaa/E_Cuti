@@ -41,11 +41,11 @@ async def get_dashboard_stats(current_user: models.User = Depends(auth.get_curre
                 "count": count
             })
 
-    # Recent Activity (Top 5)
+    # Recent Activity (Top 5) - from Audit Logs for all entity types
     from sqlalchemy.orm import joinedload
-    recent_activity = db.query(models.LeaveHistory)\
-        .options(joinedload(models.LeaveHistory.personnel), joinedload(models.LeaveHistory.leave_type))\
-        .order_by(models.LeaveHistory.id.desc()).limit(5).all()
+    recent_activity = db.query(models.AuditLog)\
+        .options(joinedload(models.AuditLog.user))\
+        .order_by(models.AuditLog.timestamp.desc()).limit(5).all()
     
     # Statistics Counts
     total_leaves = db.query(models.LeaveHistory).count()

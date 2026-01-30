@@ -7,13 +7,22 @@ import {
   FileText,
   Database,
   Plus,
-  ArrowRight
+  ArrowRight,
+  Pencil,
+  Trash2
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { formatTimeAgo } from '@/utils/dateUtils';
 import { AddLeaveModal } from '../../components/AddLeaveModal';
+import { useEntitySubscription } from '@/lib/NotificationContext';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+  const userRole = localStorage.getItem('role');
+  const basePath = userRole === 'atasan' ? '/atasan' : '/admin';
+  const canAddLeave = userRole === 'admin' || userRole === 'super_admin';
+
   const [statsData, setStatsData] = useState({
     total_leave_entries: 0,
     leaves_this_month: 0,
@@ -27,28 +36,93 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isAddLeaveModalOpen, setIsAddLeaveModalOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/dashboard/stats', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setStatsData(data);
+  const fetchStats = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/dashboard/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      } catch (error) {
-        console.error('Error fetching dashboard stats:', error);
-      } finally {
-        setLoading(false);
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setStatsData(data);
       }
-    };
-
-    fetchStats();
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // Subscribe to real-time updates for all entities
+  useEntitySubscription('leaves', fetchStats);
+  useEntitySubscription('personnel', fetchStats);
+  useEntitySubscription('users', fetchStats);
+  useEntitySubscription('leave_types', fetchStats);
+
+  // Get icon and colors based on audit action type
+  const getActivityStyle = (activity) => {
+    const action = activity.action?.toLowerCase() || '';
+
+    if (action.includes('create') || action.includes('add')) {
+      return {
+        Icon: Plus,
+        bgColor: 'bg-green-100 dark:bg-green-900/20',
+        textColor: 'text-green-600 dark:text-green-500'
+      };
+    } else if (action.includes('update') || action.includes('edit') || action.includes('reset')) {
+      return {
+        Icon: Pencil,
+        bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+        textColor: 'text-blue-600 dark:text-blue-500'
+      };
+    } else if (action.includes('delete') || action.includes('remove')) {
+      return {
+        Icon: Trash2,
+        bgColor: 'bg-red-100 dark:bg-red-900/20',
+        textColor: 'text-red-600 dark:text-red-500'
+      };
+    }
+
+    return {
+      Icon: FileText,
+      bgColor: 'bg-primary/10 dark:bg-primary/20',
+      textColor: 'text-primary dark:text-primary'
+    };
+  };
+
+  // Get navigation path based on audit category (returns null if user doesn't have access)
+  const getActivityPath = (activity) => {
+    const category = activity.category?.toLowerCase() || '';
+    const isAtasan = userRole === 'atasan';
+
+    if (category.includes('leave') && !category.includes('type')) return `${basePath}/leaves`;
+    if (category.includes('personnel') || category.includes('personel')) return `${basePath}/personel`;
+
+    // These pages are only accessible by admin/super_admin
+    if (category.includes('leave_type') || category.includes('leavetype')) {
+      return isAtasan ? null : `${basePath}/leave-types`;
+    }
+    if (category.includes('user')) {
+      return isAtasan ? null : `${basePath}/users`;
+    }
+
+    // Default: don't navigate for unknown categories
+    return null;
+  };
+
+  // Handle click on activity row - navigate to corresponding page
+  const handleActivityClick = (activity) => {
+    const path = getActivityPath(activity);
+    if (path) {
+      navigate(path);
+    }
+  };
 
   const stats = [
     {
@@ -107,13 +181,15 @@ export default function Dashboard() {
             Ringkasan & statistik manajemen cuti
           </p>
         </div>
-        <button
-          onClick={() => setIsAddLeaveModalOpen(true)}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2.5 rounded-xl shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 font-medium group"
-        >
-          <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-          Tambah Izin Cuti
-        </button>
+        {canAddLeave && (
+          <button
+            onClick={() => setIsAddLeaveModalOpen(true)}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2.5 rounded-xl shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 font-medium group"
+          >
+            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+            Tambah Izin Cuti
+          </button>
+        )}
       </div>
 
       {/* Stats Grid */}
@@ -173,30 +249,38 @@ export default function Dashboard() {
                 </div>
               ) : (
                 statsData.recent_activity.map((activity, index) => {
-                  const user = activity.creator ? (activity.creator.full_name || activity.creator.username) : 'System';
-                  const action = `${activity.leave_type?.name || 'Cuti'} - ${activity.personnel?.nama}`;
-                  const dateStr = formatTimeAgo(activity.created_at);
+                  const user = activity.user ? (activity.user.full_name || activity.user.username) : 'System';
+                  const actionText = `${activity.action || 'Aksi'} - ${activity.target || ''}`;
+                  const dateStr = formatTimeAgo(activity.timestamp);
+                  const { Icon, bgColor, textColor } = getActivityStyle(activity);
+                  const isClickable = getActivityPath(activity) !== null;
 
                   return (
                     <div
                       key={activity.id || index}
-                      className="px-6 py-4 flex items-center justify-between hover:bg-muted/30 transition-colors group"
+                      onClick={() => handleActivityClick(activity)}
+                      className={`px-6 py-4 flex items-center justify-between hover:bg-muted/30 transition-colors group ${isClickable ? 'cursor-pointer' : ''}`}
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center text-green-600 dark:text-green-500 group-hover:scale-110 transition-transform">
-                          <CheckCircle className="w-5 h-5" />
+                        <div className={`w-10 h-10 rounded-full ${bgColor} flex items-center justify-center ${textColor} group-hover:scale-110 transition-transform`}>
+                          <Icon className="w-5 h-5" />
                         </div>
                         <div>
                           <p className="text-sm font-medium text-foreground">
                             {user}
                           </p>
                           <p className="text-sm text-muted-foreground line-clamp-1">
-                            {action}
+                            {actionText}
                           </p>
                         </div>
                       </div>
-                      <div className="text-xs font-medium text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
-                        {dateStr}
+                      <div className="flex items-center gap-2">
+                        <div className="text-xs font-medium text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
+                          {dateStr}
+                        </div>
+                        {isClickable && (
+                          <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
                       </div>
                     </div>
                   );
@@ -281,10 +365,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <AddLeaveModal
-        isOpen={isAddLeaveModalOpen}
-        onClose={() => setIsAddLeaveModalOpen(false)}
-      />
+      {canAddLeave && (
+        <AddLeaveModal
+          isOpen={isAddLeaveModalOpen}
+          onClose={() => setIsAddLeaveModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
+

@@ -1,9 +1,15 @@
 import { format, formatDistanceToNow } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-
-
 const toEncapsulatedDate = (dateStr) => {
   if (!dateStr) return new Date();
+  const str = String(dateStr);
+
+  // Check if it's an ISO datetime string without timezone (e.g., "2026-01-30T15:14:58")
+  // These typically have a 'T' separator and no 'Z' or '+/-' offset
+  if (str.includes('T') && !str.includes('Z') && !str.includes('+') && !/[+-]\d{2}:\d{2}$/.test(str)) {
+    return new Date(str + 'Z');
+  }
+
   return new Date(dateStr);
 };
 
