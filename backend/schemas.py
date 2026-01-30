@@ -150,6 +150,14 @@ class AuditLog(AuditLogBase):
         from_attributes = True
 
 # ===== Dashboard & Analytics Schemas =====
+class DashboardCalendarLeave(BaseModel):
+    id: int
+    personnel_name: str
+    leave_type: str
+    start_date: date
+    end_date: date
+    color: str
+
 class DashboardStats(BaseModel):
     total_leaves_today: int
     total_leave_entries: int
@@ -160,6 +168,7 @@ class DashboardStats(BaseModel):
     recent_activity: List[AuditLog]
     leave_distribution: List[dict]
     department_summary: List[dict]
+    calendar_leaves: List[DashboardCalendarLeave]
 
 class AnalyticsSummary(BaseModel):
     total_records: int

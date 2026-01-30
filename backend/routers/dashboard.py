@@ -102,6 +102,26 @@ async def get_dashboard_stats(current_user: models.User = Depends(auth.get_curre
     department_summary.sort(key=lambda x: x['entries'], reverse=True)
     department_summary = department_summary[:5]
 
+    # Calendar Leaves (from recent_leaves)
+    calendar_leaves_data = []
+    for leave in recent_leaves:
+        # Calculate end date
+        end_date = leave.tanggal_mulai + timedelta(days=leave.jumlah_hari - 1)
+        
+        # Determine color
+        color_name = "blue"
+        if leave.leave_type:
+            color_name = leave.leave_type.color or "blue"
+            
+        calendar_leaves_data.append({
+            "id": leave.id,
+            "personnel_name": leave.personnel.nama if leave.personnel else "Unknown",
+            "leave_type": leave.leave_type.name if leave.leave_type else "Cuti",
+            "start_date": leave.tanggal_mulai,
+            "end_date": end_date,
+            "color": color_name
+        })
+
     return {
         "total_leaves_today": active_count,
         "total_leave_entries": total_leaves,
@@ -111,5 +131,6 @@ async def get_dashboard_stats(current_user: models.User = Depends(auth.get_curre
         "top_frequent": top_frequent,
         "recent_activity": recent_activity,
         "leave_distribution": leave_distribution,
-        "department_summary": department_summary
+        "department_summary": department_summary,
+        "calendar_leaves": calendar_leaves_data
     }

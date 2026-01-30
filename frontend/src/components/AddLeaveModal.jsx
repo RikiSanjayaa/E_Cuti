@@ -1,9 +1,10 @@
-import { X, Calendar, FileText, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, FileText, User, AlertCircle, CheckCircle } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { getLeaveColorClass } from '@/utils/leaveUtils';
 import { useNotifications } from '@/lib/NotificationContext';
+import { DatePicker } from '@/components/ui/date-picker';
 
 export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [nrp, setNrp] = useState('');
@@ -426,69 +427,83 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 )}
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Tanggal Mulai <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => {
-                        setStartDate(e.target.value);
-                        // reset days if invalid? handled by effect
-                      }}
-                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
+                  <DatePicker
+                    value={startDate}
+                    onChange={setStartDate}
+                    placeholder="Pilih tanggal mulai"
+                    disabled={isSubmitting}
+                    modifiers={{
+                      holiday: (d) => holidays.some(h => {
+                        const hDate = new Date(h.date);
+                        return hDate.getDate() === d.getDate() &&
+                          hDate.getMonth() === d.getMonth() &&
+                          hDate.getFullYear() === d.getFullYear();
+                      })
+                    }}
+                    modifiersClassNames={{
+                      holiday: "text-red-500 font-bold"
+                    }}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Tanggal Selesai
                   </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                    <input
-                      type="date"
-                      value={finishDate}
-                      min={startDate}
-                      onChange={(e) => setFinishDate(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
-                      disabled={isSubmitting || !startDate}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Jumlah Hari <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    placeholder="Hitung otomatis"
-                    value={days}
-                    onChange={(e) => setDays(e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:placeholder-neutral-500 ${days && getSelectedTypeBalance() !== null && parseInt(days) > getSelectedTypeBalance()
-                      ? 'border-red-500 focus:ring-red-200'
-                      : 'border-input dark:border-neutral-800'
-                      }`}
-                    required
-                    disabled={isSubmitting}
+                  <DatePicker
+                    value={finishDate}
+                    onChange={setFinishDate}
+                    placeholder="Pilih tanggal selesai"
+                    disabled={isSubmitting || !startDate}
+                    minDate={startDate ? (() => {
+                      const parts = startDate.split("-");
+                      return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                    })() : undefined}
+                    modifiers={{
+                      holiday: (d) => holidays.some(h => {
+                        const hDate = new Date(h.date);
+                        return hDate.getDate() === d.getDate() &&
+                          hDate.getMonth() === d.getMonth() &&
+                          hDate.getFullYear() === d.getFullYear();
+                      })
+                    }}
+                    modifiersClassNames={{
+                      holiday: "text-red-500 font-bold"
+                    }}
                   />
-                  {days && getSelectedTypeBalance() !== null && parseInt(days) > getSelectedTypeBalance() && (
-                    <p className="text-[10px] text-red-500 mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      Melebihi sisa kuota ({getSelectedTypeBalance()} hari)
-                    </p>
-                  )}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Jumlah Hari Kerja <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="Hitung otomatis"
+                  value={days}
+                  onChange={(e) => setDays(e.target.value)}
+                  className={`w-full px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:placeholder-neutral-500 ${days && getSelectedTypeBalance() !== null && parseInt(days) > getSelectedTypeBalance()
+                    ? 'border-red-500 focus:ring-red-200'
+                    : 'border-input dark:border-neutral-800'
+                    }`}
+                  required
+                  disabled={isSubmitting}
+                />
+                {days && getSelectedTypeBalance() !== null && parseInt(days) > getSelectedTypeBalance() && (
+                  <p className="text-[10px] text-red-500 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    Melebihi sisa kuota ({getSelectedTypeBalance()} hari)
+                  </p>
+                )}
               </div>
 
               <div>

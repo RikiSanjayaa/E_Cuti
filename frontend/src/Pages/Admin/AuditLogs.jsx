@@ -4,6 +4,7 @@ import axios from 'axios';
 import { formatDateTime } from '@/utils/dateUtils';
 import { Pagination } from '../../components/Pagination';
 import { useEntitySubscription } from '@/lib/NotificationContext';
+import { DatePicker } from '@/components/ui/date-picker';
 
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);
@@ -249,76 +250,73 @@ export default function AuditLogs() {
       {/* Filters in Header */}
       <div className="bg-card border border-border rounded-lg p-4">
         <div className="flex flex-col xl:flex-row gap-4">
-          {/* Date Filters */}
-          <div className="flex gap-2 flex-1 xl:flex-none">
-            <div className="flex-1">
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Dari Tanggal</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Sampai Tanggal</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
-              />
-            </div>
+          {/* Start Date */}
+          <div className="flex-1">
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Dari Tanggal</label>
+            <DatePicker
+              value={startDate}
+              onChange={setStartDate}
+              placeholder="Pilih tanggal"
+              className="h-[38px]"
+            />
           </div>
 
-          {/* Dropdown Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            {/* Role Filter */}
-            <div className="flex-1">
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Peran</label>
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="all">Semua Peran</option>
-                <option value="super_admin">Super Admin</option>
-                <option value="admin">Admin</option>
-                <option value="atasan">Atasan</option>
-              </select>
-            </div>
+          {/* End Date */}
+          <div className="flex-1">
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Sampai Tanggal</label>
+            <DatePicker
+              value={endDate}
+              onChange={setEndDate}
+              placeholder="Pilih tanggal"
+              className="h-[38px]"
+            />
+          </div>
 
-            {/* Category Filter */}
-            <div className="flex-1">
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Kategori</label>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="all">Semua Kategori</option>
-                <option value="User Management">Manajemen Pengguna</option>
-                <option value="Leave Management">Manajemen Cuti</option>
-                <option value="Personnel Management">Manajemen Personel</option>
-                <option value="Reporting">Pelaporan</option>
-                <option value="Authentication">Autentikasi</option>
-              </select>
-            </div>
+          {/* Role Filter */}
+          <div className="flex-1">
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Peran</label>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring h-[38px]"
+            >
+              <option value="all">Semua Peran</option>
+              <option value="super_admin">Super Admin</option>
+              <option value="admin">Admin</option>
+              <option value="atasan">Atasan</option>
+            </select>
+          </div>
 
-            {/* Status Filter */}
-            <div className="flex-1">
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="all">Semua Status</option>
-                <option value="success">Berhasil</option>
-                <option value="failure">Gagal</option>
-                <option value="warning">Peringatan</option>
-              </select>
-            </div>
+          {/* Category Filter */}
+          <div className="flex-1">
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Kategori</label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring h-[38px]"
+            >
+              <option value="all">Semua Kategori</option>
+              <option value="User Management">Manajemen Pengguna</option>
+              <option value="Leave Management">Manajemen Cuti</option>
+              <option value="Personnel Management">Manajemen Personel</option>
+              <option value="Reporting">Pelaporan</option>
+              <option value="Authentication">Autentikasi</option>
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex-1">
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring h-[38px]"
+            >
+              <option value="all">Semua Status</option>
+              <option value="success">Berhasil</option>
+              <option value="failure">Gagal</option>
+              <option value="warning">Peringatan</option>
+            </select>
           </div>
 
           {/* Action Buttons */}

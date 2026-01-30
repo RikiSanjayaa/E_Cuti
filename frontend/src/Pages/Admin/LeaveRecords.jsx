@@ -9,6 +9,7 @@ import { LeaveDetailModal } from '@/components/LeaveDetailModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { getLeaveColorClass } from '@/utils/leaveUtils';
 import { useEntitySubscription, useNotifications } from '@/lib/NotificationContext';
+import { DatePicker } from '@/components/ui/date-picker';
 
 export default function LeaveRecords() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -311,66 +312,58 @@ export default function LeaveRecords() {
         {/* Advanced Filter Panel */}
         {showFilters && (
           <div className="mt-4 pt-4 border-t border-dashed animate-in slide-in-from-top-2 duration-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Date Range */}
-              {/* Date Range */}
-              <div className="space-y-2">
+            <div className="flex flex-col xl:flex-row gap-4 items-end">
+              {/* Start Date */}
+              <div className="flex-1 w-full">
+                <label className="text-[10px] text-muted-foreground mb-1 block">Dari Tanggal</label>
+                <DatePicker
+                  value={filterStartDate}
+                  onChange={setFilterStartDate}
+                  placeholder="Pilih tanggal"
+                  className="h-[38px]"
+                />
+              </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <label className="text-[10px] text-muted-foreground mb-1 block">Dari Tanggal</label>
-                    <input
-                      type="date"
-                      value={filterStartDate}
-                      onChange={(e) => setFilterStartDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-transparent"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-[10px] text-muted-foreground mb-1 block">Sampai Tanggal</label>
-                    <input
-                      type="date"
-                      value={filterEndDate}
-                      onChange={(e) => setFilterEndDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-transparent"
-                    />
-                  </div>
-                </div>
+              {/* End Date */}
+              <div className="flex-1 w-full">
+                <label className="text-[10px] text-muted-foreground mb-1 block">Sampai Tanggal</label>
+                <DatePicker
+                  value={filterEndDate}
+                  onChange={setFilterEndDate}
+                  placeholder="Pilih tanggal"
+                  className="h-[38px]"
+                />
               </div>
 
               {/* Created By */}
-              <div className="space-y-2">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] text-muted-foreground block">Dicatat Oleh</label>
-                  <select
-                    value={filterCreatedBy}
-                    onChange={(e) => setFilterCreatedBy(e.target.value)}
-                    className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-transparent"
-                  >
-                    <option value="">Semua Admin</option>
-                    {adminUsers.map(admin => (
-                      <option key={admin.id} value={admin.id}>
-                        {admin.full_name || admin.username}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="flex-1 w-full">
+                <label className="text-[10px] text-muted-foreground mb-1 block">Dicatat Oleh</label>
+                <select
+                  value={filterCreatedBy}
+                  onChange={(e) => setFilterCreatedBy(e.target.value)}
+                  className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-transparent h-[38px]"
+                >
+                  <option value="">Semua Admin</option>
+                  {adminUsers.map(admin => (
+                    <option key={admin.id} value={admin.id}>
+                      {admin.full_name || admin.username}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Reset Actions */}
-              <div className="flex items-end pb-0.5">
-                <button
-                  onClick={() => {
-                    setFilterStartDate('');
-                    setFilterEndDate('');
-                    setFilterCreatedBy('');
-                  }}
-                  className="text-xs text-red-600 hover:text-red-700 font-medium flex items-center gap-1 px-2 py-2 hover:bg-red-50 rounded-md transition-colors"
-                >
-                  <X className="w-3 h-3" />
-                  Reset Filter
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setFilterStartDate('');
+                  setFilterEndDate('');
+                  setFilterCreatedBy('');
+                }}
+                className="text-xs text-red-600 hover:text-red-700 font-medium flex items-center gap-1 px-4 py-2 hover:bg-red-50 rounded-md transition-colors h-[38px] border border-transparent whitespace-nowrap"
+              >
+                <X className="w-3 h-3" />
+                Reset Filter
+              </button>
             </div>
           </div>
         )}

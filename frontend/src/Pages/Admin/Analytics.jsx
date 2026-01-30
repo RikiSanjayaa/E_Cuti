@@ -1,4 +1,5 @@
 import { Calendar, Download, FileSpreadsheet, FileText, Filter, Printer } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
@@ -128,7 +129,7 @@ export default function Analytics() {
 
     // Old Logic
     // window.location.href = `/api/reports/export?${params.toString()}&token=${token}`;
-    
+
     if (formatType === 'pdf') {
       generatePDF();
     } else {
@@ -226,13 +227,13 @@ export default function Analytics() {
     // -- Footer --
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        // doc.text(`Dicetak pada: ${format(new Date(), 'dd MMMM yyyy HH:mm', { locale: localeId })}`, 14, 285);
-        // User requested B&W professional - maybe keep print time or remove if too cluttered? 
-        // Keeping it small is usually standard for system reports.
-        doc.text(`Halaman ${i} dari ${pageCount}`, 280, 200, { align: 'right' }); // Adjusted for Landscape width
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      // doc.text(`Dicetak pada: ${format(new Date(), 'dd MMMM yyyy HH:mm', { locale: localeId })}`, 14, 285);
+      // User requested B&W professional - maybe keep print time or remove if too cluttered? 
+      // Keeping it small is usually standard for system reports.
+      doc.text(`Halaman ${i} dari ${pageCount}`, 280, 200, { align: 'right' }); // Adjusted for Landscape width
     }
 
     doc.save(`Laporan_Cuti_${startDate}_${endDate}.pdf`);
@@ -331,51 +332,46 @@ export default function Analytics() {
         <div className="flex flex-wrap gap-2 mb-6">
           <button
             onClick={() => applyQuickFilter('this_year')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeFilter === 'this_year' 
-              ? 'bg-primary text-primary-foreground' 
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'this_year'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
+              }`}
           >
             Tahun Ini
           </button>
           <button
             onClick={() => applyQuickFilter('this_month')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeFilter === 'this_month' 
-              ? 'bg-primary text-primary-foreground' 
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'this_month'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
+              }`}
           >
             Bulan Ini
           </button>
           <button
             onClick={() => applyQuickFilter('last_month')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeFilter === 'last_month' 
-              ? 'bg-primary text-primary-foreground' 
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'last_month'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
+              }`}
           >
             Bulan Lalu
           </button>
           <button
             onClick={() => applyQuickFilter('last_3_months')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeFilter === 'last_3_months' 
-              ? 'bg-primary text-primary-foreground' 
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'last_3_months'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
+              }`}
           >
             3 Bulan Terakhir
           </button>
           <button
             onClick={() => applyQuickFilter('last_year')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              activeFilter === 'last_year' 
-              ? 'bg-primary text-primary-foreground' 
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'last_year'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
+              }`}
           >
             Tahun Lalu
           </button>
@@ -387,36 +383,28 @@ export default function Analytics() {
             <label className="block text-sm font-medium text-foreground mb-2">
               Tanggal Mulai
             </label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  setActiveFilter(''); // Reset active filter on manual change
-                }}
-                className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
+            <DatePicker
+              value={startDate}
+              onChange={(date) => {
+                setStartDate(date);
+                setActiveFilter('');
+              }}
+              placeholder="Pilih tanggal"
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Tanggal Selesai
             </label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => {
-                  setEndDate(e.target.value);
-                  setActiveFilter(''); // Reset active filter on manual change
-                }}
-                className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
+            <DatePicker
+              value={endDate}
+              onChange={(date) => {
+                setEndDate(date);
+                setActiveFilter('');
+              }}
+              placeholder="Pilih tanggal"
+            />
           </div>
 
 
