@@ -1,6 +1,6 @@
 import { Bell, User, ChevronDown, PanelLeft, LogOut, Moon, Sun } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 export function Header({ userRole, onToggleSidebar }) {
@@ -8,6 +8,26 @@ export function Header({ userRole, onToggleSidebar }) {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const dropdownRef = useRef(null);
+
+  // Close user menu on route change
+  useEffect(() => {
+    setShowUserMenu(false);
+  }, [location]);
+
+  // Close user menu on click outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -63,7 +83,7 @@ export function Header({ userRole, onToggleSidebar }) {
 
         <div className="h-8 w-px bg-border"></div>
 
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="flex items-center gap-3 hover:bg-accent hover:text-accent-foreground px-3 py-2 rounded-md transition-colors cursor-pointer"
