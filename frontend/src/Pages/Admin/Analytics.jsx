@@ -33,7 +33,7 @@ export default function Analytics() {
   const fetchLeaveTypes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/leave-types', {
+      const response = await axios.get('/api/leave-types/', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setLeaveTypes(response.data);
@@ -381,7 +381,7 @@ export default function Analytics() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Date Range */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
@@ -440,7 +440,7 @@ export default function Analytics() {
         </div>
 
         {/* Export Buttons */}
-        <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-border">
+        <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-border justify-end">
           <button
             onClick={() => handleExport('excel')}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 dark:bg-transparent dark:border dark:border-green-800 dark:text-green-500 dark:hover:bg-green-900/20 transition-colors cursor-pointer"
