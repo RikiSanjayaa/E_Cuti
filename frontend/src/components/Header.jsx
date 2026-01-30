@@ -1,19 +1,52 @@
-import { Bell, User, ChevronDown, PanelLeft, LogOut, Moon, Sun } from 'lucide-react';
+import { Bell, User, ChevronDown, PanelLeft, LogOut, Moon, Sun, Check, CheckCheck, Calendar, Users, FileText, Shield, Trash2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { useNotifications } from '@/lib/NotificationContext';
+
+// Helper to format relative time
+function formatRelativeTime(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Baru saja';
+  if (diffMins < 60) return `${diffMins} menit lalu`;
+  if (diffHours < 24) return `${diffHours} jam lalu`;
+  if (diffDays < 7) return `${diffDays} hari lalu`;
+  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+}
+
+// Icon mapper for entity types
+function getEntityIcon(entity) {
+  switch (entity) {
+    case 'leaves': return <Calendar className="w-4 h-4" />;
+    case 'personnel': return <Users className="w-4 h-4" />;
+    case 'users': return <Shield className="w-4 h-4" />;
+    case 'leave_types': return <FileText className="w-4 h-4" />;
+    default: return <Bell className="w-4 h-4" />;
+  }
+}
 
 export function Header({ userRole, onToggleSidebar }) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
+  const notificationRef = useRef(null);
 
-  // Close user menu on route change
+  const { notificationHistory, unreadCount, markAsRead, markAllAsRead, clearHistory } = useNotifications();
+
+  // Close menus on route change
   useEffect(() => {
     setShowUserMenu(false);
+    setShowNotifications(false);
   }, [location]);
 
   // Close user menu on click outside
@@ -21,6 +54,9 @@ export function Header({ userRole, onToggleSidebar }) {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowUserMenu(false);
+      }
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotifications(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -53,13 +89,19 @@ export function Header({ userRole, onToggleSidebar }) {
   }, [theme]);
 
   const toggleTheme = (e) => {
-    e.stopPropagation(); // Prevent menu from closing if desired, or let it stay open to see toggle
+    e.stopPropagation();
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
+  };
+
+  const handleNotificationClick = (notification) => {
+    if (!notification.read) {
+      markAsRead(notification.id);
+    }
   };
 
   return (
@@ -76,10 +118,112 @@ export function Header({ userRole, onToggleSidebar }) {
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="relative p-2 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors cursor-pointer">
-          <Bell className="w-5 h-5 text-muted-foreground" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full"></span>
-        </button>
+        {/* Notification Bell */}
+        <div className="relative" ref={notificationRef}>
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="relative p-2 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors cursor-pointer"
+          >
+            <Bell className="w-5 h-5 text-muted-foreground" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* Notification Dropdown */}
+          {showNotifications && (
+            <div className="absolute right-0 mt-2 w-80 bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+                <h3 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                  <Bell className="w-4 h-4" />
+                  Notifikasi
+                  {unreadCount > 0 && (
+                    <span className="bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+                </h3>
+                <div className="flex items-center gap-1">
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={markAllAsRead}
+                      className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 px-2 py-1 rounded hover:bg-accent transition-colors"
+                      title="Tandai semua dibaca"
+                    >
+                      <CheckCheck className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Baca semua</span>
+                    </button>
+                  )}
+                  {notificationHistory.length > 0 && (
+                    <button
+                      onClick={clearHistory}
+                      className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 px-2 py-1 rounded hover:bg-accent transition-colors"
+                      title="Hapus semua"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Notification List */}
+              <div className="max-h-80 overflow-y-auto">
+                {notificationHistory.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-muted-foreground">
+                    <Bell className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">Tidak ada notifikasi</p>
+                  </div>
+                ) : (
+                  notificationHistory.map((notification) => (
+                    <div
+                      key={notification.id}
+                      onClick={() => handleNotificationClick(notification)}
+                      className={`px-4 py-3 border-b border-border last:border-b-0 hover:bg-accent/50 cursor-pointer transition-colors ${!notification.read ? 'bg-primary/5' : ''
+                        }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* Unread indicator */}
+                        <div className="mt-1.5">
+                          {!notification.read ? (
+                            <span className="w-2 h-2 bg-primary rounded-full block" />
+                          ) : (
+                            <span className="w-2 h-2 block" />
+                          )}
+                        </div>
+
+                        {/* Icon */}
+                        <div className={`p-2 rounded-lg ${notification.type === 'warning'
+                            ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+                            : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                          }`}>
+                          {getEntityIcon(notification.entity)}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm ${!notification.read ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {formatRelativeTime(notification.receivedAt)}
+                          </p>
+                        </div>
+
+                        {/* Read indicator */}
+                        {notification.read && (
+                          <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-1" />
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="h-8 w-px bg-border"></div>
 

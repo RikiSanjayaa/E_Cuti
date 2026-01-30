@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from passlib.context import CryptContext
 from backend.core import database, auth
+from backend.core.websocket import manager
 from backend import models, schemas
 
 router = APIRouter(
@@ -113,6 +114,15 @@ async def create_user(
         user_agent=request.headers.get("user-agent")
     )
     
+    # Notify connected clients
+    await manager.notify_change(
+        entity="users",
+        action="create",
+        username=current_user.username,
+        entity_id=db_user.id,
+        details=f"Created user {db_user.username}"
+    )
+    
     return db_user
 
 @router.put("/{user_id}", response_model=schemas.User)
@@ -177,6 +187,15 @@ async def update_user(
         user_agent=request.headers.get("user-agent")
     )
     
+    # Notify connected clients
+    await manager.notify_change(
+        entity="users",
+        action="update",
+        username=current_user.username,
+        entity_id=db_user.id,
+        details=f"Updated user {db_user.username}"
+    )
+    
     return db_user
 
 @router.post("/{user_id}/reset-password")
@@ -205,6 +224,15 @@ async def reset_password(
         "Reset user password",
         ip_address=request.client.host,
         user_agent=request.headers.get("user-agent")
+    )
+    
+    # Notify connected clients
+    await manager.notify_change(
+        entity="users",
+        action="update",
+        username=current_user.username,
+        entity_id=db_user.id,
+        details=f"Password reset for {db_user.username}"
     )
     
     return {"message": "Password reset successfully", "temporary_password": reset_data.new_password}

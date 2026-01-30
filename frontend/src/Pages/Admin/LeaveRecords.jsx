@@ -1,6 +1,6 @@
 import { Search, Filter, Download, Eye, Edit, Trash2, AlertTriangle, X, ArrowUpDown, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { formatDateTime, formatDate } from '@/utils/dateUtils';
 import { addDays } from 'date-fns';
@@ -8,6 +8,7 @@ import { AddLeaveModal } from '@/components/AddLeaveModal';
 import { LeaveDetailModal } from '@/components/LeaveDetailModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { getLeaveColorClass } from '@/utils/leaveUtils';
+import { useEntitySubscription } from '@/lib/NotificationContext';
 
 export default function LeaveRecords() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,6 +54,13 @@ export default function LeaveRecords() {
     fetchAdmins();
     fetchLeaveTypes();
   }, []);
+
+  // Subscribe to real-time leave updates
+  const handleLeaveChange = useCallback(() => {
+    fetchLeaves();
+  }, [currentPage, sortBy, sortOrder, searchQuery, typeFilter, itemsPerPage, filterCreatedBy, filterStartDate, filterEndDate]);
+
+  useEntitySubscription('leaves', handleLeaveChange);
 
   const fetchLeaveTypes = async () => {
     try {

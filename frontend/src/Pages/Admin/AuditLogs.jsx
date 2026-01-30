@@ -1,8 +1,9 @@
 import { Search, Download, Shield, Filter, Calendar, RefreshCw, Lock, AlertTriangle, Eye, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { formatDateTime } from '@/utils/dateUtils';
 import { Pagination } from '../../components/Pagination';
+import { useEntitySubscription } from '@/lib/NotificationContext';
 
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);
@@ -69,6 +70,13 @@ export default function AuditLogs() {
   useEffect(() => {
     fetchLogs();
   }, [actionFilter, roleFilter, categoryFilter, statusFilter, startDate, endDate, currentPage, sortBy, sortOrder, itemsPerPage]);
+
+  // Subscribe to real-time updates for all entities (audit logs track everything)
+  const handleAuditChange = useCallback(() => {
+    fetchLogs();
+  }, [actionFilter, roleFilter, categoryFilter, statusFilter, startDate, endDate, currentPage, sortBy, sortOrder, itemsPerPage]);
+
+  useEntitySubscription('audit', handleAuditChange);
 
   const handleSort = (field) => {
     if (sortBy === field) {

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from backend.core import database, auth
+from backend.core.websocket import manager
 from backend import models, schemas
 
 router = APIRouter(
@@ -92,6 +93,15 @@ async def create_leave_type(
         user_agent=request.headers.get("user-agent")
     )
     
+    # Notify connected clients
+    await manager.notify_change(
+        entity="leave_types",
+        action="create",
+        username=current_user.username,
+        entity_id=new_leave_type.id,
+        details=f"Created {new_leave_type.name}"
+    )
+    
     return new_leave_type
 
 @router.put("/{leave_type_id}", response_model=schemas.LeaveType)
@@ -141,6 +151,15 @@ async def update_leave_type(
         user_agent=request.headers.get("user-agent")
     )
     
+    # Notify connected clients
+    await manager.notify_change(
+        entity="leave_types",
+        action="update",
+        username=current_user.username,
+        entity_id=leave_type.id,
+        details=f"Updated {leave_type.name}"
+    )
+    
     return leave_type
 
 @router.delete("/{leave_type_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -174,6 +193,15 @@ async def delete_leave_type(
         status="success",
         ip_address=request.client.host,
         user_agent=request.headers.get("user-agent")
+    )
+    
+    # Notify connected clients
+    await manager.notify_change(
+        entity="leave_types",
+        action="delete",
+        username=current_user.username,
+        entity_id=leave_type_id,
+        details=f"Deactivated {leave_type.name}"
     )
     
     return None

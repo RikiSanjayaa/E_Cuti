@@ -1,9 +1,23 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
+from .core.websocket import manager
+
 app = FastAPI(title="Sistem Monitoring Izin Personel Polda NTB")
+
+
+@app.websocket("/ws/notifications")
+async def websocket_endpoint(websocket: WebSocket):
+    """WebSocket endpoint for real-time notifications."""
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Keep connection alive, receive any client messages (heartbeat)
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 # CORS
 origins = [

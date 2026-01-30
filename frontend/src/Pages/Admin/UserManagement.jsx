@@ -1,10 +1,11 @@
 import { Search, UserPlus, Shield, Lock, Unlock, Key, Mail, MoreVertical, AlertCircle, CheckCircle, XCircle, Loader2, Eye, EyeOff, Briefcase, UserX, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { formatDateTime, formatDate } from '@/utils/dateUtils';
 import ResetPasswordModal from '../../components/ResetPasswordModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
+import { useEntitySubscription } from '@/lib/NotificationContext';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -169,6 +170,13 @@ export default function UserManagement() {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, roleFilter, statusFilter]);
+
+  // Subscribe to real-time user updates
+  const handleUserChange = useCallback(() => {
+    fetchUsers();
+  }, [searchQuery, roleFilter, statusFilter, currentPage, sortBy, sortOrder, itemsPerPage]);
+
+  useEntitySubscription('users', handleUserChange);
 
   const handleSort = (field) => {
     if (sortBy === field) {
