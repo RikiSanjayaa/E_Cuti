@@ -158,10 +158,10 @@ export default function LeaveTypeManagement() {
   };
 
   const getGenderBadge = (gender) => {
-    if (!gender) return 'bg-gray-50 text-gray-700 border-gray-200';
+    if (!gender) return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
     return gender === 'P'
-      ? 'bg-pink-50 text-pink-700 border-pink-200'
-      : 'bg-blue-50 text-blue-700 border-blue-200';
+      ? 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-900/20 dark:text-pink-300 dark:border-pink-800'
+      : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800';
   };
 
   // Calculate stats
@@ -190,9 +190,9 @@ export default function LeaveTypeManagement() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-green-50 p-3 rounded-lg">
+            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
               <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
             <div>
@@ -201,9 +201,9 @@ export default function LeaveTypeManagement() {
             </div>
           </div>
         </div>
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-gray-100 p-3 rounded-lg">
+            <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
               <XCircle className="w-5 h-5 text-gray-500" />
             </div>
             <div>
@@ -212,9 +212,9 @@ export default function LeaveTypeManagement() {
             </div>
           </div>
         </div>
-        <div className="bg-white border border-border rounded-lg p-4">
+        <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-50 p-3 rounded-lg">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
               <Calendar className="w-5 h-5 text-blue-600" />
             </div>
             <div>
@@ -226,7 +226,7 @@ export default function LeaveTypeManagement() {
       </div>
 
       {/* Leave Types Table */}
-      <div className="bg-white border border-border rounded-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -297,8 +297,8 @@ export default function LeaveTypeManagement() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium border ${leaveType.is_active
-                        ? 'bg-green-50 text-green-700 border-green-200'
-                        : 'bg-gray-50 text-gray-700 border-gray-200'
+                        ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800'
+                        : 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
                         }`}>
                         {leaveType.is_active ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                         {leaveType.is_active ? 'Aktif' : 'Tidak Aktif'}
@@ -308,7 +308,7 @@ export default function LeaveTypeManagement() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleEdit(leaveType)}
-                          className="p-1.5 hover:bg-blue-50 rounded text-blue-600 border border-blue-200"
+                          className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
                           title="Edit"
                         >
                           <Pencil className="w-4 h-4" />
@@ -316,7 +316,7 @@ export default function LeaveTypeManagement() {
                         {leaveType.is_active ? (
                           <button
                             onClick={() => handleDelete(leaveType)}
-                            className="p-1.5 hover:bg-red-50 rounded text-red-600 border border-red-200"
+                            className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800"
                             title="Non-aktifkan"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -324,7 +324,7 @@ export default function LeaveTypeManagement() {
                         ) : (
                           <button
                             onClick={() => handleReactivate(leaveType)}
-                            className="p-1.5 hover:bg-green-50 rounded text-green-600 border border-green-200"
+                            className="p-1.5 hover:bg-green-50 dark:hover:bg-green-900/20 rounded text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800"
                             title="Aktifkan Kembali"
                           >
                             <CheckCircle className="w-4 h-4" />
@@ -343,7 +343,7 @@ export default function LeaveTypeManagement() {
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg animate-in fade-in zoom-in-95">
+          <div className="bg-background dark:bg-card rounded-lg shadow-xl w-full max-w-lg animate-in fade-in zoom-in-95">
             <div className="p-6 border-b border-border">
               <h2 className="text-lg font-semibold">
                 {editingId ? 'Edit Jenis Cuti' : 'Tambah Jenis Cuti Baru'}
@@ -352,8 +352,8 @@ export default function LeaveTypeManagement() {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {message.text && (
                 <div className={`p-3 rounded-md text-sm ${message.type === 'error'
-                  ? 'bg-red-50 text-red-600 border border-red-200'
-                  : 'bg-green-50 text-green-600 border border-green-200'
+                  ? 'bg-red-50 text-red-600 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800'
+                  : 'bg-green-50 text-green-600 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800'
                   }`}>
                   {message.text}
                 </div>
@@ -367,7 +367,7 @@ export default function LeaveTypeManagement() {
                   placeholder="contoh: Cuti Tahunan"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
                 />
               </div>
 
@@ -379,7 +379,7 @@ export default function LeaveTypeManagement() {
                   placeholder="contoh: cuti_tahunan"
                   value={formData.code}
                   onChange={e => setFormData({ ...formData, code: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono bg-background text-foreground"
                 />
                 <p className="text-xs text-muted-foreground">Kode unik untuk identifikasi internal (huruf kecil, tanpa spasi)</p>
               </div>
@@ -393,7 +393,7 @@ export default function LeaveTypeManagement() {
                   max="365"
                   value={formData.default_quota}
                   onChange={e => setFormData({ ...formData, default_quota: parseInt(e.target.value) || 1 })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
                 />
               </div>
 
@@ -402,7 +402,7 @@ export default function LeaveTypeManagement() {
                 <select
                   value={formData.gender_specific || ''}
                   onChange={e => setFormData({ ...formData, gender_specific: e.target.value || null })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
                 >
                   <option value="">Semua Gender</option>
                   <option value="P">Khusus Perempuan</option>
@@ -420,7 +420,7 @@ export default function LeaveTypeManagement() {
                   <select
                     value={formData.color}
                     onChange={e => setFormData({ ...formData, color: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring appearance-none"
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring appearance-none bg-background text-foreground"
                   >
                     {PRESET_COLORS.map((color) => (
                       <option key={color.value} value={color.value}>
@@ -451,7 +451,7 @@ export default function LeaveTypeManagement() {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 border rounded-md hover:bg-accent"
+                  className="px-4 py-2 border rounded-md hover:bg-accent dark:hover:bg-muted"
                 >
                   Batal
                 </button>
