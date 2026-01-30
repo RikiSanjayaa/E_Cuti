@@ -9,7 +9,7 @@ import {
   Plus
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatTimeAgo } from '@/utils/dateUtils';
 import { AddLeaveModal } from '../../components/AddLeaveModal';
 
 export default function Dashboard() {
@@ -156,7 +156,7 @@ export default function Dashboard() {
             statsData.recent_activity.map((activity, index) => {
               const user = activity.creator ? (activity.creator.full_name || activity.creator.username) : 'System';
               const action = `${activity.leave_type?.name || 'Cuti'} - ${activity.personnel?.nama}`;
-              const dateStr = formatDistanceToNow(new Date(activity.created_at), { addSuffix: true });
+              const dateStr = formatTimeAgo(activity.created_at);
 
               return (
                 <div

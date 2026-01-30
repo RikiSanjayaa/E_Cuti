@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { getLeaveColorClass, getLeaveColors } from '@/utils/leaveUtils';
+import { formatDate } from '@/utils/dateUtils';
 
 import AddPersonnelModal from '@/components/AddPersonnelModal';
 import ImportDetailsModal from '@/components/ImportDetailsModal';
@@ -683,11 +684,11 @@ export default function Personel() {
                                   endDate.setDate(endDate.getDate() + (leave.jumlah_hari - 1));
 
                                   // Helper: Format Date
-                                  const formatDate = (d) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                                  // Use standard format from utils
 
                                   // Helper: ID formatting (Mock ID)
                                   const id = `LR-${year}-${String(leave.id || idx + 1).padStart(3, '0')}`;
-                                  const createdDate = new Date(leave.created_at || new Date()).toLocaleDateString('id-ID');
+                                  const createdDate = formatDate(leave.created_at || new Date(), 'dd MMMM yyyy');
 
                                   return (
                                     <div key={leave.id || idx} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -704,7 +705,7 @@ export default function Personel() {
 
                                       {/* Date Range */}
                                       <div className="text-sm text-slate-600 font-medium mb-3">
-                                        {formatDate(startDate)} s/d {formatDate(endDate)}
+                                        {formatDate(startDate, 'd MMM yyyy')} s/d {formatDate(endDate, 'd MMM yyyy')}
                                       </div>
 
                                       {/* Divider */}

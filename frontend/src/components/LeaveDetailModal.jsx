@@ -1,16 +1,12 @@
 import { X, User, Calendar, FileText, Clock, Shield } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
+import { formatDate } from '@/utils/dateUtils';
 import { getLeaveColorClass } from '@/utils/leaveUtils';
 
 export function LeaveDetailModal({ isOpen, onClose, leave }) {
     if (!isOpen || !leave) return null;
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '-';
-        return format(new Date(dateString), 'd MMMM yyyy', { locale: localeId });
-    };
+    // formatDate is imported directly
 
 
 

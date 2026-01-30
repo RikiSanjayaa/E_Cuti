@@ -135,6 +135,16 @@ def cmd_fresh():
         print("      -> Username: admin")
         print("      -> Password: admin123")
         
+        print("      -> Password: admin123")
+
+        # Seed holidays
+        print("\n[5/5] Seeding holidays (Auto-fetch)...")
+        from backend.scripts.seed_holidays import seed_holidays
+        try:
+            seed_holidays()
+        except Exception as sh_e:
+            print(f"      [WARNING] Holiday seeding failed: {sh_e}")
+        
         print("\n" + "=" * 50)
         print("  FRESH RESET COMPLETE")
         print("=" * 50)
@@ -305,6 +315,14 @@ def cmd_seed():
         print("\n" + "=" * 50)
         print("  SEEDING COMPLETE")
         print("=" * 50)
+        
+        # Seed holidays (also here to ensure they exist)
+        print("\n[INFO] Checking/Updating holidays...")
+        from backend.scripts.seed_holidays import seed_holidays
+        try:
+            seed_holidays()
+        except Exception as sh_e:
+            print(f"      [WARNING] Holiday seeding failed: {sh_e}")
         
     except Exception as e:
         print(f"\n[ERROR] {e}")

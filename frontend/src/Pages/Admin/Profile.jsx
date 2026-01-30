@@ -2,6 +2,7 @@ import { User, Shield, Mail, Building, Loader2, Edit2, Save, X, CheckCircle, Ale
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { formatDate } from '@/utils/dateUtils';
 
 export default function Profile() {
     const [currentUser, setCurrentUser] = useState(null);
@@ -157,7 +158,7 @@ export default function Profile() {
                                     {roleLabel}
                                 </span>
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium border border-border">
-                                    Member since {new Date(currentUser?.created_at).toLocaleDateString()}
+                                    Member since {formatDate(currentUser?.created_at)}
                                 </span>
                             </div>
                         </div>

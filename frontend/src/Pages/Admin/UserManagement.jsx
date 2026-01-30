@@ -2,8 +2,7 @@ import { Search, UserPlus, Shield, Lock, Unlock, Key, Mail, MoreVertical, AlertC
 import { Pagination } from '../../components/Pagination';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { format } from 'date-fns';
-import { id as idLocale } from 'date-fns/locale';
+import { formatDateTime, formatDate } from '@/utils/dateUtils';
 import ResetPasswordModal from '../../components/ResetPasswordModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 
@@ -506,10 +505,10 @@ export default function UserManagement() {
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                       <span className="text-sm text-foreground">
-                        {user.last_active ? format(new Date(user.last_active), 'dd MMM yyyy') : '-'}
+                        {formatDate(user.last_active, 'dd MMM yyyy')}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {user.last_active ? format(new Date(user.last_active), 'HH:mm') : ''}
+                        {formatDate(user.last_active, 'HH:mm')}
                       </span>
                     </div>
                   </td>
