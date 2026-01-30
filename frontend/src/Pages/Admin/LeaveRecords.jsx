@@ -1,6 +1,6 @@
 import { Search, Filter, Download, Eye, Edit, Trash2, AlertTriangle, X, ArrowUpDown, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { formatDateTime, formatDate } from '@/utils/dateUtils';
 import { addDays } from 'date-fns';
@@ -8,6 +8,7 @@ import { AddLeaveModal } from '@/components/AddLeaveModal';
 import { LeaveDetailModal } from '@/components/LeaveDetailModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { getLeaveColorClass } from '@/utils/leaveUtils';
+import { useEntitySubscription } from '@/lib/NotificationContext';
 
 export default function LeaveRecords() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,6 +54,13 @@ export default function LeaveRecords() {
     fetchAdmins();
     fetchLeaveTypes();
   }, []);
+
+  // Subscribe to real-time leave updates
+  const handleLeaveChange = useCallback(() => {
+    fetchLeaves();
+  }, [currentPage, sortBy, sortOrder, searchQuery, typeFilter, itemsPerPage, filterCreatedBy, filterStartDate, filterEndDate]);
+
+  useEntitySubscription('leaves', handleLeaveChange);
 
   const fetchLeaveTypes = async () => {
     try {
@@ -362,6 +370,15 @@ export default function LeaveRecords() {
               <tr className="border-b border-border bg-muted/50">
                 <th
                   className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('created_at')}
+                >
+                  <div className="flex items-center">
+                    Tgl Entry
+                    <SortIcon field="created_at" />
+                  </div>
+                </th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => handleSort('nrp')}
                 >
                   <div className="flex items-center">
@@ -376,15 +393,6 @@ export default function LeaveRecords() {
                   <div className="flex items-center">
                     Personel
                     <SortIcon field="nama" />
-                  </div>
-                </th>
-                <th
-                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => handleSort('created_at')}
-                >
-                  <div className="flex items-center">
-                    Tgl Entry
-                    <SortIcon field="created_at" />
                   </div>
                 </th>
                 <th
@@ -441,14 +449,14 @@ export default function LeaveRecords() {
               ) : (
                 filteredLeaves.map((leave) => (
                   <tr key={leave.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      {formatDateTime(leave.created_at)}
+                    </td>
                     <td className="px-6 py-4 text-sm font-medium text-foreground">
                       {leave.personnel?.nrp}
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
                       {leave.personnel?.nama}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {formatDateTime(leave.created_at)}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
                       {formatSingleDate(leave.tanggal_mulai)}
@@ -480,26 +488,26 @@ export default function LeaveRecords() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleView(leave)}
-                          className="p-1 hover:bg-accent rounded cursor-pointer"
-                          title="Lihat detail"
+                          className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 cursor-pointer"
+                          title="Lihat Detail"
                         >
-                          <Eye className="w-4 h-4 text-muted-foreground" />
+                          <Eye className="w-4 h-4" />
                         </button>
                         {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
                           <>
                             <button
                               onClick={() => handleEdit(leave)}
-                              className="p-1 hover:bg-blue-50 rounded cursor-pointer"
+                              className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
                               title="Edit"
                             >
-                              <Edit className="w-4 h-4 text-blue-600" />
+                              <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteClick(leave)}
-                              className="p-1 hover:bg-red-50 rounded cursor-pointer"
+                              className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800"
                               title="Hapus"
                             >
-                              <Trash2 className="w-4 h-4 text-red-600" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </>
                         )}

@@ -10,6 +10,7 @@ import uuid
 import os
 from typing import Optional
 from backend.core import database, auth
+from backend.core.websocket import manager
 from backend import models, schemas
 
 router = APIRouter(
@@ -60,6 +61,7 @@ async def export_leaves(
     data = []
     for leave in leaves:
         data.append({
+            "Tgl Entry": leave.created_at.strftime("%Y-%m-%d %H:%M") if leave.created_at else "-",
             "NRP": leave.personnel.nrp if leave.personnel else "-",
             "Personel": leave.personnel.nama if leave.personnel else "-",
             "Jenis Cuti": leave.leave_type.name if leave.leave_type else "-",
@@ -283,6 +285,15 @@ async def create_leave(
         user_agent=request.headers.get("user-agent")
     )
     
+    # 8. Notify connected clients
+    await manager.notify_change(
+        entity="leaves",
+        action="create",
+        username=current_user.username,
+        entity_id=new_leave.id,
+        details=f"New leave for {personnel.nama}"
+    )
+    
     return new_leave
 
 @router.put("/{leave_id}", response_model=schemas.LeaveHistory)
@@ -381,6 +392,15 @@ async def update_leave(
         user_agent=request.headers.get("user-agent")
     )
 
+    # Notify connected clients
+    await manager.notify_change(
+        entity="leaves",
+        action="update",
+        username=current_user.username,
+        entity_id=leave.id,
+        details=f"Updated leave for {personnel.nama}"
+    )
+
     return leave
 
 @router.delete("/{leave_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -407,6 +427,15 @@ async def delete_leave(
         f"Deleted leave record ID {leave_id}",
         ip_address=request.client.host,
         user_agent=request.headers.get("user-agent")
+    )
+    
+    # Notify connected clients
+    await manager.notify_change(
+        entity="leaves",
+        action="delete",
+        username=current_user.username,
+        entity_id=leave_id,
+        details=f"Deleted leave record"
     )
     
     return None

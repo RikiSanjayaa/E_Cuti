@@ -13,6 +13,8 @@ import AtasanDashboard from './Pages/Atasan/Dashboard';
 import Reports from './Pages/Atasan/Reports';
 import AdminLayout from './Layouts/AdminLayout';
 import AtasanLayout from './Layouts/AtasanLayout';
+import { NotificationProvider } from './lib/NotificationContext';
+import { ToastContainer } from './components/ui/Toast';
 
 // Auth Guard
 const ProtectedRoute = ({ allowedRoles, children }) => {
@@ -20,7 +22,7 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
   const userRole = localStorage.getItem('role');
 
   if (!token) return <Navigate to="/login" replace />;
-  
+
   // Check if userRole is in the allowedRoles array
   if (allowedRoles && !allowedRoles.includes(userRole)) {
     return <Navigate to="/login" replace />;
@@ -31,36 +33,40 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
+    <NotificationProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
 
-        {/* Admin Routes (Accessible by super_admin and admin) */}
-        <Route element={<ProtectedRoute allowedRoles={['super_admin', 'admin']}><AdminLayout /></ProtectedRoute>}>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/leaves" element={<LeaveRecords />} />
-          <Route path="/admin/personel" element={<Personel />} />
-          <Route path="/admin/analytics" element={<Analytics />} />
-          <Route path="/admin/audit" element={<AuditLogs />} />
-          <Route path="/admin/users" element={<UserManagement />} />
-          <Route path="/admin/leave-types" element={<LeaveTypeManagement />} />
-          <Route path="/admin/profile" element={<Profile />} />
-          <Route path="/admin/preferences" element={<Preferences />} />
-          <Route path="/" element={<Navigate to="/admin" replace />} />
-        </Route>
+          {/* Admin Routes (Accessible by super_admin and admin) */}
+          <Route element={<ProtectedRoute allowedRoles={['super_admin', 'admin']}><AdminLayout /></ProtectedRoute>}>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/leaves" element={<LeaveRecords />} />
+            <Route path="/admin/personel" element={<Personel />} />
+            <Route path="/admin/analytics" element={<Analytics />} />
+            <Route path="/admin/audit" element={<AuditLogs />} />
+            <Route path="/admin/users" element={<UserManagement />} />
+            <Route path="/admin/leave-types" element={<LeaveTypeManagement />} />
+            <Route path="/admin/profile" element={<Profile />} />
+            <Route path="/admin/preferences" element={<Preferences />} />
+            <Route path="/" element={<Navigate to="/admin" replace />} />
+          </Route>
 
-        {/* Atasan Routes */}
-        <Route element={<ProtectedRoute role="atasan"><AtasanLayout /></ProtectedRoute>}>
-          <Route path="/atasan" element={<AtasanDashboard />} />
-          <Route path="/atasan/leaves" element={<LeaveRecords />} />
-          <Route path="/atasan/personel" element={<Personel />} />
-          <Route path="/atasan/analytics" element={<Analytics />} />
-          <Route path="/atasan/reports" element={<Reports />} />
-          <Route path="/atasan/profile" element={<Profile />} />
-        </Route>
-      </Routes>
-    </Router>
+          {/* Atasan Routes */}
+          <Route element={<ProtectedRoute role="atasan"><AtasanLayout /></ProtectedRoute>}>
+            <Route path="/atasan" element={<AtasanDashboard />} />
+            <Route path="/atasan/leaves" element={<LeaveRecords />} />
+            <Route path="/atasan/personel" element={<Personel />} />
+            <Route path="/atasan/analytics" element={<Analytics />} />
+            <Route path="/atasan/reports" element={<Reports />} />
+            <Route path="/atasan/profile" element={<Profile />} />
+          </Route>
+        </Routes>
+      </Router>
+      <ToastContainer />
+    </NotificationProvider>
   );
 }
 
 export default App;
+

@@ -18,14 +18,12 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
-  // New state for dynamic leave types
   const [leaveTypes, setLeaveTypes] = useState([]);
   const [loadingLeaveTypes, setLoadingLeaveTypes] = useState(false);
   const [holidays, setHolidays] = useState([]);
 
   const isEditMode = !!initialData;
 
-  // Fetch leave types when personnel is found (to filter by gender)
   useEffect(() => {
     const fetchLeaveTypes = async () => {
       if (!personel) {
@@ -54,7 +52,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     fetchLeaveTypes();
   }, [personel]);
 
-  // Fetch holidays on mount
   useEffect(() => {
     const fetchHolidays = async () => {
       try {
@@ -70,15 +67,12 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     fetchHolidays();
   }, []);
 
-  // Calculate working days
   const calculateWorkingDays = (start, end) => {
     if (!start || !end) return '';
 
-    // Explicitly parse YYYY-MM-DD to avoid timezone issues (UTC vs Local)
     // We treat the date string as a literal calendar date in the user's locale
     const parseDate = (dateStr) => {
       const parts = dateStr.split('-');
-      // Native Date(y, mIndex, d) creates a local date at 00:00:00
       return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
     };
 
@@ -88,13 +82,11 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     if (endDateObj < startDateObj) return '';
 
     let count = 0;
-    // Clone logic: create new date from components to iterate safely
     let current = new Date(startDateObj);
 
     while (current <= endDateObj) {
-      const dayOfWeek = current.getDay(); // 0 = Sunday, 6 = Saturday
+      const dayOfWeek = current.getDay();
 
-      // Format back to YYYY-MM-DD string matching the holiday format
       const year = current.getFullYear();
       const month = String(current.getMonth() + 1).padStart(2, '0');
       const day = String(current.getDate()).padStart(2, '0');
@@ -115,7 +107,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     return count.toString();
   };
 
-  // Auto-calculate days when dates change
   useEffect(() => {
     if (startDate && finishDate) {
       const calculatedDays = calculateWorkingDays(startDate, finishDate);
@@ -123,17 +114,15 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     }
   }, [startDate, finishDate, holidays]);
 
-  // Update dates if manual days change? 
-  // Maybe just let user edit days manually if calculation is wrong
-  // But if they edit days, we don't change dates, just the count.
-
   useEffect(() => {
     if (initialData && isOpen) {
       setNrp(initialData.personnel?.nrp || '');
       setLeaveTypeId(initialData.leave_type_id || '');
       setStartDate(initialData.tanggal_mulai || '');
-      // If we have days, we might want to estimate finish date, but better not guess if not stored
-      setFinishDate(''); // Or calculate from start + days if we want
+      setNrp(initialData.personnel?.nrp || '');
+      setLeaveTypeId(initialData.leave_type_id || '');
+      setStartDate(initialData.tanggal_mulai || '');
+      setFinishDate('');
       setDays(initialData.jumlah_hari || '');
       setContext(initialData.alasan || '');
       setPersonnel(initialData.personnel ? {
@@ -148,7 +137,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     }
   }, [initialData, isOpen]);
 
-  // Handle personnel search
   const handlePersonnelSearch = async () => {
     if (!nrp || nrp.length < 4) {
       setPersonnel(null);
@@ -177,11 +165,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     }
   };
 
-  // Auto-search effect
   useEffect(() => {
-    // We want to fetch fresh data (especially balances) even on edit mode
-    // so we don't return early anymore.
-
     const delayDebounceFn = setTimeout(() => {
       if (nrp && nrp.length >= 4) handlePersonnelSearch();
     }, 500);
@@ -208,8 +192,8 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       formData.append('leave_type_id', leaveTypeId);
       formData.append('jumlah_hari', days);
       formData.append('tanggal_mulai', startDate);
-      // We don't save finish date in backend yet? Model doesn't have it.
-      // But we can just use it for calculation.
+      formData.append('jumlah_hari', days);
+      formData.append('tanggal_mulai', startDate);
       formData.append('alasan', context);
       if (file) {
         formData.append('file', file);
@@ -282,7 +266,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     onClose();
   };
 
-  // Get selected leave type's remaining balance
   const getSelectedTypeBalance = () => {
     if (!leaveTypeId || !personel || !leaveTypes.length) return null;
     const selectedType = leaveTypes.find(lt => lt.id === parseInt(leaveTypeId));
@@ -297,7 +280,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       remaining = typeof balance === 'object' ? balance.remaining : balance;
     }
 
-    // If editing, add back the days of the current record to show actual available balance
     if (isEditMode && initialData && parseInt(leaveTypeId) === initialData.leave_type_id) {
       remaining += parseInt(initialData.jumlah_hari) || 0;
     }
@@ -314,15 +296,15 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
         onClick={handleClose}
       />
 
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] bg-card rounded-lg shadow-2xl z-50 overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="sticky top-0 bg-primary text-primary-foreground px-6 py-4 flex items-center justify-between border-b border-border">
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] bg-card dark:bg-neutral-900 rounded-lg shadow-2xl z-50 overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="sticky top-0 bg-primary dark:bg-neutral-900 text-primary-foreground dark:text-neutral-100 px-6 py-4 flex items-center justify-between border-b border-border dark:border-neutral-800">
           <div>
             <h2 className="text-xl font-semibold">{isEditMode ? 'Edit Catatan Cuti' : 'Tambah Catatan Cuti'}</h2>
-            <p className="text-sm opacity-90 mt-1">{isEditMode ? 'Perbarui data cuti personel' : 'Catat entri cuti baru untuk personel'}</p>
+            <p className="text-sm opacity-90 mt-1 dark:text-neutral-400">{isEditMode ? 'Perbarui data cuti personel' : 'Catat entri cuti baru untuk personel'}</p>
           </div>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-primary-foreground/10 rounded-md transition-colors cursor-pointer"
+            className="p-2 hover:bg-primary-foreground/10 dark:hover:bg-neutral-800 rounded-md transition-colors cursor-pointer"
             disabled={isSubmitting}
           >
             <X className="w-5 h-5" />
@@ -350,7 +332,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
               </div>
             )}
 
-            {/* Step 1: Personnel Search */}
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
@@ -364,7 +345,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                       placeholder="Masukkan NRP Personel"
                       value={nrp}
                       onChange={(e) => setNrp(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-black text-foreground dark:text-white dark:placeholder-neutral-500"
                       disabled={isSubmitting}
                       required
                     />
@@ -401,7 +382,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                       </div>
                     </div>
 
-                    {/* Per-Type Balances */}
                     {personel.balances && Object.keys(personel.balances).length > 0 && (
                       <div className="mt-4 pt-3 border-t border-primary/10">
                         <p className="text-xs font-medium text-muted-foreground mb-2">Sisa Kuota Cuti:</p>
@@ -425,7 +405,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
               </div>
             </div>
 
-            {/* Step 2: Leave Details */}
             <div className="space-y-4 animate-in slide-in-from-top duration-300">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
@@ -433,7 +412,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 </label>
               </div>
 
-              {/* Leave Type - Dynamic Dropdown */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Jenis Cuti <span className="text-red-500">*</span>
@@ -441,7 +419,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 <select
                   value={leaveTypeId}
                   onChange={(e) => setLeaveTypeId(e.target.value)}
-                  className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-full px-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-black text-foreground dark:text-white"
                   required
                   disabled={isSubmitting || loadingLeaveTypes || !personel}
                 >
@@ -459,7 +437,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                   })}
                 </select>
 
-                {/* Show selected type's remaining balance prominently */}
                 {leaveTypeId && personel && getSelectedTypeBalance() !== null && (
                   <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700 animate-in fade-in">
                     Sisa kuota: <strong>{getSelectedTypeBalance()}</strong> hari
@@ -467,7 +444,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 )}
               </div>
 
-              {/* Date and Days */}
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -482,7 +458,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                         setStartDate(e.target.value);
                         // reset days if invalid? handled by effect
                       }}
-                      className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-black text-foreground dark:text-white dark:[color-scheme:dark]"
                       required
                       disabled={isSubmitting}
                     />
@@ -500,7 +476,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                       value={finishDate}
                       min={startDate}
                       onChange={(e) => setFinishDate(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-black text-foreground dark:text-white dark:[color-scheme:dark]"
                       disabled={isSubmitting || !startDate}
                     />
                   </div>
@@ -517,9 +493,9 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                     placeholder="Hitung otomatis"
                     value={days}
                     onChange={(e) => setDays(e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring ${days && getSelectedTypeBalance() !== null && parseInt(days) > getSelectedTypeBalance()
+                    className={`w-full px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-black text-foreground dark:text-white dark:placeholder-neutral-500 ${days && getSelectedTypeBalance() !== null && parseInt(days) > getSelectedTypeBalance()
                       ? 'border-red-500 focus:ring-red-200'
-                      : 'border-input'
+                      : 'border-input dark:border-neutral-800'
                       }`}
                     required
                     disabled={isSubmitting}
@@ -533,7 +509,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 </div>
               </div>
 
-              {/* Upload Evidence */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Dokumen Bukti (PDF/Gambar)
@@ -541,12 +516,11 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 <input
                   type="file"
                   onChange={handleFileChange}
-                  className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+                  className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-violet-900/20 dark:file:text-violet-300 dark:hover:file:bg-violet-900/30"
                   accept=".pdf,.jpg,.jpeg,.png"
                 />
               </div>
 
-              {/* Context/Reason */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Alasan / Catatan <span className="text-red-500">*</span>
@@ -558,7 +532,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                     value={context}
                     onChange={(e) => setContext(e.target.value)}
                     rows={4}
-                    className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                    className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none bg-background dark:bg-black text-foreground dark:text-white dark:placeholder-neutral-500"
                     required
                     disabled={isSubmitting}
                   />
@@ -570,14 +544,14 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2 border border-input rounded-md text-sm hover:bg-accent cursor-pointer"
+                className="px-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm hover:bg-accent dark:hover:bg-neutral-800 text-foreground dark:text-neutral-300 cursor-pointer"
                 disabled={isSubmitting}
               >
                 Batal
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="px-6 py-2 bg-primary dark:bg-black text-primary-foreground dark:text-white rounded-md hover:bg-primary/90 dark:hover:bg-neutral-900 border border-transparent dark:border-neutral-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Mengirim...' : 'Kirim Catatan Cuti'}

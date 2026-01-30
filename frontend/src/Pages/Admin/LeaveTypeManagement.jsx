@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Calendar, AlertCircle, Users, Palette } from 'lucide-react';
 import axios from 'axios';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { PRESET_COLORS, getLeaveColorClass } from '../../utils/leaveUtils';
+import { useEntitySubscription } from '@/lib/NotificationContext';
 
 export default function LeaveTypeManagement() {
   const [leaveTypes, setLeaveTypes] = useState([]);
@@ -52,6 +53,13 @@ export default function LeaveTypeManagement() {
   useEffect(() => {
     fetchLeaveTypes();
   }, []);
+
+  // Subscribe to real-time leave type updates
+  const handleLeaveTypeChange = useCallback(() => {
+    fetchLeaveTypes();
+  }, []);
+
+  useEntitySubscription('leave_types', handleLeaveTypeChange);
 
   const resetForm = () => {
     setFormData({

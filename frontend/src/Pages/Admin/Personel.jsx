@@ -1,6 +1,6 @@
 import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown, Copy, Check, User, Briefcase, Shield, Award, Printer } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
@@ -10,6 +10,7 @@ import { formatDate } from '@/utils/dateUtils';
 import AddPersonnelModal from '@/components/AddPersonnelModal';
 import ImportDetailsModal from '@/components/ImportDetailsModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import { useEntitySubscription } from '@/lib/NotificationContext';
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
@@ -89,6 +90,14 @@ export default function Personel() {
     fetchStats();
     fetchLeaveTypes();
   }, []);
+
+  // Subscribe to real-time personnel updates
+  const handlePersonnelChange = useCallback(() => {
+    fetchPersonnel();
+    fetchStats();
+  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage, filterPangkat, filterJabatan]);
+
+  useEntitySubscription('personnel', handlePersonnelChange);
 
   const fetchLeaveTypes = async () => {
     try {

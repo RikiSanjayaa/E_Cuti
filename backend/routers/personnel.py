@@ -7,6 +7,7 @@ from typing import List, Dict
 import json
 import pandas as pd
 from backend.core import database, auth
+from backend.core.websocket import manager
 from backend import models, schemas
 from datetime import date, timedelta, datetime
 from backend.utils import import_utils
@@ -278,6 +279,15 @@ async def create_personnel(
         status="success",
         ip_address=request.client.host,
         user_agent=request.headers.get("user-agent")
+    )
+    
+    # Notify connected clients
+    await manager.notify_change(
+        entity="personnel",
+        action="create",
+        username=current_user.username,
+        entity_id=new_personnel.id,
+        details=f"Created personnel {new_personnel.nama}"
     )
     
     return new_personnel
