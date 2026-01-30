@@ -14,13 +14,17 @@ import Reports from './Pages/Atasan/Reports';
 import AdminLayout from './Layouts/AdminLayout';
 import AtasanLayout from './Layouts/AtasanLayout';
 
-// Mock Auth Guard (Replace with real JWT logic later)
-const ProtectedRoute = ({ role, children }) => {
+// Auth Guard
+const ProtectedRoute = ({ allowedRoles, children }) => {
   const token = localStorage.getItem('token');
   const userRole = localStorage.getItem('role');
 
   if (!token) return <Navigate to="/login" replace />;
-  if (role && userRole !== role) return <Navigate to="/login" replace />;
+  
+  // Check if userRole is in the allowedRoles array
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/login" replace />;
+  }
 
   return children || <Outlet />;
 };
@@ -31,13 +35,12 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
 
-        {/* Admin Routes */}
-        <Route element={<ProtectedRoute role="super_admin"><AdminLayout /></ProtectedRoute>}>
+        {/* Admin Routes (Accessible by super_admin and admin) */}
+        <Route element={<ProtectedRoute allowedRoles={['super_admin', 'admin']}><AdminLayout /></ProtectedRoute>}>
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/leaves" element={<LeaveRecords />} />
           <Route path="/admin/personel" element={<Personel />} />
           <Route path="/admin/analytics" element={<Analytics />} />
-          <Route path="/admin/audit" element={<AuditLogs />} />
           <Route path="/admin/audit" element={<AuditLogs />} />
           <Route path="/admin/users" element={<UserManagement />} />
           <Route path="/admin/leave-types" element={<LeaveTypeManagement />} />

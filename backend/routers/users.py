@@ -81,6 +81,20 @@ async def create_user(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
+    # RBAC: Only super_admin can create users
+    
+    user_role = current_user.role
+    if hasattr(user_role, "value"):
+        user_role = user_role.value
+    else:
+        user_role = str(user_role)
+
+    if user_role != "super_admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Super Admin can create new users"
+        )
+
     # Check if user exists
     db_user = db.query(models.User).filter(models.User.username == user.username).first()
     if db_user:
@@ -93,7 +107,8 @@ async def create_user(
         role=user.role,
         email=user.email,
         status=user.status,
-        password_hash=hashed_password
+        password_hash=hashed_password,
+        last_active=None
     )
     
     db.add(db_user)
@@ -126,6 +141,19 @@ async def update_user(
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
+        
+    # RBAC: Regular admin can only update themselves; Super Admin can update anyone
+    user_role = current_user.role
+    if hasattr(user_role, "value"):
+        user_role = user_role.value
+    else:
+        user_role = str(user_role)
+        
+    if user_role != "super_admin" and current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only update your own profile"
+        )
         
     if user_update.username is not None and user_update.username != db_user.username:
         # Check if new username is already taken
@@ -191,6 +219,19 @@ async def reset_password(
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
         
+    # RBAC: Only Super Admin can reset ANY password
+    user_role = current_user.role
+    if hasattr(user_role, "value"):
+        user_role = user_role.value
+    else:
+        user_role = str(user_role)
+
+    if user_role != "super_admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Super Admin can reset user passwords"
+        )
+        
     db_user.password_hash = get_password_hash(reset_data.new_password)
     db.commit()
     
@@ -219,6 +260,19 @@ async def import_users(
     current_user: models.User = Depends(auth.get_current_admin),
     db: Session = Depends(database.get_db)
 ):
+    # RBAC: Check role
+    user_role = str(current_user.role)
+    if hasattr(current_user.role, "value"):
+        user_role = current_user.role.value
+    else:
+        user_role = str(user_role)
+
+    if user_role != "super_admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Super Admin can import users"
+        )
+
     try:
         contents = await file.read()
         df = pd.read_excel(io.BytesIO(contents))

@@ -13,6 +13,7 @@ export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [currentUser, setCurrentUser] = useState(null);
 
 
   // Pagination & Sorting State
@@ -54,6 +55,22 @@ export default function UserManagement() {
   const [formLoading, setFormLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+
+  // Fetch Current User
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('/api/users/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setCurrentUser(response.data);
+      } catch (error) {
+        console.error("Failed to fetch current user:", error);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
 
   const handleResetPasswordClick = (user) => {
     setResetModal({
@@ -245,13 +262,15 @@ export default function UserManagement() {
             Kelola akun pengguna, peran, dan hak akses
           </p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-        >
-          <UserPlus className="w-4 h-4" />
-          {showForm ? 'Batal' : 'Tambah Pengguna Baru'}
-        </button>
+        {currentUser?.role === 'super_admin' && (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            <UserPlus className="w-4 h-4" />
+            {showForm ? 'Batal' : 'Tambah Pengguna Baru'}
+          </button>
+        )}
       </div>
 
       {showForm && (
@@ -338,7 +357,6 @@ export default function UserManagement() {
         </div>
       )}
 
-      {/* Summary Cards */}
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Total Admin */}
@@ -517,19 +535,29 @@ export default function UserManagement() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleResetPasswordClick(user)}
-                        className="p-1.5 hover:bg-blue-50 rounded text-blue-600 border border-blue-200"
-                        title="Reset Password"
+                        className={`p-1.5 rounded border ${currentUser?.role === 'super_admin'
+                          ? 'hover:bg-blue-50 text-blue-600 border-blue-200 cursor-pointer'
+                          : 'opacity-50 text-gray-400 border-gray-200 cursor-not-allowed'
+                          }`}
+                        title={currentUser?.role === 'super_admin' ? "Reset Password" : "Hanya Super Admin"}
+                        disabled={currentUser?.role !== 'super_admin'}
                       >
                         <Key className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleToggleStatus(user)}
-                        disabled={user.role === 'super_admin'}
+                        disabled={user.role === 'super_admin' || currentUser?.role !== 'super_admin'}
                         className={`p-1.5 rounded-md border transition-colors ${user.status === 'active'
                           ? 'hover:bg-red-50 text-red-600 border-red-200'
                           : 'hover:bg-green-50 text-green-600 border-green-200'
-                          } ${user.role === 'super_admin' ? 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200' : ''}`}
-                        title={user.role === 'super_admin' ? "Super Admin tidak dapat dinonaktifkan" : (user.status === 'active' ? "Non-aktifkan Pengguna" : "Aktifkan Pengguna")}
+                          } ${user.role === 'super_admin' || currentUser?.role !== 'super_admin' ? 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200' : ''}`}
+                        title={
+                          user.role === 'super_admin'
+                            ? "Super Admin tidak dapat dinonaktifkan"
+                            : currentUser?.role !== 'super_admin'
+                              ? "Hanya Super Admin"
+                              : (user.status === 'active' ? "Non-aktifkan Pengguna" : "Aktifkan Pengguna")
+                        }
                       >
                         {user.status === 'active' ? (
                           <Unlock className="w-4 h-4" />

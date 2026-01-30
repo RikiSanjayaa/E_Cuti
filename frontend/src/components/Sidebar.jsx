@@ -31,7 +31,9 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
     if (role === 'atasan') {
       return ['dashboard', 'requests', 'personel', 'analytics'].includes(item.id);
     }
-    if (item.roles) return item.roles.includes(role) || item.roles.includes('admin');
+    if (item.roles) {
+      return item.roles.includes(role);
+    }
     return true;
   });
 
