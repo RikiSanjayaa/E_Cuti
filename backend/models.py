@@ -24,6 +24,15 @@ class LeaveType(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+class Holiday(Base):
+    __tablename__ = "holidays"
+
+    id = Column(Integer, primary_key=True, index=True)
+    date = Column(Date, unique=True, nullable=False, index=True)
+    description = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 class User(Base):
     __tablename__ = "users"
 
@@ -62,6 +71,7 @@ class LeaveHistory(Base):
     tanggal_mulai = Column(Date)
     alasan = Column(Text)
     file_path = Column(String, nullable=True)
+    balance_remaining = Column(Integer, nullable=True) # Snapshot of balance after this leave
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     created_by = Column(Integer, ForeignKey("users.id"))
 

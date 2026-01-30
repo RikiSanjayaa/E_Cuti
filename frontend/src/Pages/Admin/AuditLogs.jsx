@@ -1,8 +1,7 @@
 import { Search, Download, Shield, Filter, Calendar, RefreshCw, Lock, AlertTriangle, Eye, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { format } from 'date-fns';
-import { id as idLocale } from 'date-fns/locale';
+import { formatDateTime } from '@/utils/dateUtils';
 import { Pagination } from '../../components/Pagination';
 
 export default function AuditLogs() {
@@ -416,7 +415,7 @@ export default function AuditLogs() {
                 logs.map((log) => (
                   <tr key={log.id} className="hover:bg-muted/30 group">
                     <td className="px-6 py-4 text-sm text-muted-foreground whitespace-nowrap">
-                      {format(new Date(log.timestamp), 'dd MMM yyyy HH:mm', { locale: idLocale })}
+                      {formatDateTime(log.timestamp)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">

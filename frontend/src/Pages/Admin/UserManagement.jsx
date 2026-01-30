@@ -2,8 +2,7 @@ import { Search, UserPlus, Shield, Lock, Unlock, Key, Mail, MoreVertical, AlertC
 import { Pagination } from '../../components/Pagination';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { format } from 'date-fns';
-import { id as idLocale } from 'date-fns/locale';
+import { formatDateTime, formatDate } from '@/utils/dateUtils';
 import ResetPasswordModal from '../../components/ResetPasswordModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 
@@ -290,7 +289,7 @@ export default function UserManagement() {
                   type="text"
                   value={formData.username}
                   onChange={e => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
+                  className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
               <div className="space-y-2">
@@ -300,7 +299,7 @@ export default function UserManagement() {
                   type="text"
                   value={formData.full_name}
                   onChange={e => setFormData({ ...formData, full_name: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
+                  className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
 
@@ -312,7 +311,7 @@ export default function UserManagement() {
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={e => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md pr-10"
+                    className="w-full px-3 py-2 border border-input rounded-md pr-10 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                   />
                   <button
                     type="button"
@@ -328,7 +327,7 @@ export default function UserManagement() {
                 <select
                   value={formData.role}
                   onChange={e => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md"
+                  className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <option value="admin">Admin</option>
                   <option value="super_admin">Super Admin</option>
@@ -422,14 +421,14 @@ export default function UserManagement() {
               placeholder="Cari berdasarkan nama atau username..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
             />
           </div>
           <div className="flex gap-2">
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
             >
               <option value="all">Semua Peran</option>
               <option value="super_admin">Super Admin</option>
@@ -439,7 +438,7 @@ export default function UserManagement() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
             >
               <option value="all">Semua Status</option>
               <option value="active">Aktif</option>
@@ -524,10 +523,10 @@ export default function UserManagement() {
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                       <span className="text-sm text-foreground">
-                        {user.last_active ? format(new Date(user.last_active), 'dd MMM yyyy') : '-'}
+                        {formatDate(user.last_active, 'dd MMM yyyy')}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {user.last_active ? format(new Date(user.last_active), 'HH:mm') : ''}
+                        {formatDate(user.last_active, 'HH:mm')}
                       </span>
                     </div>
                   </td>

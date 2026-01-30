@@ -25,7 +25,7 @@ os.makedirs("uploads/evidence", exist_ok=True)
 # Mount static files
 app.mount("/static", StaticFiles(directory="uploads"), name="static")
 
-from .routers import auth, personnel, leaves, dashboard, reports, audit, users, leave_types
+from .routers import auth, personnel, leaves, dashboard, reports, audit, users, leave_types, holidays
 
 app.include_router(auth.router)
 app.include_router(personnel.router)
@@ -35,6 +35,7 @@ app.include_router(dashboard.router)
 app.include_router(reports.router)
 app.include_router(audit.router)
 app.include_router(users.router)
+app.include_router(holidays.router)
 
 @app.get("/")
 def read_root():

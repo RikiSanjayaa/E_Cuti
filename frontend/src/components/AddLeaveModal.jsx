@@ -10,6 +10,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [searchError, setSearchError] = useState('');
   const [leaveTypeId, setLeaveTypeId] = useState('');
   const [startDate, setStartDate] = useState('');
+  const [finishDate, setFinishDate] = useState('');
   const [days, setDays] = useState('');
   const [context, setContext] = useState('');
   const [file, setFile] = useState(null);
@@ -20,6 +21,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   // New state for dynamic leave types
   const [leaveTypes, setLeaveTypes] = useState([]);
   const [loadingLeaveTypes, setLoadingLeaveTypes] = useState(false);
+  const [holidays, setHolidays] = useState([]);
 
   const isEditMode = !!initialData;
 
@@ -49,13 +51,89 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     };
 
     fetchLeaveTypes();
+    fetchLeaveTypes();
   }, [personel]);
+
+  // Fetch holidays on mount
+  useEffect(() => {
+    const fetchHolidays = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('/api/holidays/', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setHolidays(res.data);
+      } catch (error) {
+        console.error("Error fetching holidays:", error);
+      }
+    };
+    fetchHolidays();
+  }, []);
+
+  // Calculate working days
+  const calculateWorkingDays = (start, end) => {
+    if (!start || !end) return '';
+
+    // Explicitly parse YYYY-MM-DD to avoid timezone issues (UTC vs Local)
+    // We treat the date string as a literal calendar date in the user's locale
+    const parseDate = (dateStr) => {
+      const parts = dateStr.split('-');
+      // Native Date(y, mIndex, d) creates a local date at 00:00:00
+      return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    };
+
+    const startDateObj = parseDate(start);
+    const endDateObj = parseDate(end);
+
+    if (endDateObj < startDateObj) return '';
+
+    let count = 0;
+    // Clone logic: create new date from components to iterate safely
+    let current = new Date(startDateObj);
+
+    while (current <= endDateObj) {
+      const dayOfWeek = current.getDay(); // 0 = Sunday, 6 = Saturday
+
+      // Format back to YYYY-MM-DD string matching the holiday format
+      const year = current.getFullYear();
+      const month = String(current.getMonth() + 1).padStart(2, '0');
+      const day = String(current.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      const isHoliday = holidays.some(h => h.date === formattedDate);
+
+      // Count only if not weekend and not holiday
+      if (!isWeekend && !isHoliday) {
+        count++;
+      }
+
+      // Add 1 day safely
+      current.setDate(current.getDate() + 1);
+    }
+
+    return count.toString();
+  };
+
+  // Auto-calculate days when dates change
+  useEffect(() => {
+    if (startDate && finishDate) {
+      const calculatedDays = calculateWorkingDays(startDate, finishDate);
+      setDays(calculatedDays);
+    }
+  }, [startDate, finishDate, holidays]);
+
+  // Update dates if manual days change? 
+  // Maybe just let user edit days manually if calculation is wrong
+  // But if they edit days, we don't change dates, just the count.
 
   useEffect(() => {
     if (initialData && isOpen) {
       setNrp(initialData.personnel?.nrp || '');
       setLeaveTypeId(initialData.leave_type_id || '');
       setStartDate(initialData.tanggal_mulai || '');
+      // If we have days, we might want to estimate finish date, but better not guess if not stored
+      setFinishDate(''); // Or calculate from start + days if we want
       setDays(initialData.jumlah_hari || '');
       setContext(initialData.alasan || '');
       setPersonnel(initialData.personnel ? {
@@ -130,6 +208,8 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       formData.append('leave_type_id', leaveTypeId);
       formData.append('jumlah_hari', days);
       formData.append('tanggal_mulai', startDate);
+      // We don't save finish date in backend yet? Model doesn't have it.
+      // But we can just use it for calculation.
       formData.append('alasan', context);
       if (file) {
         formData.append('file', file);
@@ -188,6 +268,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     setSearchError('');
     setLeaveTypeId('');
     setStartDate('');
+    setFinishDate('');
     setDays('');
     setContext('');
     setFile(null);
@@ -387,7 +468,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
               </div>
 
               {/* Date and Days */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Tanggal Mulai <span className="text-red-500">*</span>
@@ -397,13 +478,34 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                     <input
                       type="date"
                       value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        // reset days if invalid? handled by effect
+                      }}
                       className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                       required
                       disabled={isSubmitting}
                     />
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Tanggal Selesai
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                    <input
+                      type="date"
+                      value={finishDate}
+                      min={startDate}
+                      onChange={(e) => setFinishDate(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      disabled={isSubmitting || !startDate}
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Jumlah Hari <span className="text-red-500">*</span>
@@ -412,7 +514,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                     type="number"
                     min="1"
                     step="1"
-                    placeholder="Hari"
+                    placeholder="Hitung otomatis"
                     value={days}
                     onChange={(e) => setDays(e.target.value)}
                     className={`w-full px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring ${days && getSelectedTypeBalance() !== null && parseInt(days) > getSelectedTypeBalance()

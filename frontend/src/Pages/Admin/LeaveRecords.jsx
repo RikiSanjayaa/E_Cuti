@@ -2,8 +2,8 @@ import { Search, Filter, Download, Eye, Edit, Trash2, AlertTriangle, X, ArrowUpD
 import { Pagination } from '../../components/Pagination';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { format, addDays } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
+import { formatDateTime, formatDate } from '@/utils/dateUtils';
+import { addDays } from 'date-fns';
 import { AddLeaveModal } from '@/components/AddLeaveModal';
 import { LeaveDetailModal } from '@/components/LeaveDetailModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
@@ -164,15 +164,11 @@ export default function LeaveRecords() {
     }
   };
 
-  const formatSingleDate = (date) => {
-    if (!date) return '-';
-    return format(new Date(date), 'd MMM yyyy', { locale: localeId });
+  const formatSingleDate = (dateStr) => {
+    return formatDate(dateStr, 'd MMM yyyy');
   };
 
-  const formatDateTime = (date) => {
-    if (!date) return '-';
-    return format(new Date(date), 'd MMM yyyy HH:mm', { locale: localeId });
-  };
+  // formatDateTime is imported directly
 
   const getEndDate = (startDate, days) => {
     if (!startDate) return null;
@@ -259,14 +255,14 @@ export default function LeaveRecords() {
               placeholder="Cari berdasarkan nama atau NRP..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
             />
           </div>
           <div className="flex gap-2">
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
             >
               <option value="all">Semua Jenis</option>
               {leaveTypes.map(lt => (
@@ -304,7 +300,7 @@ export default function LeaveRecords() {
                       type="date"
                       value={filterStartDate}
                       onChange={(e) => setFilterStartDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background text-foreground"
                     />
                   </div>
                   <div className="flex-1">
@@ -313,7 +309,7 @@ export default function LeaveRecords() {
                       type="date"
                       value={filterEndDate}
                       onChange={(e) => setFilterEndDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background text-foreground"
                     />
                   </div>
                 </div>
@@ -326,7 +322,7 @@ export default function LeaveRecords() {
                   <select
                     value={filterCreatedBy}
                     onChange={(e) => setFilterCreatedBy(e.target.value)}
-                    className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white"
+                    className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background text-foreground"
                   >
                     <option value="">Semua Admin</option>
                     {adminUsers.map(admin => (
@@ -464,7 +460,7 @@ export default function LeaveRecords() {
                       <div className="flex flex-col">
                         <span className="font-medium">{leave.jumlah_hari} Hari</span>
                         <span className="text-xs text-muted-foreground">
-                          Sisa: {leave.sisa_cuti !== undefined ? leave.sisa_cuti : '-'} Hari
+                          Sisa: {leave.balance_remaining !== null && leave.balance_remaining !== undefined ? leave.balance_remaining : (leave.sisa_cuti !== undefined ? leave.sisa_cuti : '-')} Hari
                         </span>
                       </div>
                     </td>

@@ -113,6 +113,7 @@ class LeaveHistory(BaseModel):
     leave_type: Optional[LeaveType] = None
     creator: Optional[User] = None
     sisa_cuti: Optional[int] = None
+    balance_remaining: Optional[int] = None
     
     class Config:
         from_attributes = True

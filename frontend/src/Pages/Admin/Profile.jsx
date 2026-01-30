@@ -2,6 +2,7 @@ import { User, Shield, Mail, Building, Loader2, Edit2, Save, X, CheckCircle, Ale
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { formatDate } from '@/utils/dateUtils';
 
 export default function Profile() {
     const [currentUser, setCurrentUser] = useState(null);
@@ -124,7 +125,9 @@ export default function Profile() {
             </div>
 
             {message && (
-                <div className={`p-4 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+                <div className={`p-4 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${message.type === 'success'
+                    ? 'bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800/50'
+                    : 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800/50'
                     }`}>
                     {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                     <p className="text-sm font-medium">{message.text}</p>
@@ -157,7 +160,7 @@ export default function Profile() {
                                     {roleLabel}
                                 </span>
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium border border-border">
-                                    Member since {new Date(currentUser?.created_at).toLocaleDateString()}
+                                    Member since {formatDate(currentUser?.created_at)}
                                 </span>
                             </div>
                         </div>

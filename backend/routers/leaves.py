@@ -250,6 +250,9 @@ async def create_leave(
             shutil.copyfileobj(file.file, buffer)
             
     # 6. Create Leave Record
+    # Snapshot the remaining balance AFTER this leave
+    balance_after = remaining - jumlah_hari
+    
     new_leave = models.LeaveHistory(
         personnel_id=personnel.id,
         leave_type_id=leave_type_id,
@@ -257,7 +260,8 @@ async def create_leave(
         tanggal_mulai=tanggal_mulai,
         alasan=alasan,
         file_path=file_path,
-        created_by=current_user.id
+        created_by=current_user.id,
+        balance_remaining=balance_after
     )
     db.add(new_leave)
     db.commit()

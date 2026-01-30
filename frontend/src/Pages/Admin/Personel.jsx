@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { getLeaveColorClass, getLeaveColors } from '@/utils/leaveUtils';
+import { formatDate } from '@/utils/dateUtils';
 
 import AddPersonnelModal from '@/components/AddPersonnelModal';
 import ImportDetailsModal from '@/components/ImportDetailsModal';
@@ -521,22 +522,18 @@ export default function Personel() {
               onClick={() => setSelectedPersonnel(null)}
             />
             {/* Side Drawer Container - Fixed Right */}
-            <div className="fixed right-0 inset-y-0 w-full md:w-[450px] bg-white shadow-2xl z-[110] overflow-y-auto animate-in slide-in-from-right duration-300 flex flex-col">
-
-              {/* Simple Header */}
-              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-white sticky top-0 z-10">
+            <div
+              className={`fixed inset-y-0 right-0 w-full md:w-[480px] bg-background dark:bg-card shadow-2xl transform transition-transform duration-300 ease-in-out z-[9999] ${selectedPersonnel ? 'translate-x-0' : 'translate-x-full'
+                }`}
+            >
+              <div className="flex items-center justify-between p-6 border-b border-border">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900 leading-tight" title={selectedPersonnel.nama}>
-                    {selectedPersonnel.nama}
-                  </h2>
-                  <div className="flex items-center gap-2 mt-1 text-slate-500 text-sm font-medium">
-                    <Shield className="w-4 h-4" />
-                    {selectedPersonnel.pangkat}
-                  </div>
+                  <h2 className="text-xl font-bold text-foreground">{selectedPersonnel.nama}</h2>
+                  <p className="text-sm text-muted-foreground">{selectedPersonnel.pangkat}</p>
                 </div>
                 <button
                   onClick={() => setSelectedPersonnel(null)}
-                  className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                  className="p-2 hover:bg-accent rounded-full text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -548,34 +545,34 @@ export default function Personel() {
                 <div className="grid grid-cols-2 gap-y-6 gap-x-4">
                   {/* NRP */}
                   <div>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">
                       NRP
                     </p>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm text-slate-800 tracking-wide">{selectedPersonnel.nrp}</span>
+                      <span className="font-semibold text-sm text-foreground tracking-wide">{selectedPersonnel.nrp}</span>
                       <CopyButton text={selectedPersonnel.nrp} />
                     </div>
                   </div>
 
                   {/* Gender */}
                   <div>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">
                       Gender
                     </p>
-                    <p className="font-semibold text-sm text-slate-800">
+                    <p className="font-semibold text-sm text-foreground">
                       {selectedPersonnel.jenis_kelamin === 'L' ? 'Laki-laki' : selectedPersonnel.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
                     </p>
                   </div>
 
                   {/* Jabatan */}
                   <div className="col-span-2">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">Jabatan</p>
-                    <p className="font-semibold text-sm text-slate-800 leading-snug">{selectedPersonnel.jabatan}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Jabatan</p>
+                    <p className="font-semibold text-sm text-foreground leading-snug">{selectedPersonnel.jabatan}</p>
                   </div>
 
                   {/* Per-Type Balances */}
                   <div className="col-span-2 pt-2 pb-2">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex items-center gap-1 mb-3">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold flex items-center gap-1 mb-3">
                       <Calendar className="w-3 h-3" /> Sisa Kuota Cuti
                     </p>
                     {selectedPersonnel.balances && Object.keys(selectedPersonnel.balances).length > 0 ? (
@@ -632,7 +629,7 @@ export default function Personel() {
                 {/* Leave History Section */}
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-3 px-1">
-                    <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                       Riwayat Izin
                     </h3>
                     <span className="text-xs text-muted-foreground font-medium">{leaveHistory.length} riwayat</span>
@@ -665,11 +662,11 @@ export default function Personel() {
                             <div key={year} className="space-y-3 animate-in slide-in-from-bottom-2 duration-500">
                               {/* Year Header */}
                               <div className="flex items-center gap-3 px-1">
-                                <h4 className="text-lg font-bold text-slate-900">{year}</h4>
-                                <div className="h-px bg-slate-200 flex-1" />
-                                <div className="flex gap-3 text-[10px] bg-slate-100 px-2 py-1 rounded-full text-slate-600 font-medium">
+                                <h4 className="text-lg font-bold text-foreground">{year}</h4>
+                                <div className="h-px bg-border flex-1" />
+                                <div className="flex gap-3 text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full text-slate-600 dark:text-slate-300 font-medium">
                                   <span>{totalCount}x Izin</span>
-                                  <span className="w-px bg-slate-300 h-3 self-center" />
+                                  <span className="w-px bg-slate-300 dark:bg-slate-600 h-3 self-center" />
                                   <span>Total {totalDays} Hari</span>
                                 </div>
                               </div>
@@ -683,23 +680,23 @@ export default function Personel() {
                                   endDate.setDate(endDate.getDate() + (leave.jumlah_hari - 1));
 
                                   // Helper: Format Date
-                                  const formatDate = (d) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                                  // Use standard format from utils
 
                                   // Helper: ID formatting (Mock ID)
                                   const id = `LR-${year}-${String(leave.id || idx + 1).padStart(3, '0')}`;
-                                  const createdDate = new Date(leave.created_at || new Date()).toLocaleDateString('id-ID');
+                                  const createdDate = formatDate(leave.created_at || new Date(), 'dd MMMM yyyy');
 
                                   return (
-                                    <div key={leave.id || idx} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                                    <div key={leave.id || idx} className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-shadow">
                                       {/* Top Row */}
                                       <div className="flex justify-between items-start mb-2">
                                         <div className="flex items-center gap-2">
                                           <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${getLeaveColorClass(leave.leave_type)}`}>
                                             {leave.leave_type?.name || '-'}
                                           </span>
-                                          <span className="text-sm font-bold text-slate-900">{leave.jumlah_hari} hari</span>
+                                          <span className="text-sm font-bold text-foreground">{leave.jumlah_hari} hari</span>
                                         </div>
-                                        <span className="text-xs font-mono text-slate-400">{id}</span>
+                                        <span className="text-xs font-mono text-muted-foreground">{id}</span>
                                       </div>
 
                                       {/* Date Range */}
@@ -708,10 +705,10 @@ export default function Personel() {
                                       </div>
 
                                       {/* Divider */}
-                                      <div className="h-px bg-slate-100 my-3" />
+                                      <div className="h-px bg-border my-3" />
 
                                       {/* Footer */}
-                                      <div className="flex justify-between items-center text-[10px] text-zinc-400">
+                                      <div className="flex justify-between items-center text-[10px] text-muted-foreground">
                                         <span>Dicatat oleh Admin pada {createdDate}</span>
                                       </div>
                                     </div>
