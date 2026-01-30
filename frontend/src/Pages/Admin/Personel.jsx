@@ -10,6 +10,7 @@ import { formatDate } from '@/utils/dateUtils';
 import AddPersonnelModal from '@/components/AddPersonnelModal';
 import ImportDetailsModal from '@/components/ImportDetailsModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import { LeaveDetailModal } from '@/components/LeaveDetailModal';
 import { useEntitySubscription, useNotifications } from '@/lib/NotificationContext';
 
 const CopyButton = ({ text }) => {
@@ -45,6 +46,7 @@ export default function Personel() {
   const [selectedPersonnel, setSelectedPersonnel] = useState(null);
   const [leaveHistory, setLeaveHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [selectedLeave, setSelectedLeave] = useState(null);
 
 
   const fileInputRef = useRef(null);
@@ -775,7 +777,11 @@ export default function Personel() {
                                   const createdDate = formatDate(leave.created_at || new Date(), 'dd MMMM yyyy');
 
                                   return (
-                                    <div key={leave.id || idx} className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-shadow">
+                                    <div 
+                                      key={leave.id || idx} 
+                                      className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all cursor-pointer hover:border-primary/50 group"
+                                      onClick={() => setSelectedLeave(leave)}
+                                    >
                                       {/* Top Row */}
                                       <div className="flex justify-between items-start mb-2">
                                         <div className="flex items-center gap-2">
@@ -855,6 +861,13 @@ export default function Personel() {
               message: msg
             });
           }}
+        />
+
+        {/* Leave Detail Modal */}
+        <LeaveDetailModal
+          isOpen={!!selectedLeave}
+          onClose={() => setSelectedLeave(null)}
+          leave={selectedLeave}
         />
       </div>
     </div >
