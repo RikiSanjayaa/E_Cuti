@@ -1,6 +1,7 @@
-import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown, Copy, Check, User, Briefcase, Shield, Award } from 'lucide-react';
+import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown, Copy, Check, User, Briefcase, Shield, Award, Printer } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { getLeaveColorClass, getLeaveColors } from '@/utils/leaveUtils';
@@ -36,6 +37,7 @@ const CopyButton = ({ text }) => {
 };
 
 export default function Personel() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [personnel, setPersonnel] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -643,9 +645,19 @@ export default function Personel() {
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-3 px-1">
                     <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                      Riwayat Izin
+                       Riwayat Izin
                     </h3>
-                    <span className="text-xs text-muted-foreground font-medium">{leaveHistory.length} riwayat</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground font-medium">{leaveHistory.length} riwayat</span>
+                      <button 
+                        onClick={() => navigate(`/admin/analytics?personnel_id=${selectedPersonnel.id}`)}
+                        className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-md border border-blue-100 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                        title="Cetak Riwayat Lengkap"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        Print Riwayat
+                      </button>
+                    </div>
                   </div>
 
                   <div className="rounded-xl p-1 space-y-6">

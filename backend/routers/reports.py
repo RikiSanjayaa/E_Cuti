@@ -21,6 +21,7 @@ async def get_analytics_summary(
     start_date: date = Query(None),
     end_date: date = Query(None),
     leave_type: str = Query(None),
+    personnel_id: int = Query(None),
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
@@ -36,6 +37,9 @@ async def get_analytics_summary(
 
     if leave_type and leave_type != 'all':
         query = query.filter(models.LeaveType.code == leave_type)
+        
+    if personnel_id:
+        query = query.filter(models.LeaveHistory.personnel_id == personnel_id)
         
     leaves = query.all()
     

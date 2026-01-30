@@ -57,9 +57,9 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-card rounded-xl shadow-2xl z-50 animate-in zoom-in-95 slide-in-from-bottom-4 duration-200">
 
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 rounded-t-xl">
+        <div className="p-6 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-gray-50/50 dark:bg-neutral-900/50 rounded-t-xl">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <UserPlus className="w-5 h-5 text-primary" />
               Tambah Personel Baru
             </h2>
@@ -69,7 +69,7 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -79,26 +79,26 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">NRP / NIP <span className="text-red-500">*</span></label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">NRP / NIP <span className="text-red-500">*</span></label>
             <input
               type="text"
               name="nrp"
               value={formData.nrp}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white dark:placeholder-neutral-500"
               placeholder="Contoh: 12345678"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Nama Lengkap <span className="text-red-500">*</span></label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nama Lengkap <span className="text-red-500">*</span></label>
             <input
               type="text"
               name="nama"
               value={formData.nama}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white dark:placeholder-neutral-500"
               placeholder="Nama lengkap beserta gelar"
               required
             />
@@ -106,25 +106,25 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Pangkat <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Pangkat <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 name="pangkat"
                 value={formData.pangkat}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white dark:placeholder-neutral-500"
                 placeholder="Contoh: BRIPKA"
                 required
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Jabatan <span className="text-red-500">*</span></label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Jabatan <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 name="jabatan"
                 value={formData.jabatan}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white dark:placeholder-neutral-500"
                 placeholder="Contoh: BA UR TU"
                 required
               />
@@ -135,14 +135,14 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-lg shadow-lg shadow-slate-900/20 flex items-center gap-2 transition-all active:scale-[0.98]"
+              className="px-4 py-2 text-sm font-medium text-white bg-slate-900 dark:bg-black hover:bg-slate-800 dark:hover:bg-neutral-900 rounded-lg shadow-lg shadow-slate-900/20 dark:shadow-none border border-transparent dark:border-neutral-800 flex items-center gap-2 transition-all active:scale-[0.98]"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Simpan Personel
