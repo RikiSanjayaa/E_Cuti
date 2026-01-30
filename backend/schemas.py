@@ -82,6 +82,14 @@ class PersonnelBase(BaseModel):
 class PersonnelCreate(PersonnelBase):
     pass
 
+class PersonnelUpdate(BaseModel):
+    nrp: Optional[str] = None
+    nama: Optional[str] = None
+    pangkat: Optional[str] = None
+    jabatan: Optional[str] = None
+    bag: Optional[str] = None
+    jenis_kelamin: Optional[str] = None
+
 class Personnel(PersonnelBase):
     id: int
     # Per-type leave balances: {"Cuti Tahunan": {"remaining": 10, "quota": 12}, ...}

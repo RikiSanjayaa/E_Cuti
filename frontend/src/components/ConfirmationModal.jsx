@@ -36,11 +36,11 @@ export default function ConfirmationModal({
   return createPortal(
     <>
       <div
-        className="fixed inset-0 bg-black/40 z-50 animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/40 z-[10000] animate-in fade-in duration-200"
         onClick={onClose}
       />
 
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-card dark:bg-neutral-900 rounded-xl shadow-2xl z-50 p-6 animate-in zoom-in-95 slide-in-from-bottom-4 duration-200 border border-white/20 dark:border-neutral-800">
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-card dark:bg-neutral-900 rounded-xl shadow-2xl z-[10000] p-6 animate-in zoom-in-95 slide-in-from-bottom-4 duration-200 border border-white/20 dark:border-neutral-800">
         <button
           onClick={onClose}
           className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"

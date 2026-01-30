@@ -1,4 +1,4 @@
-import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown, Copy, Check, User, Briefcase, Shield, Award, Printer } from 'lucide-react';
+import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown, Copy, Check, User, Briefcase, Shield, Award, Printer, Pencil, Trash2 } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,7 @@ import { getLeaveColorClass, getLeaveColors } from '@/utils/leaveUtils';
 import { formatDate } from '@/utils/dateUtils';
 
 import AddPersonnelModal from '@/components/AddPersonnelModal';
+import EditPersonnelModal from '@/components/EditPersonnelModal';
 import ImportDetailsModal from '@/components/ImportDetailsModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { useEntitySubscription, useNotifications } from '@/lib/NotificationContext';
@@ -52,6 +53,9 @@ export default function Personel() {
 
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const { addToast } = useNotifications();
 
@@ -298,6 +302,38 @@ export default function Personel() {
     return sortOrder === 'asc'
       ? <ArrowUp className="w-3 h-3 ml-1 text-primary" />
       : <ArrowDown className="w-3 h-3 ml-1 text-primary" />;
+  };
+
+  const handleDeletePersonnel = async () => {
+    if (!selectedPersonnel) return;
+
+    setDeleteLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`/api/personnel/${selectedPersonnel.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: `Personel ${selectedPersonnel.nama} berhasil dihapus`
+      });
+
+      setDeleteConfirmOpen(false);
+      setSelectedPersonnel(null);
+      fetchPersonnel();
+      fetchStats();
+      fetchFilters();
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Menghapus',
+        message: error.response?.data?.detail || 'Gagal menghapus personel'
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const filteredPersonnel = personnel;
@@ -565,7 +601,12 @@ export default function Personel() {
           <>
             <div
               className="fixed inset-0 z-[100] bg-black/20 transition-opacity duration-300"
-              onClick={() => setSelectedPersonnel(null)}
+              onClick={() => {
+                // Don't close if a sub-modal is open
+                if (!isEditModalOpen && !deleteConfirmOpen) {
+                  setSelectedPersonnel(null);
+                }
+              }}
             />
 
             <div
@@ -577,12 +618,32 @@ export default function Personel() {
                   <h2 className="text-xl font-bold text-foreground">{selectedPersonnel.nama}</h2>
                   <p className="text-sm text-muted-foreground">{selectedPersonnel.pangkat}</p>
                 </div>
-                <button
-                  onClick={() => setSelectedPersonnel(null)}
-                  className="p-2 hover:bg-accent rounded-full text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
+                    <>
+                      <button
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg text-blue-500 hover:text-blue-600 dark:text-blue-400 transition-colors"
+                        title="Edit Personel"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirmOpen(true)}
+                        className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-500 hover:text-red-600 dark:text-red-400 transition-colors"
+                        title="Hapus Personel"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setSelectedPersonnel(null)}
+                    className="p-2 hover:bg-accent rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
               <div className="px-6 pb-6 mt-2 flex-1 overflow-y-auto">
@@ -828,6 +889,37 @@ export default function Personel() {
               message: msg
             });
           }}
+        />
+
+        {/* Edit Personnel Modal */}
+        <EditPersonnelModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          personnel={selectedPersonnel}
+          onSuccess={(msg) => {
+            fetchPersonnel();
+            fetchStats();
+            fetchFilters();
+            setSelectedPersonnel(null);
+            addToast({
+              type: 'success',
+              title: 'Berhasil',
+              message: msg
+            });
+          }}
+        />
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={deleteConfirmOpen}
+          onClose={() => setDeleteConfirmOpen(false)}
+          onConfirm={handleDeletePersonnel}
+          title="Hapus Personel"
+          message={`Apakah Anda yakin ingin menghapus personel "${selectedPersonnel?.nama}"? Tindakan ini tidak dapat dibatalkan.`}
+          type="danger"
+          confirmText={deleteLoading ? "Menghapus..." : "Hapus"}
+          cancelText="Batal"
+          isLoading={deleteLoading}
         />
       </div>
     </div >
