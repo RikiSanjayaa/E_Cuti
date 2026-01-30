@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Calendar, AlertCircle, Users, Palette } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Calendar, AlertCircle, Users, Palette, ChevronDown, Check } from 'lucide-react';
 import axios from 'axios';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { PRESET_COLORS, getLeaveColorClass } from '../../utils/leaveUtils';
@@ -33,6 +33,21 @@ export default function LeaveTypeManagement() {
     onConfirm: () => { },
     isLoading: false
   });
+
+  // Color dropdown state
+  const [colorDropdownOpen, setColorDropdownOpen] = useState(false);
+  const colorDropdownRef = useRef(null);
+
+  // Close color dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (colorDropdownRef.current && !colorDropdownRef.current.contains(event.target)) {
+        setColorDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fetchLeaveTypes = async () => {
     setLoading(true);
@@ -73,6 +88,7 @@ export default function LeaveTypeManagement() {
     setEditingId(null);
     setShowModal(false);
     setMessage({ type: '', text: '' });
+    setColorDropdownOpen(false);
   };
 
   const handleEdit = (leaveType) => {
@@ -424,22 +440,49 @@ export default function LeaveTypeManagement() {
                   <Palette className="w-4 h-4" />
                   Warna Tag
                 </label>
-                <div className="relative">
-                  <select
-                    value={formData.color}
-                    onChange={e => setFormData({ ...formData, color: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring appearance-none bg-background text-foreground"
+                <div className="relative" ref={colorDropdownRef}>
+                  {/* Custom color dropdown trigger */}
+                  <button
+                    type="button"
+                    onClick={() => setColorDropdownOpen(!colorDropdownOpen)}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground flex items-center justify-between"
                   >
-                    {PRESET_COLORS.map((color) => (
-                      <option key={color.value} value={color.value}>
-                        {color.label}
-                      </option>
-                    ))}
-                  </select>
-                  {/* Color preview */}
-                  <div className="absolute right-10 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <div className={`w-5 h-5 rounded-full ${PRESET_COLORS.find(c => c.value === formData.color)?.sample || 'bg-gray-500'}`} />
-                  </div>
+                    <span className="flex items-center gap-2">
+                      {PRESET_COLORS.find(c => c.value === formData.color)?.label || 'Pilih Warna'}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-5 h-5 rounded-full ${PRESET_COLORS.find(c => c.value === formData.color)?.sample || 'bg-gray-500'}`} />
+                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${colorDropdownOpen ? 'rotate-180' : ''}`} />
+                    </div>
+                  </button>
+
+                  {/* Custom dropdown menu */}
+                  {colorDropdownOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {PRESET_COLORS.map((color) => (
+                        <button
+                          key={color.value}
+                          type="button"
+                          onClick={() => {
+                            setFormData({ ...formData, color: color.value });
+                            setColorDropdownOpen(false);
+                          }}
+                          className={`w-full px-3 py-2 flex items-center justify-between hover:bg-muted/50 transition-colors ${formData.color === color.value ? 'bg-muted' : ''
+                            }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            {formData.color === color.value && (
+                              <Check className="w-4 h-4 text-primary" />
+                            )}
+                            <span className={formData.color === color.value ? 'font-medium' : ''}>
+                              {color.label}
+                            </span>
+                          </span>
+                          <div className={`w-5 h-5 rounded-full ${color.sample}`} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground">Warna ini akan ditampilkan di semua halaman untuk tag jenis cuti ini</p>
               </div>
