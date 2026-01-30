@@ -919,7 +919,7 @@ export default function Personel() {
           onClose={() => setDeleteConfirmOpen(false)}
           onConfirm={handleDeletePersonnel}
           title="Hapus Personel"
-          message={`Apakah Anda yakin ingin menghapus personel "${selectedPersonnel?.nama}"? Tindakan ini tidak dapat dibatalkan.`}
+          message={`Apakah Anda yakin ingin menghapus personel "${selectedPersonnel?.nama}"? Tindakan ini tidak dapat dibatalkan. Semua riwayat cuti terkait juga akan dihapus secara otomatis.`}
           type="danger"
           confirmText={deleteLoading ? "Menghapus..." : "Hapus"}
           cancelText="Batal"

@@ -389,13 +389,7 @@ async def delete_personnel(
     personnel_name = personnel.nama
     personnel_nrp = personnel.nrp
     
-    # Check for related leave history
-    leave_count = db.query(models.LeaveHistory).filter(models.LeaveHistory.personnel_id == personnel_id).count()
-    if leave_count > 0:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Cannot delete personnel with existing leave history ({leave_count} records). Consider archiving instead."
-        )
+
     
     db.delete(personnel)
     db.commit()

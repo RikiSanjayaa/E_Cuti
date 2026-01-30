@@ -258,24 +258,22 @@ export default function Dashboard() {
               return (
                 <div
                   key={index}
-                  className={`bg-card border ${stat.borderColor} rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col justify-between`}
+                  className={`bg-card border ${stat.borderColor} rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 group flex items-center justify-between`}
                 >
-                  <div className="flex justify-between items-start">
-                    <div className={`${stat.bgColor} p-2.5 rounded-xl group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon className={`w-5 h-5 ${stat.color}`} />
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
+                  <div className="space-y-1">
                     <p className="text-2xl font-bold text-foreground tracking-tight">
                       {stat.value}
                     </p>
                     <p className="text-sm font-medium text-muted-foreground">
                       {stat.label}
                     </p>
-                    <p className="text-xs text-muted-foreground/80 mt-1 line-clamp-1">
+                    <p className="text-xs text-muted-foreground/80 line-clamp-1">
                       {stat.change}
                     </p>
+                  </div>
+
+                  <div className={`${stat.bgColor} p-3 rounded-xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0 ml-4`}>
+                    <Icon className={`w-6 h-6 ${stat.color}`} />
                   </div>
                 </div>
               );
@@ -333,9 +331,9 @@ export default function Dashboard() {
                         <div className="text-xs font-medium text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
                           {dateStr}
                         </div>
-                        {isClickable && (
-                          <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                        )}
+                        <ArrowRight
+                          className={`w-4 h-4 text-muted-foreground transition-opacity opacity-0 ${isClickable ? 'group-hover:opacity-100' : ''}`}
+                        />
                       </div>
                     </div>
                   );
