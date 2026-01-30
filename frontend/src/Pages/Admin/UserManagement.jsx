@@ -1,4 +1,5 @@
 import { Search, UserPlus, Shield, Lock, Unlock, Key, Mail, MoreVertical, AlertCircle, CheckCircle, XCircle, Loader2, Eye, EyeOff, Briefcase, UserX, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
 import { Pagination } from '../../components/Pagination';
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
@@ -340,15 +341,16 @@ export default function UserManagement() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Peran</label>
-                <select
-                  value={formData.role}
-                  onChange={e => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-3 py-2 border border-input rounded-md bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 dark:[color-scheme:dark] *:dark:bg-neutral-900"
-                >
-                  <option value="admin">Admin</option>
-                  <option value="super_admin">Super Admin</option>
-                  <option value="atasan">Atasan</option>
-                </select>
+                <Select value={formData.role} onValueChange={(val) => setFormData({ ...formData, role: val })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Peran" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="super_admin">Super Admin</SelectItem>
+                    <SelectItem value="atasan">Atasan</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="md:col-span-2 flex justify-end gap-2 mt-4">
                 <button
@@ -441,26 +443,31 @@ export default function UserManagement() {
             />
           </div>
           <div className="flex gap-2">
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:bg-neutral-900 dark:[color-scheme:dark]"
-            >
-              <option value="all">Semua Peran</option>
-              <option value="super_admin">Super Admin</option>
-              <option value="admin">Admin</option>
-              <option value="atasan">Atasan</option>
-            </select>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:bg-neutral-900 dark:[color-scheme:dark]"
-            >
-              <option value="all">Semua Status</option>
-              <option value="active">Aktif</option>
-              <option value="inactive">Tidak Aktif</option>
-
-            </select>
+            <div className="w-[180px]">
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua Peran" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Peran</SelectItem>
+                  <SelectItem value="super_admin">Super Admin</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="atasan">Atasan</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-[180px]">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Status</SelectItem>
+                  <SelectItem value="active">Aktif</SelectItem>
+                  <SelectItem value="inactive">Tidak Aktif</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>

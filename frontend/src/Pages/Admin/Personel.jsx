@@ -1,5 +1,6 @@
 import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown, Copy, Check, User, Briefcase, Shield, Award, Printer } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
@@ -208,9 +209,9 @@ export default function Personel() {
       };
 
       if (searchQuery) params.query = searchQuery;
-      if (filterPangkat) params.pangkat = filterPangkat;
-      if (filterJabatan) params.jabatan = filterJabatan;
-      if (filterBag) params.bag = filterBag;
+      if (filterPangkat && filterPangkat !== 'all') params.pangkat = filterPangkat;
+      if (filterJabatan && filterJabatan !== 'all') params.jabatan = filterJabatan;
+      if (filterBag && filterBag !== 'all') params.bag = filterBag;
 
       const response = await axios.get('/api/personnel/', {
         params,
@@ -387,38 +388,47 @@ export default function Personel() {
               />
             </div>
 
-            <select
-              value={filterPangkat}
-              onChange={(e) => setFilterPangkat(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px] bg-background dark:bg-neutral-900 dark:[color-scheme:dark]"
-            >
-              <option value="">Semua Pangkat</option>
-              {rankOptions.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+            <div className="w-[180px]">
+              <Select value={filterPangkat} onValueChange={setFilterPangkat}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua Pangkat" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Pangkat</SelectItem>
+                  {rankOptions.map(opt => (
+                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <select
-              value={filterJabatan}
-              onChange={(e) => setFilterJabatan(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px] bg-background dark:bg-neutral-900 dark:[color-scheme:dark]"
-            >
-              <option value="">Semua Jabatan</option>
-              {jabatanOptions.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+            <div className="w-[180px]">
+              <Select value={filterJabatan} onValueChange={setFilterJabatan}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua Jabatan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Jabatan</SelectItem>
+                  {jabatanOptions.map(opt => (
+                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <select
-              value={filterBag}
-              onChange={(e) => setFilterBag(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px] bg-background dark:bg-neutral-900 dark:[color-scheme:dark]"
-            >
-              <option value="">Semua Bagian</option>
-              {bagOptions.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+            <div className="w-[180px]">
+              <Select value={filterBag} onValueChange={setFilterBag}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua Bagian" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Bagian</SelectItem>
+                  {bagOptions.map(opt => (
+                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="flex gap-2">
               {localStorage.getItem('role') !== 'atasan' && (

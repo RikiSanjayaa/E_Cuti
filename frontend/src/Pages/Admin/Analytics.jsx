@@ -1,4 +1,6 @@
 import { Calendar, Download, FileSpreadsheet, FileText, Filter, Printer } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
+import { DatePicker } from "../../components/ui/DatePicker";
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
@@ -253,36 +255,28 @@ export default function Analytics() {
             <label className="block text-sm font-medium text-foreground mb-2">
               Tanggal Mulai
             </label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  setActiveFilter(''); // Reset active filter on manual change
-                }}
-                className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
-              />
-            </div>
+            <DatePicker
+              value={startDate}
+              onChange={(val) => {
+                setStartDate(val);
+                setActiveFilter('');
+              }}
+              placeholder="Pilih Tanggal Mulai"
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Tanggal Selesai
             </label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => {
-                  setEndDate(e.target.value);
-                  setActiveFilter(''); // Reset active filter on manual change
-                }}
-                className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
-              />
-            </div>
+            <DatePicker
+              value={endDate}
+              onChange={(val) => {
+                setEndDate(val);
+                setActiveFilter('');
+              }}
+              placeholder="Pilih Tanggal Selesai"
+            />
           </div>
 
 
@@ -292,16 +286,17 @@ export default function Analytics() {
             <label className="block text-sm font-medium text-foreground mb-2">
               Jenis Cuti
             </label>
-            <select
-              value={leaveTypeFilter}
-              onChange={(e) => setLeaveTypeFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-neutral-900 dark:[color-scheme:dark]"
-            >
-              <option value="all">Semua Jenis</option>
-              {leaveTypes.map(lt => (
-                <option key={lt.id} value={lt.code}>{lt.name}</option>
-              ))}
-            </select>
+            <Select value={leaveTypeFilter} onValueChange={setLeaveTypeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Semua Jenis" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Jenis</SelectItem>
+                {leaveTypes.map(lt => (
+                  <SelectItem key={lt.id} value={lt.code}>{lt.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

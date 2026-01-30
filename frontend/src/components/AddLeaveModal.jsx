@@ -1,4 +1,6 @@
 import { X, Calendar, FileText, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/Select";
+import { DatePicker } from "../components/ui/DatePicker";
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
@@ -394,26 +396,22 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Jenis Cuti <span className="text-red-500">*</span>
                 </label>
-                <select
-                  value={leaveTypeId}
-                  onChange={(e) => setLeaveTypeId(e.target.value)}
-                  className="w-full px-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark] *:bg-card *:text-foreground"
-                  required
+                <Select
+                  value={leaveTypeId ? leaveTypeId.toString() : ""}
+                  onValueChange={(val) => setLeaveTypeId(val)}
                   disabled={isSubmitting || loadingLeaveTypes || !personel}
                 >
-                  <option value="">
-                    {!personel ? 'Pilih personel terlebih dahulu' : loadingLeaveTypes ? 'Memuat jenis cuti...' : 'Pilih jenis cuti'}
-                  </option>
-                  {leaveTypes.map(lt => {
-                    const balance = personel?.balances?.[lt.name];
-                    const remaining = (balance && typeof balance === 'object') ? balance.remaining : (balance ?? lt.default_quota);
-                    return (
-                      <option key={lt.id} value={lt.id}>
+                  <SelectTrigger className="w-full">
+                     <SelectValue placeholder={!personel ? 'Pilih personel terlebih dahulu' : loadingLeaveTypes ? 'Memuat jenis cuti...' : 'Pilih jenis cuti'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {leaveTypes.map(lt => (
+                      <SelectItem key={lt.id} value={lt.id.toString()}>
                         {lt.name}
-                      </option>
-                    );
-                  })}
-                </select>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
                 {leaveTypeId && personel && getSelectedTypeBalance() !== null && (
                   <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded text-sm text-blue-700 dark:text-blue-300 animate-in fade-in">
@@ -429,16 +427,12 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                   </label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                    <input
-                      type="date"
+                    <DatePicker
                       value={startDate}
-                      onChange={(e) => {
-                        setStartDate(e.target.value);
-                        // reset days if invalid? handled by effect
+                      onChange={(val) => {
+                        setStartDate(val);
                       }}
-                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
-                      required
-                      disabled={isSubmitting}
+                      placeholder="Pilih Tanggal Mulai"
                     />
                   </div>
                 </div>
@@ -449,13 +443,11 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                   </label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                    <input
-                      type="date"
+                    <DatePicker
                       value={finishDate}
-                      min={startDate}
-                      onChange={(e) => setFinishDate(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
-                      disabled={isSubmitting || !startDate}
+                      minDate={startDate}
+                      onChange={setFinishDate}
+                      placeholder="Pilih Tanggal Selesai"
                     />
                   </div>
                 </div>

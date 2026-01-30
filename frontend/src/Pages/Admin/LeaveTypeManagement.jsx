@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Calendar, AlertCircle, Users, Palette, ChevronDown, Check } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
 import axios from 'axios';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { PRESET_COLORS, getLeaveColorClass } from '../../utils/leaveUtils';
@@ -439,15 +440,19 @@ export default function LeaveTypeManagement() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Khusus Gender</label>
-                <select
+                <Select
                   value={formData.gender_specific || ''}
-                  onChange={e => setFormData({ ...formData, gender_specific: e.target.value || null })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark] *:dark:bg-neutral-900"
+                  onValueChange={(val) => setFormData({ ...formData, gender_specific: val || null })}
                 >
-                  <option value="">Semua Gender</option>
-                  <option value="P">Khusus Perempuan</option>
-                  <option value="L">Khusus Laki-laki</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Semua Gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Gender</SelectItem>
+                    <SelectItem value="P">Khusus Perempuan</SelectItem>
+                    <SelectItem value="L">Khusus Laki-laki</SelectItem>
+                  </SelectContent>
+                </Select>
                 <p className="text-xs text-muted-foreground">Jenis cuti khusus gender hanya muncul untuk personel dengan gender tersebut</p>
               </div>
 

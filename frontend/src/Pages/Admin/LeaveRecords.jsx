@@ -1,5 +1,7 @@
 import { Search, Filter, Download, Eye, Edit, Trash2, AlertTriangle, X, ArrowUpDown, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
+import { DatePicker } from "../../components/ui/DatePicker";
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { formatDateTime, formatDate } from '@/utils/dateUtils';
@@ -282,16 +284,19 @@ export default function LeaveRecords() {
             />
           </div>
           <div className="flex gap-2">
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent dark:bg-neutral-900 dark:[color-scheme:dark]"
-            >
-              <option value="all">Semua Jenis</option>
-              {leaveTypes.map(lt => (
-                <option key={lt.id} value={lt.code}>{lt.name}</option>
-              ))}
-            </select>
+            <div className="w-[180px]">
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua Jenis" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Jenis</SelectItem>
+                  {leaveTypes.map(lt => (
+                    <SelectItem key={lt.id} value={lt.code}>{lt.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`px-4 py-2 border rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer transition-colors ${showFilters ? 'bg-accent text-accent-foreground border-primary/50' : 'border-input'}`}
@@ -319,20 +324,18 @@ export default function LeaveRecords() {
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
                     <label className="text-[10px] text-muted-foreground mb-1 block">Dari Tanggal</label>
-                    <input
-                      type="date"
+                    <DatePicker
                       value={filterStartDate}
-                      onChange={(e) => setFilterStartDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-transparent dark:[color-scheme:dark]"
+                      onChange={setFilterStartDate}
+                      placeholder="Pilih Tanggal Mulai"
                     />
                   </div>
                   <div className="flex-1">
                     <label className="text-[10px] text-muted-foreground mb-1 block">Sampai Tanggal</label>
-                    <input
-                      type="date"
+                    <DatePicker
                       value={filterEndDate}
-                      onChange={(e) => setFilterEndDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-transparent dark:[color-scheme:dark]"
+                      onChange={setFilterEndDate}
+                      placeholder="Pilih Tanggal Selesai"
                     />
                   </div>
                 </div>
@@ -342,18 +345,19 @@ export default function LeaveRecords() {
               <div className="space-y-2">
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] text-muted-foreground block">Dicatat Oleh</label>
-                  <select
-                    value={filterCreatedBy}
-                    onChange={(e) => setFilterCreatedBy(e.target.value)}
-                    className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-transparent dark:bg-neutral-900 dark:[color-scheme:dark]"
-                  >
-                    <option value="">Semua Admin</option>
-                    {adminUsers.map(admin => (
-                      <option key={admin.id} value={admin.id}>
-                        {admin.full_name || admin.username}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={filterCreatedBy || "all"} onValueChange={(val) => setFilterCreatedBy(val === "all" ? "" : val)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Semua Admin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Admin</SelectItem>
+                      {adminUsers.map(admin => (
+                        <SelectItem key={admin.id} value={String(admin.id)}>
+                          {admin.full_name || admin.username}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
