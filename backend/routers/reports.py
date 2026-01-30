@@ -3,11 +3,12 @@ from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session, joinedload
 from datetime import date, timedelta
 import pandas as pd
+from sqlalchemy import extract
 from io import BytesIO
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, KeepTogether
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, KeepTogether
+
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from openpyxl.utils import get_column_letter
@@ -83,11 +84,9 @@ async def export_report(
     # Fallback to Month/Year if provided and no start/end date
     if not start_date and not end_date:
         if month and year:
-            from sqlalchemy import extract
             query = query.filter(extract('month', models.LeaveHistory.tanggal_mulai) == month)
             query = query.filter(extract('year', models.LeaveHistory.tanggal_mulai) == year)
         elif year:
-            from sqlalchemy import extract
             query = query.filter(extract('year', models.LeaveHistory.tanggal_mulai) == year)
             
     # Other filters
@@ -254,7 +253,9 @@ async def export_report(
             # Merge all columns for label
             worksheet.merge_cells(f'A{footer_row}:{last_col_letter}{footer_row}')
             footer_label_cell = worksheet[f'A{footer_row}']
-            footer_label_cell.value = f"Jumlah Personel yang Ijin: {len(df)} Orang"
+            # Count unique personnel
+            unique_personnel_count = len(set(leave.personnel_id for leave in leaves))
+            footer_label_cell.value = f"Jumlah Personel yang Ijin: {unique_personnel_count} Orang"
             footer_label_cell.font = header_font
             footer_label_cell.alignment = Alignment(horizontal='right', vertical='center')
             
@@ -443,7 +444,9 @@ async def export_report(
             fontSize=10,
             alignment=2 # Right align
         )
-        elements.append(Paragraph(f"Jumlah Personel yang Ijin: {len(leaves)} Orang", summary_style))
+        # Count unique personnel
+        unique_personnel_count = len(set(leave.personnel_id for leave in leaves))
+        elements.append(Paragraph(f"Jumlah Personel yang Ijin: {unique_personnel_count} Orang", summary_style))
         
         elements.append(Spacer(1, 30))
         

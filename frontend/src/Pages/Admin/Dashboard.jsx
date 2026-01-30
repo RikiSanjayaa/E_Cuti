@@ -9,11 +9,13 @@ import {
   Plus,
   ArrowRight
 } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { formatTimeAgo } from '@/utils/dateUtils';
 import { AddLeaveModal } from '../../components/AddLeaveModal';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [statsData, setStatsData] = useState({
     total_leave_entries: 0,
     leaves_this_month: 0,
@@ -252,13 +254,17 @@ export default function Dashboard() {
                 <p className="text-sm text-muted-foreground text-center py-4">Belum ada data.</p>
               ) : (
                 statsData.top_frequent.map((person, index) => (
-                  <div key={index} className="flex items-center justify-between group">
+                  <div 
+                    key={index} 
+                    className="flex items-center justify-between group cursor-pointer hover:bg-muted/50 p-2 -mx-2 rounded-lg transition-colors"
+                    onClick={() => navigate(`/admin/personel?nrp=${person.nrp}`)}
+                  >
                     <div className="flex items-center gap-3 overflow-hidden">
                       <div className="w-8 h-8 rounded-full bg-muted/50 flex-shrink-0 flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                         <span className="text-xs font-bold">{index + 1}</span>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate" title={person.nama}>
+                        <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors" title={person.nama}>
                           {person.nama}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
@@ -267,7 +273,7 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 flex-shrink-0 bg-muted/30 px-2 py-1 rounded-md">
+                    <div className="flex items-center gap-1.5 flex-shrink-0 bg-muted/30 px-2 py-1 rounded-md group-hover:bg-background transition-colors">
                       <span className="text-sm font-bold text-primary">{person.count}</span>
                       <span className="text-xs text-muted-foreground">cuti</span>
                     </div>

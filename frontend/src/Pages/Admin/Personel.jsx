@@ -1,7 +1,7 @@
 import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown, Copy, Check, User, Briefcase, Shield, Award, Printer } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { getLeaveColorClass, getLeaveColors } from '@/utils/leaveUtils';
@@ -38,6 +38,7 @@ const CopyButton = ({ text }) => {
 
 export default function Personel() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [personnel, setPersonnel] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -94,6 +95,32 @@ export default function Personel() {
     fetchStats();
     fetchLeaveTypes();
   }, []);
+
+  // Check for nrp query parameter
+  useEffect(() => {
+    const nrpParam = searchParams.get('nrp');
+    if (nrpParam) {
+      const fetchData = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await axios.get(`/api/personnel/${nrpParam}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setSelectedPersonnel(response.data);
+          
+
+        } catch (error) {
+          console.error("Failed to fetch personnel by NRP:", error);
+          addToast({
+            type: 'error',
+            title: 'Error',
+            message: 'Personel tidak ditemukan'
+          });
+        }
+      };
+      fetchData();
+    }
+  }, [searchParams, addToast]);
 
   // Subscribe to real-time personnel updates
   const handlePersonnelChange = useCallback(() => {
