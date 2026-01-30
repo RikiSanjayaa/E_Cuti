@@ -351,9 +351,9 @@ export default function Personel() {
           {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm text-sm font-medium w-full sm:w-auto justify-center cursor-pointer"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 font-medium group w-full sm:w-auto justify-center cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
               Tambah Personel
             </button>
           )}

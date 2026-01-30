@@ -274,7 +274,7 @@ export default function UserManagement() {
   const inactiveUsers = users.filter(u => u.status === 'inactive').length;
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Manajemen Pengguna</h1>
@@ -285,9 +285,9 @@ export default function UserManagement() {
         {currentUser?.role === 'super_admin' && (
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 font-medium group"
           >
-            <UserPlus className="w-4 h-4" />
+            <UserPlus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
             {showForm ? 'Batal' : 'Tambah Pengguna Baru'}
           </button>
         )}

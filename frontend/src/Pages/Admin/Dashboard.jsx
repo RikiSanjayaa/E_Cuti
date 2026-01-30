@@ -10,7 +10,8 @@ import {
   ArrowRight,
   Pencil,
   Trash2,
-  Calendar as CalendarIcon // Rename to avoid conflict
+  Calendar as CalendarIcon, // Rename to avoid conflict
+  Loader2
 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -221,7 +222,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -231,7 +232,7 @@ export default function Dashboard() {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Dashboard</h1>
           <p className="text-muted-foreground mt-1">
             Ringkasan & statistik manajemen cuti
           </p>
@@ -239,9 +240,9 @@ export default function Dashboard() {
         {canAddLeave && (
           <button
             onClick={() => setIsAddLeaveModalOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2.5 rounded-xl shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 font-medium group"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 font-medium group"
           >
-            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+            <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
             Tambah Izin Cuti
           </button>
         )}
@@ -378,18 +379,18 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Top 10 Personnel Paling Sering Izin / Cuti */}
+            {/* Top 5 Personnel Paling Sering Izin / Cuti */}
             <div className="bg-card border border-border rounded-2xl p-6 shadow-sm h-full flex flex-col">
               <h3 className="font-semibold text-foreground mb-6 flex items-center gap-2">
                 <Users className="w-5 h-5 text-primary" />
-                Top 10 Personel Paling Sering Izin
+                Top 5 Personel Paling Sering Izin
               </h3>
 
-              <div className="space-y-6 flex-1 overflow-y-auto pr-2">
+              <div className="flex flex-col justify-around flex-1 overflow-y-auto pr-2">
                 {(!statsData.top_frequent || statsData.top_frequent.length === 0) ? (
                   <p className="text-sm text-muted-foreground text-center py-4">Belum ada data.</p>
                 ) : (
-                  statsData.top_frequent.slice(0, 10).map((person, index) => (
+                  statsData.top_frequent.slice(0, 5).map((person, index) => (
                     <div key={index} className="flex items-center justify-between group">
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div className="w-8 h-8 rounded-full bg-muted/50 flex-shrink-0 flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
