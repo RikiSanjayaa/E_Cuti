@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { X, UserPlus, Save, Loader2 } from 'lucide-react';
+import { useNotifications } from '@/lib/NotificationContext';
 
 export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
@@ -14,7 +15,8 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  const { addToast } = useNotifications();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,7 +24,6 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -35,7 +36,12 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
       onSuccess("Personel berhasil ditambahkan!");
       onClose();
     } catch (err) {
-      setError(err.response?.data?.detail || "Gagal menambahkan personel");
+      onClose();
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: err.response?.data?.detail || "Gagal menambahkan personel"
+      });
     } finally {
       setLoading(false);
     }
@@ -71,11 +77,6 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg flex items-center gap-2">
-              <X className="w-4 h-4" /> {error}
-            </div>
-          )}
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">NRP / NIP <span className="text-red-500">*</span></label>

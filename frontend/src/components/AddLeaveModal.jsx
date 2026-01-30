@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { getLeaveColorClass } from '@/utils/leaveUtils';
+import { useNotifications } from '@/lib/NotificationContext';
 
 export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [nrp, setNrp] = useState('');
@@ -15,8 +16,8 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [context, setContext] = useState('');
   const [file, setFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+
+  const { addToast } = useNotifications();
 
   // New state for dynamic leave types
   const [leaveTypes, setLeaveTypes] = useState([]);
@@ -200,7 +201,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setSubmitError('');
 
     try {
       const formData = new FormData();
@@ -208,8 +208,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       formData.append('leave_type_id', leaveTypeId);
       formData.append('jumlah_hari', days);
       formData.append('tanggal_mulai', startDate);
-      // We don't save finish date in backend yet? Model doesn't have it.
-      // But we can just use it for calculation.
       formData.append('alasan', context);
       if (file) {
         formData.append('file', file);
@@ -231,16 +229,13 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
         });
       }
 
-      setSubmitSuccess(true);
-      // Scroll to top to see success message
-      if (formRef.current) {
-        formRef.current.parentElement.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-
-      setTimeout(() => {
-        resetForm();
-        onClose();
-      }, 2000);
+      resetForm();
+      onClose();
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: isEditMode ? 'Data cuti berhasil diperbarui' : 'Data cuti berhasil ditambahkan'
+      });
     } catch (error) {
       console.error("Submission error:", error);
       const errorData = error.response?.data?.detail;
@@ -252,11 +247,13 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
         errorMsg = errorData.map(err => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(', ');
       }
 
-      setSubmitError(errorMsg);
-      // Scroll to top to see error message
-      if (formRef.current) {
-        formRef.current.parentElement.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      resetForm();
+      onClose();
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: errorMsg
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -272,8 +269,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     setDays('');
     setContext('');
     setFile(null);
-    setSubmitSuccess(false);
-    setSubmitError('');
     setLeaveTypes([]);
   };
 
@@ -331,24 +326,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
 
         <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
           <form ref={formRef} onSubmit={handleSubmit} className="p-6 space-y-6">
-            {submitSuccess && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3 animate-in slide-in-from-top duration-300">
-                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-green-900">Catatan cuti berhasil dibuat!</p>
-                </div>
-              </div>
-            )}
 
-            {submitError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 animate-in slide-in-from-top duration-300">
-                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-red-900">Kesalahan</p>
-                  <p className="text-sm text-red-700 mt-1">{submitError}</p>
-                </div>
-              </div>
-            )}
 
             {/* Step 1: Personnel Search */}
             <div className="space-y-4">

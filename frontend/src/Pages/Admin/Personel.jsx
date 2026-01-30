@@ -9,7 +9,7 @@ import { formatDate } from '@/utils/dateUtils';
 import AddPersonnelModal from '@/components/AddPersonnelModal';
 import ImportDetailsModal from '@/components/ImportDetailsModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
-import { useEntitySubscription } from '@/lib/NotificationContext';
+import { useEntitySubscription, useNotifications } from '@/lib/NotificationContext';
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
@@ -50,6 +50,8 @@ export default function Personel() {
 
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const { addToast } = useNotifications();
 
 
   const [modal, setModal] = useState({
@@ -230,9 +232,8 @@ export default function Personel() {
       fetchFilters();
 
     } catch (error) {
-      setModal({
-        isOpen: true,
-        type: 'danger',
+      addToast({
+        type: 'error',
         title: 'Import Gagal',
         message: error.response?.data?.detail || error.message
       });
@@ -266,7 +267,11 @@ export default function Personel() {
       link.remove();
     } catch (error) {
       console.error("Failed to export personnel:", error);
-      alert("Gagal mengunduh data personel.");
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal mengunduh data personel'
+      });
     }
   };
 
@@ -769,8 +774,7 @@ export default function Personel() {
             fetchPersonnel();
             fetchStats();
             fetchFilters();
-            setModal({
-              isOpen: true,
+            addToast({
               type: 'success',
               title: 'Berhasil',
               message: msg

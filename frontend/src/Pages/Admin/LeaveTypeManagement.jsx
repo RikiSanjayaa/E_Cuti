@@ -3,7 +3,7 @@ import { Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Calendar, AlertCir
 import axios from 'axios';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { PRESET_COLORS, getLeaveColorClass } from '../../utils/leaveUtils';
-import { useEntitySubscription } from '@/lib/NotificationContext';
+import { useEntitySubscription, useNotifications } from '@/lib/NotificationContext';
 
 export default function LeaveTypeManagement() {
   const [leaveTypes, setLeaveTypes] = useState([]);
@@ -11,7 +11,8 @@ export default function LeaveTypeManagement() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+
+  const { addToast } = useNotifications();
 
   // Form State
   const [formData, setFormData] = useState({
@@ -107,26 +108,31 @@ export default function LeaveTypeManagement() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormLoading(true);
-    setMessage({ type: '', text: '' });
 
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
+      const successMessage = editingId ? 'Jenis cuti berhasil diperbarui' : 'Jenis cuti berhasil ditambahkan';
 
       if (editingId) {
         await axios.put(`/api/leave-types/${editingId}`, formData, { headers });
-        setMessage({ type: 'success', text: 'Jenis cuti berhasil diperbarui' });
       } else {
         await axios.post('/api/leave-types/', formData, { headers });
-        setMessage({ type: 'success', text: 'Jenis cuti berhasil ditambahkan' });
       }
 
       fetchLeaveTypes();
-      setTimeout(() => resetForm(), 1500);
+      resetForm();
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: successMessage
+      });
     } catch (error) {
-      setMessage({
+      resetForm();
+      addToast({
         type: 'error',
-        text: error.response?.data?.detail || 'Gagal menyimpan jenis cuti'
+        title: 'Gagal',
+        message: error.response?.data?.detail || 'Gagal menyimpan jenis cuti'
       });
     } finally {
       setFormLoading(false);
@@ -155,10 +161,19 @@ export default function LeaveTypeManagement() {
       });
       fetchLeaveTypes();
       setConfirmModal({ isOpen: false });
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: 'Jenis cuti berhasil dinonaktifkan'
+      });
     } catch (error) {
       console.error('Failed to delete leave type:', error);
       setConfirmModal({ isOpen: false });
-      alert('Gagal menonaktifkan jenis cuti');
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal menonaktifkan jenis cuti'
+      });
     }
   };
 
@@ -170,9 +185,18 @@ export default function LeaveTypeManagement() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchLeaveTypes();
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: 'Jenis cuti berhasil diaktifkan kembali'
+      });
     } catch (error) {
       console.error('Failed to reactivate:', error);
-      alert('Gagal mengaktifkan kembali jenis cuti');
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal mengaktifkan kembali jenis cuti'
+      });
     }
   };
 
@@ -374,14 +398,6 @@ export default function LeaveTypeManagement() {
               </h2>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {message.text && (
-                <div className={`p-3 rounded-md text-sm ${message.type === 'error'
-                  ? 'bg-red-50 text-red-600 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800'
-                  : 'bg-green-50 text-green-600 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800'
-                  }`}>
-                  {message.text}
-                </div>
-              )}
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nama Jenis Cuti</label>

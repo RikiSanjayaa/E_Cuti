@@ -8,7 +8,7 @@ import { AddLeaveModal } from '@/components/AddLeaveModal';
 import { LeaveDetailModal } from '@/components/LeaveDetailModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { getLeaveColorClass } from '@/utils/leaveUtils';
-import { useEntitySubscription } from '@/lib/NotificationContext';
+import { useEntitySubscription, useNotifications } from '@/lib/NotificationContext';
 
 export default function LeaveRecords() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,6 +33,8 @@ export default function LeaveRecords() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const { addToast } = useNotifications();
 
   // Pagination & Sorting State
   const [currentPage, setCurrentPage] = useState(1);
@@ -160,13 +162,22 @@ export default function LeaveRecords() {
       await axios.delete(`/api/leaves/${selectedLeave.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // Refresh list
       fetchLeaves();
       setIsDeleteModalOpen(false);
       setSelectedLeave(null);
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: 'Data cuti berhasil dihapus'
+      });
     } catch (error) {
       console.error("Failed to delete leave:", error);
-      alert("Gagal menghapus data cuti.");
+      setIsDeleteModalOpen(false);
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: error.response?.data?.detail || 'Gagal menghapus data cuti'
+      });
     } finally {
       setDeleteLoading(false);
     }
@@ -210,7 +221,11 @@ export default function LeaveRecords() {
       link.remove();
     } catch (error) {
       console.error("Failed to export leaves:", error);
-      alert("Gagal mengunduh data riwayat cuti.");
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal mengunduh data riwayat cuti'
+      });
     }
   };
 

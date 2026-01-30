@@ -5,7 +5,7 @@ import axios from 'axios';
 import { formatDateTime, formatDate } from '@/utils/dateUtils';
 import ResetPasswordModal from '../../components/ResetPasswordModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
-import { useEntitySubscription } from '@/lib/NotificationContext';
+import { useEntitySubscription, useNotifications } from '@/lib/NotificationContext';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -54,7 +54,8 @@ export default function UserManagement() {
   });
   const [formLoading, setFormLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+
+  const { addToast } = useNotifications();
 
   // Fetch Current User
   useEffect(() => {
@@ -91,22 +92,18 @@ export default function UserManagement() {
       );
 
       setResetModal({ isOpen: false, userId: null, username: '', isLoading: false });
-
-      // Show Success Modal
-      setConfirmModal({
-        isOpen: true,
+      addToast({
         type: 'success',
         title: 'Berhasil',
-        message: 'Password berhasil diubah sesuai inputan baru.',
-        confirmText: 'Tutup',
-        cancelText: '',
-        onConfirm: () => setConfirmModal({ isOpen: false }),
-        onClose: () => setConfirmModal({ isOpen: false })
+        message: 'Password berhasil diubah'
       });
-
     } catch (error) {
-      setResetModal(prev => ({ ...prev, isLoading: false }));
-      alert('Gagal mereset password: ' + (error.response?.data?.detail || error.message));
+      setResetModal({ isOpen: false, userId: null, username: '', isLoading: false });
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal mereset password: ' + (error.response?.data?.detail || error.message)
+      });
     }
   };
 
@@ -124,11 +121,19 @@ export default function UserManagement() {
 
       setUsers(users.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
       setConfirmModal({ isOpen: false });
-
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: `Status pengguna berhasil diubah ke ${newStatus === 'active' ? 'aktif' : 'nonaktif'}`
+      });
     } catch (error) {
       console.error('Failed to update status:', error);
       setConfirmModal({ isOpen: false });
-      alert('Gagal mengubah status pengguna');
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal mengubah status pengguna'
+      });
     }
   };
 
@@ -214,19 +219,27 @@ export default function UserManagement() {
   const handleCreateUser = async (e) => {
     e.preventDefault();
     setFormLoading(true);
-    setMessage({ type: '', text: '' });
 
     try {
       const token = localStorage.getItem('token');
       await axios.post('/api/users/', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setMessage({ type: 'success', text: 'Pengguna berhasil ditambahkan' });
       setShowForm(false);
       setFormData({ username: '', full_name: '', role: 'admin', password: '', status: 'active' });
       fetchUsers();
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: 'Pengguna berhasil ditambahkan'
+      });
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'Gagal menambahkan pengguna' });
+      setShowForm(false);
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: error.response?.data?.detail || 'Gagal menambahkan pengguna'
+      });
     } finally {
       setFormLoading(false);
     }
@@ -284,11 +297,6 @@ export default function UserManagement() {
         <div className="relative">
           <div className="bg-card border border-border rounded-lg p-6 shadow-sm animate-in fade-in slide-in-from-top-4">
             <h2 className="text-lg font-semibold mb-4">Tambah Pengguna Baru</h2>
-            {message.text && (
-              <div className={`p-3 mb-4 rounded-md text-sm ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                {message.text}
-              </div>
-            )}
             <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Username</label>
