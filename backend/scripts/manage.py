@@ -187,6 +187,7 @@ def cmd_seed():
         else:
             ranks = ["Bripda", "Briptu", "Brigadir", "Bripka", "Aipda", "Aiptu", "Ipda", "Iptu", "AKP", "Kompol", "AKBP", "Kombes"]
             jabatan_list = ["Anggota", "Kanit", "Kasubnit", "Pamin", "Kaur", "Kabag", "Kasat"]
+            bagian_list = ["BAG BEKUM", "BAG PAL", "BAG ADA", "BAG FASKOM", "BAG INFOLOG", "KEUANGAN"]
             
             names_male = [
                 ("Adi Pratama", "L"), ("Budi Santoso", "L"), ("Dedi Kurniawan", "L"), 
@@ -210,6 +211,7 @@ def cmd_seed():
                     nama=name,
                     pangkat=random.choice(ranks),
                     jabatan=random.choice(jabatan_list),
+                    bag=random.choice(bagian_list),
                     jenis_kelamin=gender
                 )
                 db.add(p)

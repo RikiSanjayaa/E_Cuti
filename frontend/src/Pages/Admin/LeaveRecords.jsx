@@ -8,7 +8,7 @@ import { AddLeaveModal } from '@/components/AddLeaveModal';
 import { LeaveDetailModal } from '@/components/LeaveDetailModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { getLeaveColorClass } from '@/utils/leaveUtils';
-import { useEntitySubscription } from '@/lib/NotificationContext';
+import { useEntitySubscription, useNotifications } from '@/lib/NotificationContext';
 
 export default function LeaveRecords() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,6 +33,8 @@ export default function LeaveRecords() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const { addToast } = useNotifications();
 
   // Pagination & Sorting State
   const [currentPage, setCurrentPage] = useState(1);
@@ -160,13 +162,22 @@ export default function LeaveRecords() {
       await axios.delete(`/api/leaves/${selectedLeave.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // Refresh list
       fetchLeaves();
       setIsDeleteModalOpen(false);
       setSelectedLeave(null);
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: 'Data cuti berhasil dihapus'
+      });
     } catch (error) {
       console.error("Failed to delete leave:", error);
-      alert("Gagal menghapus data cuti.");
+      setIsDeleteModalOpen(false);
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: error.response?.data?.detail || 'Gagal menghapus data cuti'
+      });
     } finally {
       setDeleteLoading(false);
     }
@@ -210,7 +221,11 @@ export default function LeaveRecords() {
       link.remove();
     } catch (error) {
       console.error("Failed to export leaves:", error);
-      alert("Gagal mengunduh data riwayat cuti.");
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal mengunduh data riwayat cuti'
+      });
     }
   };
 
@@ -263,14 +278,14 @@ export default function LeaveRecords() {
               placeholder="Cari berdasarkan nama atau NRP..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+              className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
             />
           </div>
           <div className="flex gap-2">
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent"
             >
               <option value="all">Semua Jenis</option>
               {leaveTypes.map(lt => (
@@ -308,7 +323,7 @@ export default function LeaveRecords() {
                       type="date"
                       value={filterStartDate}
                       onChange={(e) => setFilterStartDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background text-foreground"
+                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-transparent"
                     />
                   </div>
                   <div className="flex-1">
@@ -317,7 +332,7 @@ export default function LeaveRecords() {
                       type="date"
                       value={filterEndDate}
                       onChange={(e) => setFilterEndDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background text-foreground"
+                      className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-transparent"
                     />
                   </div>
                 </div>
@@ -330,7 +345,7 @@ export default function LeaveRecords() {
                   <select
                     value={filterCreatedBy}
                     onChange={(e) => setFilterCreatedBy(e.target.value)}
-                    className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background text-foreground"
+                    className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-transparent"
                   >
                     <option value="">Semua Admin</option>
                     {adminUsers.map(admin => (
@@ -448,7 +463,7 @@ export default function LeaveRecords() {
                 </tr>
               ) : (
                 filteredLeaves.map((leave) => (
-                  <tr key={leave.id} className="hover:bg-muted/30 transition-colors">
+                  <tr key={leave.id} onClick={() => handleView(leave)} className="hover:bg-gray-100 dark:hover:bg-muted/30 transition-colors cursor-pointer">
                     <td className="px-6 py-4 text-sm text-muted-foreground">
                       {formatDateTime(leave.created_at)}
                     </td>
@@ -486,24 +501,23 @@ export default function LeaveRecords() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleView(leave)}
-                          className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 cursor-pointer"
-                          title="Lihat Detail"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
                         {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
                           <>
                             <button
-                              onClick={() => handleEdit(leave)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(leave);
+                              }}
                               className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
                               title="Edit"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleDeleteClick(leave)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(leave);
+                              }}
                               className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800"
                               title="Hapus"
                             >

@@ -16,7 +16,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, totalItems, 
           <select
             value={itemsPerPage}
             onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-            className="border border-input rounded-md p-1 text-sm bg-background"
+            className="border border-input rounded-md p-1 text-sm bg-transparent text-foreground"
           >
             <option value={10}>10</option>
             <option value={20}>20</option>

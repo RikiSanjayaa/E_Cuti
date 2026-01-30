@@ -43,6 +43,7 @@ def process_excel_file(file_path: str, db: Session):
         elif "PANGKAT" in c_str: col_map['pangkat'] = col
         elif "NRP" in c_str: col_map['nrp'] = col
         elif "JABATAN" in c_str: col_map['jabatan'] = col
+        elif "BAG" in c_str or "BAGIAN" in c_str: col_map['bag'] = col
         elif "KELAMIN" in c_str or "JK" in c_str: col_map['jenis_kelamin'] = col
         
     print(f"Column Mapping: {col_map}")
@@ -70,13 +71,16 @@ def process_excel_file(file_path: str, db: Session):
         
         nama = str(row[col_map.get('nama')]).strip()
         pangkat = str(row[col_map.get('pangkat')]).strip()
+        pangkat = str(row[col_map.get('pangkat')]).strip()
         jabatan = str(row[col_map.get('jabatan')]).strip()
+        bag = str(row[col_map.get('bag')]).strip() if 'bag' in col_map else None
         jk = str(row[col_map.get('jenis_kelamin')]).strip() if 'jenis_kelamin' in col_map else None
 
         # Clean NaNs
         if nama.lower() == 'nan': nama = ""
         if pangkat.lower() == 'nan': pangkat = ""
         if jabatan.lower() == 'nan': jabatan = ""
+        if bag and (bag.lower() == 'nan' or bag == ''): bag = None
         if jk and (jk.lower() == 'nan' or jk == ''): jk = None
         
         existing = db.query(Personnel).filter(Personnel.nrp == nrp).first()
@@ -86,12 +90,15 @@ def process_excel_file(file_path: str, db: Session):
             if existing.nama != nama: changes.append({"field": "Nama", "old": existing.nama, "new": nama})
             if existing.pangkat != pangkat: changes.append({"field": "Pangkat", "old": existing.pangkat, "new": pangkat})
             if existing.jabatan != jabatan: changes.append({"field": "Jabatan", "old": existing.jabatan, "new": jabatan})
+            if bag and existing.bag != bag: changes.append({"field": "Bagian", "old": existing.bag, "new": bag})
             if jk and existing.jenis_kelamin != jk: changes.append({"field": "Jenis Kelamin", "old": existing.jenis_kelamin, "new": jk})
             
             if changes:
                 existing.nama = nama
+                existing.nama = nama
                 existing.pangkat = pangkat
                 existing.jabatan = jabatan
+                if bag: existing.bag = bag
                 if jk: existing.jenis_kelamin = jk
                 
                 stats["updated"] += 1
@@ -104,6 +111,7 @@ def process_excel_file(file_path: str, db: Session):
                 nama=nama,
                 pangkat=pangkat,
                 jabatan=jabatan,
+                bag=bag,
                 jenis_kelamin=jk
             )
             db.add(new_p)

@@ -93,6 +93,7 @@ async def export_personnel(
     query: str = None,
     pangkat: str = None,
     jabatan: str = None,
+    bag: str = None,
     sort_by: str = "nama",
     sort_order: str = "asc",
     current_user: models.User = Depends(auth.get_current_user),
@@ -113,6 +114,9 @@ async def export_personnel(
 
     if jabatan:
         q = q.filter(models.Personnel.jabatan.ilike(f"%{jabatan}%"))
+
+    if bag:
+        q = q.filter(models.Personnel.bag.ilike(f"%{bag}%"))
 
     if sort_by:
         valid_sort_fields = {
@@ -143,6 +147,7 @@ async def export_personnel(
             "Nama": p.nama,
             "Pangkat": p.pangkat,
             "Jabatan": p.jabatan,
+            "Bagian": p.bag,
             "Jenis Kelamin": p.jenis_kelamin or "-"
         }
         # Add balance columns
@@ -171,10 +176,12 @@ async def get_personnel_filters(
 ):
     pangkats = db.query(models.Personnel.pangkat).distinct().filter(models.Personnel.pangkat != None).all()
     jabatans = db.query(models.Personnel.jabatan).distinct().filter(models.Personnel.jabatan != None).all()
+    bags = db.query(models.Personnel.bag).distinct().filter(models.Personnel.bag != None).all()
     
     return {
         "pangkat": sorted([p[0] for p in pangkats if p[0]]),
-        "jabatan": sorted([j[0] for j in jabatans if j[0]])
+        "jabatan": sorted([j[0] for j in jabatans if j[0]]),
+        "bag": sorted([b[0] for b in bags if b[0]])
     }
 
 @router.get("/", response_model=List[schemas.Personnel])
@@ -185,6 +192,7 @@ async def get_all_personnel(
     query: str = None,
     pangkat: str = None,
     jabatan: str = None,
+    bag: str = None,
     sort_by: str = "nama",
     sort_order: str = "asc",
     current_user: models.User = Depends(auth.get_current_user),
@@ -205,6 +213,9 @@ async def get_all_personnel(
 
     if jabatan:
         q = q.filter(models.Personnel.jabatan.ilike(f"%{jabatan}%"))
+
+    if bag:
+        q = q.filter(models.Personnel.bag.ilike(f"%{bag}%"))
         
     # Total Count (Filtered)
     total = q.count()
@@ -221,6 +232,7 @@ async def get_all_personnel(
             "nrp": models.Personnel.nrp,
             "jabatan": models.Personnel.jabatan,
             "pangkat": models.Personnel.pangkat,
+            "bag": models.Personnel.bag,
         }
         
         sort_column = valid_sort_fields.get(sort_by, models.Personnel.nama)
@@ -257,6 +269,7 @@ async def create_personnel(
         nama=personnel.nama,
         pangkat=personnel.pangkat,
         jabatan=personnel.jabatan,
+        bag=personnel.bag,
         jenis_kelamin=personnel.jenis_kelamin
     )
     
@@ -347,6 +360,7 @@ async def import_personnel(file: UploadFile = File(...), current_user: models.Us
                     existing.nama = item.get("nama")
                     existing.pangkat = item.get("pangkat")
                     existing.jabatan = item.get("jabatan")
+                    existing.bag = item.get("bag")
                     existing.jenis_kelamin = item.get("jenis_kelamin")
                 else:
                     new_p = models.Personnel(
@@ -354,6 +368,7 @@ async def import_personnel(file: UploadFile = File(...), current_user: models.Us
                         nama=item.get("nama"),
                         pangkat=item.get("pangkat"),
                         jabatan=item.get("jabatan"),
+                        bag=item.get("bag"),
                         jenis_kelamin=item.get("jenis_kelamin")
                     )
                     db.add(new_p)

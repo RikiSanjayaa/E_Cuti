@@ -16,7 +16,7 @@ export default function Analytics() {
   const [activeFilter, setActiveFilter] = useState(''); // Track active quick filter
   const [searchParams] = useSearchParams();
   const personnelId = searchParams.get('personnel_id');
-  
+
   const [reportData, setReportData] = useState({
     total_records: 0,
     total_days: 0,
@@ -139,12 +139,6 @@ export default function Analytics() {
       alert("Gagal mengekspor laporan.");
     }
   };
-
-    
-
-
-
-
 
   const printReport = () => {
     window.print();
@@ -301,7 +295,7 @@ export default function Analytics() {
             <select
               value={leaveTypeFilter}
               onChange={(e) => setLeaveTypeFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+              className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="all">Semua Jenis</option>
               {leaveTypes.map(lt => (
@@ -358,8 +352,8 @@ export default function Analytics() {
         {/* Document Header */}
         <div className="bg-blue-50/50 dark:bg-slate-800/50 text-foreground px-6 py-8 text-center border-b border-border">
           <h2 className="text-2xl font-semibold mb-2">
-            {personnelId && reportData.data.length > 0 
-              ? `Laporan Cuti: ${reportData.data[0].personnel?.nama}` 
+            {personnelId && reportData.data.length > 0
+              ? `Laporan Cuti: ${reportData.data[0].personnel?.nama}`
               : 'Laporan Manajemen Cuti'}
           </h2>
           <p className="text-sm opacity-90">Portal Pemerintah - Dokumen Resmi</p>
@@ -411,34 +405,34 @@ export default function Analytics() {
                   </td>
                 </tr>
               ) : (
-                  reportData.data.map((record) => {
-                    const endDate = record.tanggal_mulai ? addDays(new Date(record.tanggal_mulai), (record.jumlah_hari || 1) - 1) : null;
-                    return (
-                      <tr key={record.id} className="hover:bg-muted/30">
-                        <td className="px-6 py-4 text-sm font-medium text-foreground">
-                          {record.personnel?.nrp}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-foreground">
-                          {record.personnel?.nama}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-foreground">
-                          {record.personnel?.jabatan || '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-foreground">
-                          {record.leave_type?.name || '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-muted-foreground">
-                          {record.tanggal_mulai ? format(new Date(record.tanggal_mulai), 'd MMM yyyy', { locale: localeId }) : '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-muted-foreground">
-                          {endDate ? format(endDate, 'd MMM yyyy', { locale: localeId }) : '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm font-medium text-foreground">
-                          {record.jumlah_hari} Hari
-                        </td>
-                      </tr>
-                    );
-                  })
+                reportData.data.map((record) => {
+                  const endDate = record.tanggal_mulai ? addDays(new Date(record.tanggal_mulai), (record.jumlah_hari || 1) - 1) : null;
+                  return (
+                    <tr key={record.id} className="hover:bg-muted/30">
+                      <td className="px-6 py-4 text-sm font-medium text-foreground">
+                        {record.personnel?.nrp}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground">
+                        {record.personnel?.nama}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground">
+                        {record.personnel?.jabatan || '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground">
+                        {record.leave_type?.name || '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {record.tanggal_mulai ? format(new Date(record.tanggal_mulai), 'd MMM yyyy', { locale: localeId }) : '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {endDate ? format(endDate, 'd MMM yyyy', { locale: localeId }) : '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-foreground">
+                        {record.jumlah_hari} Hari
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
             <tfoot>
