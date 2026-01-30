@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Calendar, AlertCircle, Users, Palette, ChevronDown, Check } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
 import axios from 'axios';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { PRESET_COLORS, getLeaveColorClass } from '../../utils/leaveUtils';
@@ -389,7 +390,7 @@ export default function LeaveTypeManagement() {
 
       {/* Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-background dark:bg-card rounded-lg shadow-xl w-full max-w-lg animate-in fade-in zoom-in-95">
             <div className="p-6 border-b border-border">
               <h2 className="text-lg font-semibold">
@@ -406,7 +407,7 @@ export default function LeaveTypeManagement() {
                   placeholder="contoh: Cuti Tahunan"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
                 />
               </div>
 
@@ -418,10 +419,10 @@ export default function LeaveTypeManagement() {
                   placeholder="contoh: cuti_tahunan"
                   value={formData.code}
                   onChange={e => setFormData({ ...formData, code: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono bg-transparent text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono bg-transparent text-foreground dark:[color-scheme:dark]"
                 />
                 <p className="text-xs text-muted-foreground">Kode unik untuk identifikasi internal (huruf kecil, tanpa spasi)</p>
-              </div>
+              </div> 
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Kuota Default (Hari)</label>
@@ -432,21 +433,25 @@ export default function LeaveTypeManagement() {
                   max="365"
                   value={formData.default_quota}
                   onChange={e => setFormData({ ...formData, default_quota: parseInt(e.target.value) || 1 })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Khusus Gender</label>
-                <select
+                <Select
                   value={formData.gender_specific || ''}
-                  onChange={e => setFormData({ ...formData, gender_specific: e.target.value || null })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
+                  onValueChange={(val) => setFormData({ ...formData, gender_specific: val || null })}
                 >
-                  <option value="">Semua Gender</option>
-                  <option value="P">Khusus Perempuan</option>
-                  <option value="L">Khusus Laki-laki</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Semua Gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Gender</SelectItem>
+                    <SelectItem value="P">Khusus Perempuan</SelectItem>
+                    <SelectItem value="L">Khusus Laki-laki</SelectItem>
+                  </SelectContent>
+                </Select>
                 <p className="text-xs text-muted-foreground">Jenis cuti khusus gender hanya muncul untuk personel dengan gender tersebut</p>
               </div>
 

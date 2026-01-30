@@ -473,15 +473,16 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </div >
+      </div >
 
       {canAddLeave && (
         <AddLeaveModal
           isOpen={isAddLeaveModalOpen}
           onClose={() => setIsAddLeaveModalOpen(false)}
         />
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 }

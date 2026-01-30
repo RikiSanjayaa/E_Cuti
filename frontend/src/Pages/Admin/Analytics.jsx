@@ -1,5 +1,6 @@
 import { Calendar, Download, FileSpreadsheet, FileText, Filter, Printer } from 'lucide-react';
-import { DatePicker } from '@/components/ui/date-picker';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
@@ -120,20 +121,15 @@ export default function Analytics() {
   };
 
   const handleExport = (formatType) => {
-    const token = localStorage.getItem('token');
-    const params = new URLSearchParams({
-      format: formatType,
-      month: new Date(startDate).getMonth() + 1,
-      year: new Date(startDate).getFullYear()
-    });
-
-    // Old Logic
-    // window.location.href = `/api/reports/export?${params.toString()}&token=${token}`;
-
-    if (formatType === 'pdf') {
-      generatePDF();
-    } else {
-      generateExcel();
+    // For Excel and PDF, use the Backend (Formatted with OpenPyXL or ReportLab)
+    try {
+      if (formatType === 'pdf') {
+        generatePDF();
+      } else {
+        generateExcel();
+      }
+    } catch (error) {
+      console.error("Export error", error);
     }
   };
 
@@ -274,7 +270,6 @@ export default function Analytics() {
     // Save
     XLSX.writeFile(wb, `Laporan_Cuti_${startDate}_${endDate}.xlsx`);
   };
-
   const printReport = () => {
     window.print();
   };
@@ -385,11 +380,11 @@ export default function Analytics() {
             </label>
             <DatePicker
               value={startDate}
-              onChange={(date) => {
-                setStartDate(date);
+              onChange={(val) => {
+                setStartDate(val);
                 setActiveFilter('');
               }}
-              placeholder="Pilih tanggal"
+              placeholder="Pilih Tanggal Mulai"
             />
           </div>
 
@@ -399,11 +394,11 @@ export default function Analytics() {
             </label>
             <DatePicker
               value={endDate}
-              onChange={(date) => {
-                setEndDate(date);
+              onChange={(val) => {
+                setEndDate(val);
                 setActiveFilter('');
               }}
-              placeholder="Pilih tanggal"
+              placeholder="Pilih Tanggal Selesai"
             />
           </div>
 
@@ -414,16 +409,17 @@ export default function Analytics() {
             <label className="block text-sm font-medium text-foreground mb-2">
               Jenis Cuti
             </label>
-            <select
-              value={leaveTypeFilter}
-              onChange={(e) => setLeaveTypeFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="all">Semua Jenis</option>
-              {leaveTypes.map(lt => (
-                <option key={lt.id} value={lt.code}>{lt.name}</option>
-              ))}
-            </select>
+            <Select value={leaveTypeFilter} onValueChange={setLeaveTypeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Semua Jenis" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Jenis</SelectItem>
+                {leaveTypes.map(lt => (
+                  <SelectItem key={lt.id} value={lt.code}>{lt.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

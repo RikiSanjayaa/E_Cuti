@@ -1,5 +1,6 @@
 import { Search, Filter, Download, Eye, Edit, Trash2, AlertTriangle, X, ArrowUpDown, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { formatDateTime, formatDate } from '@/utils/dateUtils';
@@ -283,16 +284,19 @@ export default function LeaveRecords() {
             />
           </div>
           <div className="flex gap-2">
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent"
-            >
-              <option value="all">Semua Jenis</option>
-              {leaveTypes.map(lt => (
-                <option key={lt.id} value={lt.code}>{lt.name}</option>
-              ))}
-            </select>
+            <div className="w-[180px]">
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua Jenis" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Jenis</SelectItem>
+                  {leaveTypes.map(lt => (
+                    <SelectItem key={lt.id} value={lt.code}>{lt.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`px-4 py-2 border rounded-md text-sm hover:bg-accent flex items-center gap-2 cursor-pointer transition-colors ${showFilters ? 'bg-accent text-accent-foreground border-primary/50' : 'border-input'}`}
@@ -369,9 +373,8 @@ export default function LeaveRecords() {
         )}
       </div>
 
-
       {/* Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
+      < div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm" >
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -541,20 +544,20 @@ export default function LeaveRecords() {
       </div >
 
       {/* Modals and Dialogs */}
-      <AddLeaveModal
+      < AddLeaveModal
         isOpen={isAddModalOpen}
         onClose={handleCloseAdd}
       />
 
       {/* Edit Modal (reuses Add Modal) */}
-      <AddLeaveModal
+      < AddLeaveModal
         isOpen={isEditModalOpen}
         onClose={handleCloseEdit}
         initialData={selectedLeave}
       />
 
       {/* Detail Modal */}
-      <LeaveDetailModal
+      < LeaveDetailModal
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         leave={selectedLeave}

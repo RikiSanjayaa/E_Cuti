@@ -13,11 +13,14 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
     return createPortal(
         <>
             <div
-                className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
+                className="fixed inset-0 bg-black/50 z-[10050] animate-in fade-in duration-200"
                 onClick={onClose}
             />
 
-            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[90vh] bg-card dark:bg-neutral-900 rounded-lg shadow-2xl z-50 overflow-hidden animate-in zoom-in-95 duration-200">
+            <div 
+                className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[90vh] bg-card dark:bg-neutral-900 rounded-lg shadow-2xl z-[10051] overflow-hidden animate-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+            >
                 <div className="sticky top-0 bg-card px-6 py-4 flex items-center justify-between border-b border-border">
                     <h2 className="text-xl font-semibold">Detail Pengajuan Cuti</h2>
                     <button

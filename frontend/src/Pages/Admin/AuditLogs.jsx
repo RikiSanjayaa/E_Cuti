@@ -1,4 +1,5 @@
 import { Search, Download, Shield, Filter, Calendar, RefreshCw, Lock, AlertTriangle, Eye, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { formatDateTime } from '@/utils/dateUtils';
@@ -250,73 +251,77 @@ export default function AuditLogs() {
       {/* Filters in Header */}
       <div className="bg-card border border-border rounded-lg p-4">
         <div className="flex flex-col xl:flex-row gap-4">
-          {/* Start Date */}
-          <div className="flex-1">
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Dari Tanggal</label>
-            <DatePicker
-              value={startDate}
-              onChange={setStartDate}
-              placeholder="Pilih tanggal"
-              className="h-[38px]"
-            />
+          {/* Date Filters */}
+          <div className="flex gap-2 flex-1 xl:w-auto xl:min-w-[350px]">
+            <div className="flex-1">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block whitespace-nowrap">Dari Tanggal</label>
+              <DatePicker
+                value={startDate}
+                onChange={setStartDate}
+                placeholder="Pilih Tanggal Mulai"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block whitespace-nowrap">Sampai Tanggal</label>
+              <DatePicker
+                value={endDate}
+                onChange={setEndDate}
+                placeholder="Pilih Tanggal Selesai"
+              />
+            </div>
           </div>
 
-          {/* End Date */}
-          <div className="flex-1">
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Sampai Tanggal</label>
-            <DatePicker
-              value={endDate}
-              onChange={setEndDate}
-              placeholder="Pilih tanggal"
-              className="h-[38px]"
-            />
-          </div>
+          {/* Dropdown Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 flex-1">
+            {/* Role Filter */}
+            <div className="flex-1">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Peran</label>
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua Peran" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Peran</SelectItem>
+                  <SelectItem value="super_admin">Super Admin</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="atasan">Atasan</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Role Filter */}
-          <div className="flex-1">
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Peran</label>
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring h-[38px]"
-            >
-              <option value="all">Semua Peran</option>
-              <option value="super_admin">Super Admin</option>
-              <option value="admin">Admin</option>
-              <option value="atasan">Atasan</option>
-            </select>
-          </div>
+            {/* Category Filter */}
+            <div className="flex-1">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Kategori</label>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua Kategori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Kategori</SelectItem>
+                  <SelectItem value="User Management">Manajemen Pengguna</SelectItem>
+                  <SelectItem value="Leave Management">Manajemen Cuti</SelectItem>
+                  <SelectItem value="Personnel Management">Manajemen Personel</SelectItem>
+                  <SelectItem value="Reporting">Pelaporan</SelectItem>
+                  <SelectItem value="Authentication">Autentikasi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Category Filter */}
-          <div className="flex-1">
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Kategori</label>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring h-[38px]"
-            >
-              <option value="all">Semua Kategori</option>
-              <option value="User Management">Manajemen Pengguna</option>
-              <option value="Leave Management">Manajemen Cuti</option>
-              <option value="Personnel Management">Manajemen Personel</option>
-              <option value="Reporting">Pelaporan</option>
-              <option value="Authentication">Autentikasi</option>
-            </select>
-          </div>
-
-          {/* Status Filter */}
-          <div className="flex-1">
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring h-[38px]"
-            >
-              <option value="all">Semua Status</option>
-              <option value="success">Berhasil</option>
-              <option value="failure">Gagal</option>
-              <option value="warning">Peringatan</option>
-            </select>
+            {/* Status Filter */}
+            <div className="flex-1">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Status</SelectItem>
+                  <SelectItem value="success">Berhasil</SelectItem>
+                  <SelectItem value="failure">Gagal</SelectItem>
+                  <SelectItem value="warning">Peringatan</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Action Buttons */}

@@ -1,4 +1,5 @@
 import { X, FileText, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/Select";
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
@@ -399,26 +400,22 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Jenis Cuti <span className="text-red-500">*</span>
                 </label>
-                <select
-                  value={leaveTypeId}
-                  onChange={(e) => setLeaveTypeId(e.target.value)}
-                  className="w-full px-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
-                  required
+                <Select
+                  value={leaveTypeId ? leaveTypeId.toString() : ""}
+                  onValueChange={(val) => setLeaveTypeId(val)}
                   disabled={isSubmitting || loadingLeaveTypes || !personel}
                 >
-                  <option value="">
-                    {!personel ? 'Pilih personel terlebih dahulu' : loadingLeaveTypes ? 'Memuat jenis cuti...' : 'Pilih jenis cuti'}
-                  </option>
-                  {leaveTypes.map(lt => {
-                    const balance = personel?.balances?.[lt.name];
-                    const remaining = (balance && typeof balance === 'object') ? balance.remaining : (balance ?? lt.default_quota);
-                    return (
-                      <option key={lt.id} value={lt.id}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={!personel ? 'Pilih personel terlebih dahulu' : loadingLeaveTypes ? 'Memuat jenis cuti...' : 'Pilih jenis cuti'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {leaveTypes.map(lt => (
+                      <SelectItem key={lt.id} value={lt.id.toString()}>
                         {lt.name}
-                      </option>
-                    );
-                  })}
-                </select>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
                 {leaveTypeId && personel && getSelectedTypeBalance() !== null && (
                   <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded text-sm text-blue-700 dark:text-blue-300 animate-in fade-in">
@@ -450,7 +447,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                       holiday: "text-red-500 font-bold"
                     }}
                   />
-                </div>
+                </div >
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -477,8 +474,8 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                       holiday: "text-red-500 font-bold"
                     }}
                   />
-                </div>
-              </div>
+                </div >
+              </div >
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
@@ -535,7 +532,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                   />
                 </div>
               </div>
-            </div>
+            </div >
 
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
               <button
@@ -554,9 +551,9 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 {isSubmitting ? 'Mengirim...' : 'Kirim Catatan Cuti'}
               </button>
             </div>
-          </form>
-        </div>
-      </div>
+          </form >
+        </div >
+      </div >
     </>,
     document.body
   );
