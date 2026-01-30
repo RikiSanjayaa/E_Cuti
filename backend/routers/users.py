@@ -30,9 +30,22 @@ async def get_users(
     status: Optional[str] = None,
     sort_by: str = "created_at",
     sort_order: str = "desc",
-    current_user: models.User = Depends(auth.get_current_admin),
+    current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
+    # Allow super_admin, admin, and atasan to view users list
+    user_role = current_user.role
+    if hasattr(user_role, "value"):
+        user_role = user_role.value
+    else:
+        user_role = str(user_role)
+    
+    if user_role not in ["super_admin", "admin", "atasan"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions"
+        )
+    
     query = db.query(models.User)
 
     if search:
@@ -238,17 +251,33 @@ async def reset_password(
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
         
-    # RBAC: Only Super Admin can reset ANY password
+    # RBAC: Permission check for password reset
     user_role = current_user.role
     if hasattr(user_role, "value"):
         user_role = user_role.value
     else:
         user_role = str(user_role)
+    
+    target_role = db_user.role
+    if hasattr(target_role, "value"):
+        target_role = target_role.value
+    else:
+        target_role = str(target_role)
 
-    if user_role != "super_admin":
+    # Super admin can reset anyone's password
+    if user_role == "super_admin":
+        pass  # Allowed
+    # Admin can reset their own password
+    elif current_user.id == user_id:
+        pass  # Allowed
+    # Admin can reset atasan passwords
+    elif user_role == "admin" and target_role == "atasan":
+        pass  # Allowed
+    else:
+        # Admin cannot reset other admin or super_admin passwords
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only Super Admin can reset user passwords"
+            detail="You don't have permission to reset this user's password"
         )
         
     db_user.password_hash = get_password_hash(reset_data.new_password)

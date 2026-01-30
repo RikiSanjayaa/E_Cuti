@@ -747,7 +747,11 @@ export default function Personel() {
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-muted-foreground font-medium">{leaveHistory.length} riwayat</span>
                       <button
-                        onClick={() => navigate(`/admin/analytics?personnel_id=${selectedPersonnel.id}`)}
+                        onClick={() => {
+                          const role = localStorage.getItem('role');
+                          const basePath = role === 'atasan' ? '/atasan' : '/admin';
+                          navigate(`${basePath}/analytics?personnel_id=${selectedPersonnel.id}`);
+                        }}
                         className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-md border border-blue-100 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                         title="Cetak Riwayat Lengkap"
                       >

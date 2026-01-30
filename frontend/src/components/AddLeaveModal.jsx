@@ -110,8 +110,12 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
 
   useEffect(() => {
     if (startDate && finishDate) {
+      // Both dates provided - calculate working days between them
       const calculatedDays = calculateWorkingDays(startDate, finishDate);
       setDays(calculatedDays);
+    } else if (startDate && !finishDate) {
+      // Only start date provided - default to 1 day leave
+      setDays('1');
     }
   }, [startDate, finishDate, holidays]);
 
