@@ -10,7 +10,7 @@ import { formatDate } from '@/utils/dateUtils';
 import AddPersonnelModal from '@/components/AddPersonnelModal';
 import ImportDetailsModal from '@/components/ImportDetailsModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
-import { useEntitySubscription } from '@/lib/NotificationContext';
+import { useEntitySubscription, useNotifications } from '@/lib/NotificationContext';
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
@@ -53,6 +53,8 @@ export default function Personel() {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+  const { addToast } = useNotifications();
+
 
   const [modal, setModal] = useState({
     isOpen: false,
@@ -73,8 +75,10 @@ export default function Personel() {
 
   const [filterPangkat, setFilterPangkat] = useState('');
   const [filterJabatan, setFilterJabatan] = useState('');
+  const [filterBag, setFilterBag] = useState('');
   const [rankOptions, setRankOptions] = useState([]);
   const [jabatanOptions, setJabatanOptions] = useState([]);
+  const [bagOptions, setBagOptions] = useState([]);
   const [stats, setStats] = useState({
     total_personnel: 0,
     active_personnel: 0,
@@ -95,7 +99,7 @@ export default function Personel() {
   const handlePersonnelChange = useCallback(() => {
     fetchPersonnel();
     fetchStats();
-  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage, filterPangkat, filterJabatan]);
+  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage, filterPangkat, filterJabatan, filterBag]);
 
   useEntitySubscription('personnel', handlePersonnelChange);
 
@@ -131,6 +135,7 @@ export default function Personel() {
       });
       setRankOptions(response.data.pangkat || []);
       setJabatanOptions(response.data.jabatan || []);
+      setBagOptions(response.data.bag || []);
     } catch (error) {
       console.error("Failed to fetch filters:", error);
     }
@@ -138,7 +143,7 @@ export default function Personel() {
 
   useEffect(() => {
     fetchPersonnel();
-  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage, filterPangkat, filterJabatan]);
+  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage, filterPangkat, filterJabatan, filterBag]);
 
 
   useEffect(() => {
@@ -176,6 +181,7 @@ export default function Personel() {
       if (searchQuery) params.query = searchQuery;
       if (filterPangkat) params.pangkat = filterPangkat;
       if (filterJabatan) params.jabatan = filterJabatan;
+      if (filterBag) params.bag = filterBag;
 
       const response = await axios.get('/api/personnel/', {
         params,
@@ -205,7 +211,7 @@ export default function Personel() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterPangkat, filterJabatan]);
+  }, [searchQuery, filterPangkat, filterJabatan, filterBag]);
 
   const handleImport = async (e) => {
     const file = e.target.files[0];
@@ -232,9 +238,8 @@ export default function Personel() {
       fetchFilters();
 
     } catch (error) {
-      setModal({
-        isOpen: true,
-        type: 'danger',
+      addToast({
+        type: 'error',
         title: 'Import Gagal',
         message: error.response?.data?.detail || error.message
       });
@@ -250,7 +255,10 @@ export default function Personel() {
       const params = {
         query: searchQuery,
         sort_by: sortBy,
-        sort_order: sortOrder
+        sort_order: sortOrder,
+        pangkat: filterPangkat,
+        jabatan: filterJabatan,
+        bag: filterBag
       };
 
       const response = await axios.get('/api/personnel/export', {
@@ -268,7 +276,11 @@ export default function Personel() {
       link.remove();
     } catch (error) {
       console.error("Failed to export personnel:", error);
-      alert("Gagal mengunduh data personel.");
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal mengunduh data personel'
+      });
     }
   };
 
@@ -342,14 +354,14 @@ export default function Personel() {
                 placeholder="Cari berdasarkan nama, NRP, atau jabatan..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent"
               />
             </div>
 
             <select
               value={filterPangkat}
               onChange={(e) => setFilterPangkat(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background text-foreground min-w-[140px]"
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px]"
             >
               <option value="">Semua Pangkat</option>
               {rankOptions.map(opt => (
@@ -360,10 +372,21 @@ export default function Personel() {
             <select
               value={filterJabatan}
               onChange={(e) => setFilterJabatan(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background text-foreground min-w-[140px]"
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px]"
             >
               <option value="">Semua Jabatan</option>
               {jabatanOptions.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+
+            <select
+              value={filterBag}
+              onChange={(e) => setFilterBag(e.target.value)}
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px]"
+            >
+              <option value="">Semua Bagian</option>
+              {bagOptions.map(opt => (
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
@@ -443,6 +466,15 @@ export default function Personel() {
                       <SortIcon field="jabatan" />
                     </div>
                   </th>
+                  <th
+                    className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                    onClick={() => handleSort('bag')}
+                  >
+                    <div className="flex items-center">
+                      Bagian
+                      <SortIcon field="bag" />
+                    </div>
+                  </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Sisa Cuti
                   </th>
@@ -482,6 +514,9 @@ export default function Personel() {
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">
                         {p.jabatan}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {p.bag || '-'}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
                         {p.balances ? (
@@ -575,9 +610,15 @@ export default function Personel() {
                   </div>
 
                   {/* Jabatan */}
-                  <div className="col-span-2">
+                  <div>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Jabatan</p>
                     <p className="font-semibold text-sm text-foreground leading-snug">{selectedPersonnel.jabatan}</p>
+                  </div>
+
+                  {/* Bagian */}
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Bagian</p>
+                    <p className="font-semibold text-sm text-foreground leading-snug">{selectedPersonnel.bag || '-'}</p>
                   </div>
 
                   {/* Per-Type Balances */}
@@ -640,11 +681,11 @@ export default function Personel() {
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-3 px-1">
                     <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                       Riwayat Izin
+                      Riwayat Izin
                     </h3>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-muted-foreground font-medium">{leaveHistory.length} riwayat</span>
-                      <button 
+                      <button
                         onClick={() => navigate(`/admin/analytics?personnel_id=${selectedPersonnel.id}`)}
                         className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-md border border-blue-100 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                         title="Cetak Riwayat Lengkap"
@@ -781,8 +822,7 @@ export default function Personel() {
             fetchPersonnel();
             fetchStats();
             fetchFilters();
-            setModal({
-              isOpen: true,
+            addToast({
               type: 'success',
               title: 'Berhasil',
               message: msg

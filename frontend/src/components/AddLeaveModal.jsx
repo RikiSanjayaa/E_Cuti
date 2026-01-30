@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { getLeaveColorClass } from '@/utils/leaveUtils';
+import { useNotifications } from '@/lib/NotificationContext';
 
 export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [nrp, setNrp] = useState('');
@@ -15,8 +16,8 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [context, setContext] = useState('');
   const [file, setFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+
+  const { addToast } = useNotifications();
 
   const [leaveTypes, setLeaveTypes] = useState([]);
   const [loadingLeaveTypes, setLoadingLeaveTypes] = useState(false);
@@ -184,14 +185,11 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setSubmitError('');
 
     try {
       const formData = new FormData();
       formData.append('nrp', nrp);
       formData.append('leave_type_id', leaveTypeId);
-      formData.append('jumlah_hari', days);
-      formData.append('tanggal_mulai', startDate);
       formData.append('jumlah_hari', days);
       formData.append('tanggal_mulai', startDate);
       formData.append('alasan', context);
@@ -215,16 +213,13 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
         });
       }
 
-      setSubmitSuccess(true);
-      // Scroll to top to see success message
-      if (formRef.current) {
-        formRef.current.parentElement.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-
-      setTimeout(() => {
-        resetForm();
-        onClose();
-      }, 2000);
+      resetForm();
+      onClose();
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: isEditMode ? 'Data cuti berhasil diperbarui' : 'Data cuti berhasil ditambahkan'
+      });
     } catch (error) {
       console.error("Submission error:", error);
       const errorData = error.response?.data?.detail;
@@ -236,11 +231,13 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
         errorMsg = errorData.map(err => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(', ');
       }
 
-      setSubmitError(errorMsg);
-      // Scroll to top to see error message
-      if (formRef.current) {
-        formRef.current.parentElement.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      resetForm();
+      onClose();
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: errorMsg
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -256,8 +253,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     setDays('');
     setContext('');
     setFile(null);
-    setSubmitSuccess(false);
-    setSubmitError('');
     setLeaveTypes([]);
   };
 
@@ -297,14 +292,14 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       />
 
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] bg-card dark:bg-neutral-900 rounded-lg shadow-2xl z-50 overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="sticky top-0 bg-primary dark:bg-neutral-900 text-primary-foreground dark:text-neutral-100 px-6 py-4 flex items-center justify-between border-b border-border dark:border-neutral-800">
+        <div className="sticky top-0 bg-white dark:bg-neutral-900 text-gray-900 dark:text-neutral-100 px-6 py-4 flex items-center justify-between border-b border-gray-200 dark:border-neutral-800">
           <div>
             <h2 className="text-xl font-semibold">{isEditMode ? 'Edit Catatan Cuti' : 'Tambah Catatan Cuti'}</h2>
-            <p className="text-sm opacity-90 mt-1 dark:text-neutral-400">{isEditMode ? 'Perbarui data cuti personel' : 'Catat entri cuti baru untuk personel'}</p>
+            <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">{isEditMode ? 'Perbarui data cuti personel' : 'Catat entri cuti baru untuk personel'}</p>
           </div>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-primary-foreground/10 dark:hover:bg-neutral-800 rounded-md transition-colors cursor-pointer"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-md transition-colors cursor-pointer text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
             disabled={isSubmitting}
           >
             <X className="w-5 h-5" />
@@ -313,24 +308,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
 
         <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
           <form ref={formRef} onSubmit={handleSubmit} className="p-6 space-y-6">
-            {submitSuccess && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3 animate-in slide-in-from-top duration-300">
-                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-green-900">Catatan cuti berhasil dibuat!</p>
-                </div>
-              </div>
-            )}
 
-            {submitError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3 animate-in slide-in-from-top duration-300">
-                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-red-900">Kesalahan</p>
-                  <p className="text-sm text-red-700 mt-1">{submitError}</p>
-                </div>
-              </div>
-            )}
 
             <div className="space-y-4">
               <div>
@@ -345,7 +323,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                       placeholder="Masukkan NRP Personel"
                       value={nrp}
                       onChange={(e) => setNrp(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-black text-foreground dark:text-white dark:placeholder-neutral-500"
+                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:placeholder-neutral-500"
                       disabled={isSubmitting}
                       required
                     />
@@ -367,11 +345,11 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                         <p className="font-semibold text-foreground">{personel.name}</p>
                         <p className="text-xs text-muted-foreground">NRP: {personel.nrp}</p>
                         <div className="flex flex-wrap gap-2 mt-1">
-                          <p className="text-xs text-muted-foreground bg-white/50 px-2 py-0.5 rounded-full border border-border">
+                          <p className="text-xs text-foreground bg-muted/50 dark:bg-neutral-800 px-2 py-0.5 rounded-full border border-border">
                             {personel.position}
                           </p>
                           {personel.gender && (
-                            <p className="text-xs text-muted-foreground bg-white/50 px-2 py-0.5 rounded-full border border-border">
+                            <p className="text-xs text-foreground bg-muted/50 dark:bg-neutral-800 px-2 py-0.5 rounded-full border border-border">
                               {personel.gender === 'L' ? 'Laki-laki' : 'Perempuan'}
                             </p>
                           )}
@@ -419,7 +397,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 <select
                   value={leaveTypeId}
                   onChange={(e) => setLeaveTypeId(e.target.value)}
-                  className="w-full px-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-black text-foreground dark:text-white"
+                  className="w-full px-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
                   required
                   disabled={isSubmitting || loadingLeaveTypes || !personel}
                 >
@@ -438,7 +416,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 </select>
 
                 {leaveTypeId && personel && getSelectedTypeBalance() !== null && (
-                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700 animate-in fade-in">
+                  <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded text-sm text-blue-700 dark:text-blue-300 animate-in fade-in">
                     Sisa kuota: <strong>{getSelectedTypeBalance()}</strong> hari
                   </div>
                 )}
@@ -458,7 +436,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                         setStartDate(e.target.value);
                         // reset days if invalid? handled by effect
                       }}
-                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-black text-foreground dark:text-white dark:[color-scheme:dark]"
+                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
                       required
                       disabled={isSubmitting}
                     />
@@ -476,7 +454,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                       value={finishDate}
                       min={startDate}
                       onChange={(e) => setFinishDate(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-black text-foreground dark:text-white dark:[color-scheme:dark]"
+                      className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:[color-scheme:dark]"
                       disabled={isSubmitting || !startDate}
                     />
                   </div>
@@ -493,7 +471,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                     placeholder="Hitung otomatis"
                     value={days}
                     onChange={(e) => setDays(e.target.value)}
-                    className={`w-full px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background dark:bg-black text-foreground dark:text-white dark:placeholder-neutral-500 ${days && getSelectedTypeBalance() !== null && parseInt(days) > getSelectedTypeBalance()
+                    className={`w-full px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground dark:placeholder-neutral-500 ${days && getSelectedTypeBalance() !== null && parseInt(days) > getSelectedTypeBalance()
                       ? 'border-red-500 focus:ring-red-200'
                       : 'border-input dark:border-neutral-800'
                       }`}
@@ -532,7 +510,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                     value={context}
                     onChange={(e) => setContext(e.target.value)}
                     rows={4}
-                    className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none bg-background dark:bg-black text-foreground dark:text-white dark:placeholder-neutral-500"
+                    className="w-full pl-9 pr-4 py-2 border border-input dark:border-neutral-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none bg-transparent text-foreground dark:placeholder-neutral-500"
                     required
                     disabled={isSubmitting}
                   />
@@ -551,7 +529,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-primary dark:bg-black text-primary-foreground dark:text-white rounded-md hover:bg-primary/90 dark:hover:bg-neutral-900 border border-transparent dark:border-neutral-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                className="px-6 py-2 bg-primary dark:bg-white text-primary-foreground dark:text-black rounded-md hover:bg-primary/90 dark:hover:bg-gray-200 border border-transparent dark:border-transparent text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Mengirim...' : 'Kirim Catatan Cuti'}

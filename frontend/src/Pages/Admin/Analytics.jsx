@@ -126,6 +126,9 @@ export default function Analytics() {
       year: new Date(startDate).getFullYear()
     });
 
+    // Old Logic
+    // window.location.href = `/api/reports/export?${params.toString()}&token=${token}`;
+    
     if (formatType === 'pdf') {
       generatePDF();
     } else {
@@ -223,10 +226,13 @@ export default function Analytics() {
     // -- Footer --
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(150);
-      doc.text(`Halaman ${i} dari ${pageCount}`, 280, 200, { align: 'right' }); // Adjusted for Landscape width
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        // doc.text(`Dicetak pada: ${format(new Date(), 'dd MMMM yyyy HH:mm', { locale: localeId })}`, 14, 285);
+        // User requested B&W professional - maybe keep print time or remove if too cluttered? 
+        // Keeping it small is usually standard for system reports.
+        doc.text(`Halaman ${i} dari ${pageCount}`, 280, 200, { align: 'right' }); // Adjusted for Landscape width
     }
 
     doc.save(`Laporan_Cuti_${startDate}_${endDate}.pdf`);
@@ -325,52 +331,57 @@ export default function Analytics() {
         <div className="flex flex-wrap gap-2 mb-6">
           <button
             onClick={() => applyQuickFilter('this_year')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'this_year'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              }`}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              activeFilter === 'this_year' 
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            }`}
           >
             Tahun Ini
           </button>
           <button
             onClick={() => applyQuickFilter('this_month')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'this_month'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              }`}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              activeFilter === 'this_month' 
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            }`}
           >
             Bulan Ini
           </button>
           <button
             onClick={() => applyQuickFilter('last_month')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'last_month'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              }`}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              activeFilter === 'last_month' 
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            }`}
           >
             Bulan Lalu
           </button>
           <button
             onClick={() => applyQuickFilter('last_3_months')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'last_3_months'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              }`}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              activeFilter === 'last_3_months' 
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            }`}
           >
             3 Bulan Terakhir
           </button>
           <button
             onClick={() => applyQuickFilter('last_year')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'last_year'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              }`}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              activeFilter === 'last_year' 
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            }`}
           >
             Tahun Lalu
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Date Range */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
@@ -418,7 +429,7 @@ export default function Analytics() {
             <select
               value={leaveTypeFilter}
               onChange={(e) => setLeaveTypeFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+              className="w-full px-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="all">Semua Jenis</option>
               {leaveTypes.map(lt => (
@@ -429,7 +440,7 @@ export default function Analytics() {
         </div>
 
         {/* Export Buttons */}
-        <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-border">
+        <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-border justify-end">
           <button
             onClick={() => handleExport('excel')}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 dark:bg-transparent dark:border dark:border-green-800 dark:text-green-500 dark:hover:bg-green-900/20 transition-colors cursor-pointer"

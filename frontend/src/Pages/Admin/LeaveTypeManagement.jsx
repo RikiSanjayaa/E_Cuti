@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Calendar, AlertCircle, Users, Palette } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Calendar, AlertCircle, Users, Palette, ChevronDown, Check } from 'lucide-react';
 import axios from 'axios';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { PRESET_COLORS, getLeaveColorClass } from '../../utils/leaveUtils';
-import { useEntitySubscription } from '@/lib/NotificationContext';
+import { useEntitySubscription, useNotifications } from '@/lib/NotificationContext';
 
 export default function LeaveTypeManagement() {
   const [leaveTypes, setLeaveTypes] = useState([]);
@@ -11,7 +11,8 @@ export default function LeaveTypeManagement() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+
+  const { addToast } = useNotifications();
 
   // Form State
   const [formData, setFormData] = useState({
@@ -33,6 +34,21 @@ export default function LeaveTypeManagement() {
     onConfirm: () => { },
     isLoading: false
   });
+
+  // Color dropdown state
+  const [colorDropdownOpen, setColorDropdownOpen] = useState(false);
+  const colorDropdownRef = useRef(null);
+
+  // Close color dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (colorDropdownRef.current && !colorDropdownRef.current.contains(event.target)) {
+        setColorDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fetchLeaveTypes = async () => {
     setLoading(true);
@@ -73,6 +89,7 @@ export default function LeaveTypeManagement() {
     setEditingId(null);
     setShowModal(false);
     setMessage({ type: '', text: '' });
+    setColorDropdownOpen(false);
   };
 
   const handleEdit = (leaveType) => {
@@ -91,26 +108,31 @@ export default function LeaveTypeManagement() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormLoading(true);
-    setMessage({ type: '', text: '' });
 
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
+      const successMessage = editingId ? 'Jenis cuti berhasil diperbarui' : 'Jenis cuti berhasil ditambahkan';
 
       if (editingId) {
         await axios.put(`/api/leave-types/${editingId}`, formData, { headers });
-        setMessage({ type: 'success', text: 'Jenis cuti berhasil diperbarui' });
       } else {
         await axios.post('/api/leave-types/', formData, { headers });
-        setMessage({ type: 'success', text: 'Jenis cuti berhasil ditambahkan' });
       }
 
       fetchLeaveTypes();
-      setTimeout(() => resetForm(), 1500);
+      resetForm();
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: successMessage
+      });
     } catch (error) {
-      setMessage({
+      resetForm();
+      addToast({
         type: 'error',
-        text: error.response?.data?.detail || 'Gagal menyimpan jenis cuti'
+        title: 'Gagal',
+        message: error.response?.data?.detail || 'Gagal menyimpan jenis cuti'
       });
     } finally {
       setFormLoading(false);
@@ -139,10 +161,19 @@ export default function LeaveTypeManagement() {
       });
       fetchLeaveTypes();
       setConfirmModal({ isOpen: false });
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: 'Jenis cuti berhasil dinonaktifkan'
+      });
     } catch (error) {
       console.error('Failed to delete leave type:', error);
       setConfirmModal({ isOpen: false });
-      alert('Gagal menonaktifkan jenis cuti');
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal menonaktifkan jenis cuti'
+      });
     }
   };
 
@@ -154,9 +185,18 @@ export default function LeaveTypeManagement() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchLeaveTypes();
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: 'Jenis cuti berhasil diaktifkan kembali'
+      });
     } catch (error) {
       console.error('Failed to reactivate:', error);
-      alert('Gagal mengaktifkan kembali jenis cuti');
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: 'Gagal mengaktifkan kembali jenis cuti'
+      });
     }
   };
 
@@ -358,14 +398,6 @@ export default function LeaveTypeManagement() {
               </h2>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {message.text && (
-                <div className={`p-3 rounded-md text-sm ${message.type === 'error'
-                  ? 'bg-red-50 text-red-600 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800'
-                  : 'bg-green-50 text-green-600 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800'
-                  }`}>
-                  {message.text}
-                </div>
-              )}
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nama Jenis Cuti</label>
@@ -375,7 +407,7 @@ export default function LeaveTypeManagement() {
                   placeholder="contoh: Cuti Tahunan"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
                 />
               </div>
 
@@ -387,7 +419,7 @@ export default function LeaveTypeManagement() {
                   placeholder="contoh: cuti_tahunan"
                   value={formData.code}
                   onChange={e => setFormData({ ...formData, code: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono bg-background text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono bg-transparent text-foreground"
                 />
                 <p className="text-xs text-muted-foreground">Kode unik untuk identifikasi internal (huruf kecil, tanpa spasi)</p>
               </div>
@@ -401,7 +433,7 @@ export default function LeaveTypeManagement() {
                   max="365"
                   value={formData.default_quota}
                   onChange={e => setFormData({ ...formData, default_quota: parseInt(e.target.value) || 1 })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
                 />
               </div>
 
@@ -410,7 +442,7 @@ export default function LeaveTypeManagement() {
                 <select
                   value={formData.gender_specific || ''}
                   onChange={e => setFormData({ ...formData, gender_specific: e.target.value || null })}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground"
                 >
                   <option value="">Semua Gender</option>
                   <option value="P">Khusus Perempuan</option>
@@ -424,22 +456,49 @@ export default function LeaveTypeManagement() {
                   <Palette className="w-4 h-4" />
                   Warna Tag
                 </label>
-                <div className="relative">
-                  <select
-                    value={formData.color}
-                    onChange={e => setFormData({ ...formData, color: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring appearance-none bg-background text-foreground"
+                <div className="relative" ref={colorDropdownRef}>
+                  {/* Custom color dropdown trigger */}
+                  <button
+                    type="button"
+                    onClick={() => setColorDropdownOpen(!colorDropdownOpen)}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-transparent text-foreground flex items-center justify-between"
                   >
-                    {PRESET_COLORS.map((color) => (
-                      <option key={color.value} value={color.value}>
-                        {color.label}
-                      </option>
-                    ))}
-                  </select>
-                  {/* Color preview */}
-                  <div className="absolute right-10 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <div className={`w-5 h-5 rounded-full ${PRESET_COLORS.find(c => c.value === formData.color)?.sample || 'bg-gray-500'}`} />
-                  </div>
+                    <span className="flex items-center gap-2">
+                      {PRESET_COLORS.find(c => c.value === formData.color)?.label || 'Pilih Warna'}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-5 h-5 rounded-full ${PRESET_COLORS.find(c => c.value === formData.color)?.sample || 'bg-gray-500'}`} />
+                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${colorDropdownOpen ? 'rotate-180' : ''}`} />
+                    </div>
+                  </button>
+
+                  {/* Custom dropdown menu */}
+                  {colorDropdownOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {PRESET_COLORS.map((color) => (
+                        <button
+                          key={color.value}
+                          type="button"
+                          onClick={() => {
+                            setFormData({ ...formData, color: color.value });
+                            setColorDropdownOpen(false);
+                          }}
+                          className={`w-full px-3 py-2 flex items-center justify-between hover:bg-muted/50 transition-colors ${formData.color === color.value ? 'bg-muted' : ''
+                            }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            {formData.color === color.value && (
+                              <Check className="w-4 h-4 text-primary" />
+                            )}
+                            <span className={formData.color === color.value ? 'font-medium' : ''}>
+                              {color.label}
+                            </span>
+                          </span>
+                          <div className={`w-5 h-5 rounded-full ${color.sample}`} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground">Warna ini akan ditampilkan di semua halaman untuk tag jenis cuti ini</p>
               </div>

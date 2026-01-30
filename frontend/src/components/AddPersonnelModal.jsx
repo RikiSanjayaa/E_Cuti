@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { X, UserPlus, Save, Loader2 } from 'lucide-react';
+import { useNotifications } from '@/lib/NotificationContext';
 
 export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
@@ -10,11 +11,13 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
     nrp: '',
     nama: '',
     pangkat: '',
-    jabatan: ''
+    jabatan: '',
+    bag: ''
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  const { addToast } = useNotifications();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,7 +25,6 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -31,11 +33,16 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setFormData({ nrp: '', nama: '', pangkat: '', jabatan: '' });
+      setFormData({ nrp: '', nama: '', pangkat: '', jabatan: '', bag: '' });
       onSuccess("Personel berhasil ditambahkan!");
       onClose();
     } catch (err) {
-      setError(err.response?.data?.detail || "Gagal menambahkan personel");
+      onClose();
+      addToast({
+        type: 'error',
+        title: 'Gagal',
+        message: err.response?.data?.detail || "Gagal menambahkan personel"
+      });
     } finally {
       setLoading(false);
     }
@@ -71,11 +78,6 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2 border border-red-200 dark:border-red-900/50">
-              <X className="w-4 h-4" /> {error}
-            </div>
-          )}
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">NRP / NIP <span className="text-red-500">*</span></label>
@@ -111,7 +113,7 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
                 name="pangkat"
                 value={formData.pangkat}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white dark:placeholder-neutral-500"
+                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-transparent text-foreground placeholder:text-muted-foreground"
                 placeholder="Contoh: BRIPKA"
                 required
               />
@@ -123,9 +125,20 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
                 name="jabatan"
                 value={formData.jabatan}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-white dark:bg-neutral-900 text-gray-900 dark:text-white dark:placeholder-neutral-500"
+                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-transparent text-foreground placeholder:text-muted-foreground"
                 placeholder="Contoh: BA UR TU"
                 required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bagian (Opsional)</label>
+              <input
+                type="text"
+                name="bag"
+                value={formData.bag}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-transparent text-foreground placeholder:text-muted-foreground"
+                placeholder="Contoh: BAG BEKUM"
               />
             </div>
           </div>
@@ -141,7 +154,7 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-slate-900 dark:bg-black hover:bg-slate-800 dark:hover:bg-neutral-900 rounded-lg shadow-lg shadow-slate-900/20 dark:shadow-none border border-transparent dark:border-neutral-800 flex items-center gap-2 transition-all active:scale-[0.98]"
+              className="px-4 py-2 text-sm font-medium text-white dark:text-black bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-gray-200 rounded-lg shadow-lg shadow-slate-900/20 dark:shadow-none border border-transparent flex items-center gap-2 transition-all active:scale-[0.98]"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Simpan Personel
