@@ -362,6 +362,15 @@ export default function LeaveRecords() {
               <tr className="border-b border-border bg-muted/50">
                 <th
                   className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('created_at')}
+                >
+                  <div className="flex items-center">
+                    Tgl Entry
+                    <SortIcon field="created_at" />
+                  </div>
+                </th>
+                <th
+                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => handleSort('nrp')}
                 >
                   <div className="flex items-center">
@@ -376,15 +385,6 @@ export default function LeaveRecords() {
                   <div className="flex items-center">
                     Personel
                     <SortIcon field="nama" />
-                  </div>
-                </th>
-                <th
-                  className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
-                  onClick={() => handleSort('created_at')}
-                >
-                  <div className="flex items-center">
-                    Tgl Entry
-                    <SortIcon field="created_at" />
                   </div>
                 </th>
                 <th
@@ -441,14 +441,14 @@ export default function LeaveRecords() {
               ) : (
                 filteredLeaves.map((leave) => (
                   <tr key={leave.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      {formatDateTime(leave.created_at)}
+                    </td>
                     <td className="px-6 py-4 text-sm font-medium text-foreground">
                       {leave.personnel?.nrp}
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
                       {leave.personnel?.nama}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {formatDateTime(leave.created_at)}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
                       {formatSingleDate(leave.tanggal_mulai)}

@@ -60,6 +60,7 @@ async def export_leaves(
     data = []
     for leave in leaves:
         data.append({
+            "Tgl Entry": leave.created_at.strftime("%Y-%m-%d %H:%M") if leave.created_at else "-",
             "NRP": leave.personnel.nrp if leave.personnel else "-",
             "Personel": leave.personnel.nama if leave.personnel else "-",
             "Jenis Cuti": leave.leave_type.name if leave.leave_type else "-",
