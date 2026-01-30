@@ -119,165 +119,32 @@ export default function Analytics() {
   };
 
   const handleExport = (formatType) => {
-    const token = localStorage.getItem('token');
-    const params = new URLSearchParams({
-      format: formatType,
-      // API expects month/year for simple export, but let's assume we update it to support dates or use the existing logic
-      // For now, let's just trigger the existing export which is month-based.
-      // TODO: Update backend to support date range export if needed.
-      // Current backend supports month/year. Let's try to extract month/year from start date.
-      month: new Date(startDate).getMonth() + 1,
-      year: new Date(startDate).getFullYear()
-    });
+    // For Excel and PDF, use the Backend (Formatted with OpenPyXL or ReportLab)
+    try {
+      const token = localStorage.getItem('token');
+      const params = new URLSearchParams({
+        format: formatType,
+        start_date: startDate,
+        end_date: endDate,
+      });
 
-    // Old Logic
-    // window.location.href = `/api/reports/export?${params.toString()}&token=${token}`;
-    
-    if (formatType === 'pdf') {
-      generatePDF();
-    } else {
-      generateExcel();
+      if (personnelId) params.append('personnel_id', personnelId);
+      if (leaveTypeFilter && leaveTypeFilter !== 'all') params.append('leave_type', leaveTypeFilter);
+
+      // Trigger download
+      window.location.href = `/api/reports/export?${params.toString()}&token=${token}`;
+      
+    } catch (error) {
+      console.error("Export failed:", error);
+      alert("Gagal mengekspor laporan.");
     }
   };
 
-  const generatePDF = () => {
-    const doc = new jsPDF({ orientation: 'landscape' });
-
-    // -- Header --
-    doc.setFontSize(18);
-    doc.text('POLDA NUSA TENGGARA BARAT', 148.5, 20, { align: 'center' });
-    doc.setFontSize(14);
-    doc.text('LAPORAN MANAJEMEN CUTI PERSONEL', 148.5, 30, { align: 'center' });
     
-    doc.setFontSize(10);
-    doc.text(`Periode: ${format(new Date(startDate), 'dd MMMM yyyy', { locale: localeId })} - ${format(new Date(endDate), 'dd MMMM yyyy', { locale: localeId })}`, 148.5, 40, { align: 'center' });
 
-    // -- Data Table --
-    autoTable(doc, {
-      startY: 55, // Moved up since summary is removed
-      head: [['No', 'NRP', 'Nama', 'Jabatan', 'Jenis Cuti', 'Mulai', 'Selesai', 'Durasi']],
-      body: reportData.data.map((item, index) => {
-        const endDate = item.tanggal_mulai ? addDays(new Date(item.tanggal_mulai), (item.jumlah_hari || 1) - 1) : null;
-        return [
-          index + 1,
-          item.personnel?.nrp || '-',
-          item.personnel?.nama || '-',
-          item.personnel?.jabatan || '-',
-          item.leave_type?.name || '-',
-          item.tanggal_mulai ? format(new Date(item.tanggal_mulai), 'dd MMM yyy') : '-',
-          endDate ? format(endDate, 'dd MMM yyy') : '-',
-          `${item.jumlah_hari} Hari`
-        ];
-      }),
-      theme: 'plain', // Clean B&W look
-      headStyles: { 
-        fillColor: [255, 255, 255], 
-        textColor: 0, 
-        fontStyle: 'bold', 
-        lineWidth: 0.1, 
-        lineColor: 0 
-      },
-      styles: { 
-        fontSize: 9, 
-        cellPadding: 3, 
-        textColor: 0,
-        lineWidth: 0.1,
-        lineColor: 0
-      },
-      // Remove alternate row color for strict B&W professional look
-      alternateRowStyles: { fillColor: [255, 255, 255] },
-      foot: [['', '', '', '', '', '', 'Jumlah Personel', `${reportData.unique_personel} Orang`]],
-      footStyles: { 
-        fillColor: [240, 240, 240], 
-        textColor: 0, 
-        fontStyle: 'bold',
-        lineWidth: 0.1,
-        lineColor: 0
-      },
-      showFoot: 'lastPage'
-    });
 
-    // -- Signature Section --
-    const finalY = doc.lastAutoTable.finalY + 20;
-    
-    // Check if we need a new page for signature
-    if (finalY > 250) {
-      doc.addPage();
-    }
-    
-    const signatureY = finalY > 250 ? 40 : finalY;
-    const signatureCenterX = 230; // Centered on the right side for Landscape A4 (297mm width)
 
-    // -- Right Side Signature --
-    const currentDate = format(new Date(), 'd MMMM yyyy', { locale: localeId });
-    doc.text(`Mataram, ${currentDate}`, signatureCenterX, signatureY, { align: 'center' });
-    doc.text('A.N. KARO LOGISTIK POLDA NTB', signatureCenterX, signatureY + 5, { align: 'center' });
-    doc.text('KASUBAGRENMIN', signatureCenterX, signatureY + 10, { align: 'center' });
 
-    // Space for signature/stamp
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('ETEK RIAWAN, S.E.', signatureCenterX, signatureY + 40, { align: 'center' });
-    
-    // Manual Underline for Name
-    const nameWidth = doc.getTextWidth('ETEK RIAWAN, S.E.');
-    doc.setLineWidth(0.5);
-    doc.line(signatureCenterX - (nameWidth / 2), signatureY + 41, signatureCenterX + (nameWidth / 2), signatureY + 41);
-
-    doc.setFont('helvetica', 'normal');
-    doc.text('KOMPOL NRP 73120869', signatureCenterX, signatureY + 46, { align: 'center' });
-
-    // -- Footer --
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        // doc.text(`Dicetak pada: ${format(new Date(), 'dd MMMM yyyy HH:mm', { locale: localeId })}`, 14, 285);
-        // User requested B&W professional - maybe keep print time or remove if too cluttered? 
-        // Keeping it small is usually standard for system reports.
-        doc.text(`Halaman ${i} dari ${pageCount}`, 280, 200, { align: 'right' }); // Adjusted for Landscape width
-    }
-
-    doc.save(`Laporan_Cuti_${startDate}_${endDate}.pdf`);
-  };
-
-  const generateExcel = () => {
-    const wb = XLSX.utils.book_new();
-    
-    // 1. Prepare Data
-    const data = reportData.data.map((item, index) => {
-      const endDate = item.tanggal_mulai ? addDays(new Date(item.tanggal_mulai), (item.jumlah_hari || 1) - 1) : null;
-      return {
-        'No': index + 1,
-        'NRP': item.personnel?.nrp,
-        'Nama Personel': item.personnel?.nama,
-        'Jabatan': item.personnel?.jabatan || '-',
-        'Jenis Cuti': item.leave_type?.name,
-        'Tanggal Mulai': item.tanggal_mulai ? format(new Date(item.tanggal_mulai), 'dd/MM/yyyy') : '-',
-        'Tanggal Selesai': endDate ? format(endDate, 'dd/MM/yyyy') : '-',
-        'Durasi (Hari)': item.jumlah_hari,
-        'Keterangan': item.reason || '-'
-      };
-    });
-
-    // 2. Create Search Sheet
-    const ws = XLSX.utils.json_to_sheet(data);
-
-    // 3. Add Summary Info at top (insert rows)
-    XLSX.utils.sheet_add_aoa(ws, [
-      ['LAPORAN MANAJEMEN CUTI PERSONEL'],
-      [`Periode: ${startDate} s/d ${endDate}`],
-      [''],
-      // Removed Summary Section as requested
-    ], { origin: 'A1' });
-
-    // -- Sheet 1: Data Detail (Only this one now) --
-    XLSX.utils.book_append_sheet(wb, ws, "Laporan Cuti");
-
-    // Save
-    XLSX.writeFile(wb, `Laporan_Cuti_${startDate}_${endDate}.xlsx`);
-  };
 
   const printReport = () => {
     window.print();
