@@ -1,11 +1,57 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import os
+import asyncio
+from datetime import datetime, timedelta
 
 from .core.websocket import manager
+from .core.database import SessionLocal
+from .models import AuditLog
 
-app = FastAPI(title="Sistem Monitoring Izin Personel Polda NTB")
+# Background task for cleaning up old audit logs (older than 1 year)
+async def cleanup_old_audit_logs():
+    """Delete audit logs older than 1 year. Runs on startup and every 24 hours."""
+    while True:
+        try:
+            db = SessionLocal()
+            try:
+                one_year_ago = datetime.utcnow() - timedelta(days=365)
+                deleted_count = db.query(AuditLog).filter(
+                    AuditLog.timestamp < one_year_ago
+                ).delete(synchronize_session=False)
+                db.commit()
+                if deleted_count > 0:
+                    print(f"[Audit Cleanup] Deleted {deleted_count} audit logs older than 1 year")
+            finally:
+                db.close()
+        except Exception as e:
+            print(f"[Audit Cleanup] Error during cleanup: {e}")
+        
+        # Wait 24 hours before next cleanup
+        await asyncio.sleep(24 * 60 * 60)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager - handles startup and shutdown tasks."""
+    # Start background task for audit log cleanup
+    cleanup_task = asyncio.create_task(cleanup_old_audit_logs())
+    print("[Startup] Audit log cleanup task started")
+    
+    yield
+    
+    # Cancel cleanup task on shutdown
+    cleanup_task.cancel()
+    try:
+        await cleanup_task
+    except asyncio.CancelledError:
+        print("[Shutdown] Audit log cleanup task stopped")
+
+app = FastAPI(
+    title="Sistem Monitoring Izin Personel Polda NTB",
+    lifespan=lifespan
+)
 
 
 @app.websocket("/ws/notifications")

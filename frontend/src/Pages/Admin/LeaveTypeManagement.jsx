@@ -89,7 +89,6 @@ export default function LeaveTypeManagement() {
     });
     setEditingId(null);
     setShowModal(false);
-    setMessage({ type: '', text: '' });
     setColorDropdownOpen(false);
   };
 
@@ -219,7 +218,7 @@ export default function LeaveTypeManagement() {
   const totalQuota = leaveTypes.filter(lt => lt.is_active).reduce((sum, lt) => sum + lt.default_quota, 0);
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -230,9 +229,9 @@ export default function LeaveTypeManagement() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 font-medium group"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
           Tambah Jenis Cuti
         </button>
       </div>

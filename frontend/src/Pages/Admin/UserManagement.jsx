@@ -275,7 +275,7 @@ export default function UserManagement() {
   const inactiveUsers = users.filter(u => u.status === 'inactive').length;
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Manajemen Pengguna</h1>
@@ -286,9 +286,9 @@ export default function UserManagement() {
         {currentUser?.role === 'super_admin' && (
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 font-medium group"
           >
-            <UserPlus className="w-4 h-4" />
+            <UserPlus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
             {showForm ? 'Batal' : 'Tambah Pengguna Baru'}
           </button>
         )}
@@ -555,17 +555,44 @@ export default function UserManagement() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleResetPasswordClick(user)}
-                        className={`p-1.5 rounded border transition-colors ${currentUser?.role === 'super_admin'
-                          ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 cursor-pointer'
-                          : 'opacity-50 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-800 cursor-not-allowed'
-                          }`}
-                        title={currentUser?.role === 'super_admin' ? "Reset Password" : "Hanya Super Admin"}
-                        disabled={currentUser?.role !== 'super_admin'}
-                      >
-                        <Key className="w-4 h-4" />
-                      </button>
+                      {(() => {
+                        // Determine if current user can reset this user's password
+                        const canResetPassword = () => {
+                          if (!currentUser) return false;
+                          // Super admin can reset anyone
+                          if (currentUser.role === 'super_admin') return true;
+                          // Admin can reset their own password
+                          if (currentUser.id === user.id) return true;
+                          // Admin can reset atasan passwords
+                          if (currentUser.role === 'admin' && user.role === 'atasan') return true;
+                          // Admin cannot reset other admin or super_admin passwords
+                          return false;
+                        };
+
+                        const canReset = canResetPassword();
+                        const getResetTitle = () => {
+                          if (canReset) return "Reset Password";
+                          if (currentUser?.role === 'admin') {
+                            if (user.role === 'super_admin') return "Tidak dapat mereset Super Admin";
+                            if (user.role === 'admin') return "Tidak dapat mereset Admin lain";
+                          }
+                          return "Tidak memiliki akses";
+                        };
+
+                        return (
+                          <button
+                            onClick={() => handleResetPasswordClick(user)}
+                            className={`p-1.5 rounded border transition-colors ${canReset
+                              ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 cursor-pointer'
+                              : 'opacity-50 text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-800 cursor-not-allowed'
+                              }`}
+                            title={getResetTitle()}
+                            disabled={!canReset}
+                          >
+                            <Key className="w-4 h-4" />
+                          </button>
+                        );
+                      })()}
                       <button
                         onClick={() => handleToggleStatus(user)}
                         disabled={user.role === 'super_admin' || currentUser?.role !== 'super_admin'}

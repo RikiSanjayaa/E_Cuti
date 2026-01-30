@@ -9,7 +9,7 @@ import UserManagement from './Pages/Admin/UserManagement';
 import LeaveTypeManagement from './Pages/Admin/LeaveTypeManagement';
 import Profile from './Pages/Admin/Profile';
 import Preferences from './Pages/Admin/Preferences';
-import AtasanDashboard from './Pages/Atasan/Dashboard';
+// Dashboard is shared between Admin and Atasan roles
 import Reports from './Pages/Atasan/Reports';
 import AdminLayout from './Layouts/AdminLayout';
 import AtasanLayout from './Layouts/AtasanLayout';
@@ -53,8 +53,8 @@ function App() {
           </Route>
 
           {/* Atasan Routes */}
-          <Route element={<ProtectedRoute role="atasan"><AtasanLayout /></ProtectedRoute>}>
-            <Route path="/atasan" element={<AtasanDashboard />} />
+          <Route element={<ProtectedRoute allowedRoles={['atasan']}><AtasanLayout /></ProtectedRoute>}>
+            <Route path="/atasan" element={<AdminDashboard />} />
             <Route path="/atasan/leaves" element={<LeaveRecords />} />
             <Route path="/atasan/personel" element={<Personel />} />
             <Route path="/atasan/analytics" element={<Analytics />} />

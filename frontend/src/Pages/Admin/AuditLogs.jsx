@@ -1,11 +1,11 @@
 import { Search, Download, Shield, Filter, Calendar, RefreshCw, Lock, AlertTriangle, Eye, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
-import { DatePicker } from "../../components/ui/DatePicker";
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { formatDateTime } from '@/utils/dateUtils';
 import { Pagination } from '../../components/Pagination';
 import { useEntitySubscription } from '@/lib/NotificationContext';
+import { DatePicker } from '@/components/ui/date-picker';
 
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);
@@ -163,7 +163,7 @@ export default function AuditLogs() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Log Audit</h1>

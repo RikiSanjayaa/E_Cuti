@@ -82,6 +82,14 @@ class PersonnelBase(BaseModel):
 class PersonnelCreate(PersonnelBase):
     pass
 
+class PersonnelUpdate(BaseModel):
+    nrp: Optional[str] = None
+    nama: Optional[str] = None
+    pangkat: Optional[str] = None
+    jabatan: Optional[str] = None
+    bag: Optional[str] = None
+    jenis_kelamin: Optional[str] = None
+
 class Personnel(PersonnelBase):
     id: int
     # Per-type leave balances: {"Cuti Tahunan": {"remaining": 10, "quota": 12}, ...}
@@ -118,18 +126,7 @@ class LeaveHistory(BaseModel):
     class Config:
         from_attributes = True
 
-# ===== Dashboard & Analytics Schemas =====
-class DashboardStats(BaseModel):
-    total_leaves_today: int
-    total_leave_entries: int
-    leaves_this_month: int
-    total_personel: int
-    average_duration: float
-    top_frequent: List[dict]
-    recent_activity: List[LeaveHistory]
-    leave_distribution: List[dict]
-    department_summary: List[dict]
-
+# ===== Audit Log Schemas =====
 class AuditLogBase(BaseModel):
     action: str
     category: str
@@ -152,8 +149,30 @@ class AuditLog(AuditLogBase):
     class Config:
         from_attributes = True
 
+# ===== Dashboard & Analytics Schemas =====
+class DashboardCalendarLeave(BaseModel):
+    id: int
+    personnel_name: str
+    leave_type: str
+    start_date: date
+    end_date: date
+    color: str
+
+class DashboardStats(BaseModel):
+    total_leaves_today: int
+    total_leave_entries: int
+    leaves_this_month: int
+    total_personel: int
+    average_duration: float
+    top_frequent: List[dict]
+    recent_activity: List[AuditLog]
+    leave_distribution: List[dict]
+    department_summary: List[dict]
+    calendar_leaves: List[DashboardCalendarLeave]
+
 class AnalyticsSummary(BaseModel):
     total_records: int
     total_days: int
     unique_personel: int
     data: List[LeaveHistory]
+

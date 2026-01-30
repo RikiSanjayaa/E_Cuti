@@ -60,7 +60,7 @@ class Personnel(Base):
     jenis_kelamin = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    leaves = relationship("LeaveHistory", back_populates="personnel")
+    leaves = relationship("LeaveHistory", back_populates="personnel", cascade="all, delete-orphan")
 
 class LeaveHistory(Base):
     __tablename__ = "leave_history"

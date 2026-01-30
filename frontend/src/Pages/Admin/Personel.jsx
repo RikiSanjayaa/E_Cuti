@@ -1,4 +1,4 @@
-import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown, Copy, Check, User, Briefcase, Shield, Award, Printer } from 'lucide-react';
+import { Search, Filter, Download, X, Mail, Phone, MapPin, Calendar, TrendingUp, Upload, Loader2, Plus, ArrowUpDown, ArrowUp, ArrowDown, Copy, Check, User, Briefcase, Shield, Award, Printer, Pencil, Trash2 } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -9,6 +9,7 @@ import { getLeaveColorClass, getLeaveColors } from '@/utils/leaveUtils';
 import { formatDate } from '@/utils/dateUtils';
 
 import AddPersonnelModal from '@/components/AddPersonnelModal';
+import EditPersonnelModal from '@/components/EditPersonnelModal';
 import ImportDetailsModal from '@/components/ImportDetailsModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { LeaveDetailModal } from '@/components/LeaveDetailModal';
@@ -56,6 +57,9 @@ export default function Personel() {
 
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const { addToast } = useNotifications();
 
@@ -110,7 +114,7 @@ export default function Personel() {
             headers: { Authorization: `Bearer ${token}` }
           });
           setSelectedPersonnel(response.data);
-          
+
 
         } catch (error) {
           console.error("Failed to fetch personnel by NRP:", error);
@@ -330,6 +334,38 @@ export default function Personel() {
       : <ArrowDown className="w-3 h-3 ml-1 text-primary" />;
   };
 
+  const handleDeletePersonnel = async () => {
+    if (!selectedPersonnel) return;
+
+    setDeleteLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`/api/personnel/${selectedPersonnel.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      addToast({
+        type: 'success',
+        title: 'Berhasil',
+        message: `Personel ${selectedPersonnel.nama} berhasil dihapus`
+      });
+
+      setDeleteConfirmOpen(false);
+      setSelectedPersonnel(null);
+      fetchPersonnel();
+      fetchStats();
+      fetchFilters();
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Gagal Menghapus',
+        message: error.response?.data?.detail || 'Gagal menghapus personel'
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const filteredPersonnel = personnel;
 
   return (
@@ -345,9 +381,9 @@ export default function Personel() {
           {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm text-sm font-medium w-full sm:w-auto justify-center cursor-pointer"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95 font-medium group w-full sm:w-auto justify-center cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
               Tambah Personel
             </button>
           )}
@@ -604,7 +640,12 @@ export default function Personel() {
           <>
             <div
               className="fixed inset-0 z-[100] bg-black/20 transition-opacity duration-300"
-              onClick={() => setSelectedPersonnel(null)}
+              onClick={() => {
+                // Don't close if a sub-modal is open
+                if (!isEditModalOpen && !deleteConfirmOpen) {
+                  setSelectedPersonnel(null);
+                }
+              }}
             />
 
             <div
@@ -616,12 +657,32 @@ export default function Personel() {
                   <h2 className="text-xl font-bold text-foreground">{selectedPersonnel.nama}</h2>
                   <p className="text-sm text-muted-foreground">{selectedPersonnel.pangkat}</p>
                 </div>
-                <button
-                  onClick={() => setSelectedPersonnel(null)}
-                  className="p-2 hover:bg-accent rounded-full text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {(localStorage.getItem('role') === 'super_admin' || localStorage.getItem('role') === 'admin') && (
+                    <>
+                      <button
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg text-blue-500 hover:text-blue-600 dark:text-blue-400 transition-colors"
+                        title="Edit Personel"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirmOpen(true)}
+                        className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-500 hover:text-red-600 dark:text-red-400 transition-colors"
+                        title="Hapus Personel"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setSelectedPersonnel(null)}
+                    className="p-2 hover:bg-accent rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
               <div className="px-6 pb-6 mt-2 flex-1 overflow-y-auto">
@@ -725,7 +786,11 @@ export default function Personel() {
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-muted-foreground font-medium">{leaveHistory.length} riwayat</span>
                       <button
-                        onClick={() => navigate(`/admin/analytics?personnel_id=${selectedPersonnel.id}`)}
+                        onClick={() => {
+                          const role = localStorage.getItem('role');
+                          const basePath = role === 'atasan' ? '/atasan' : '/admin';
+                          navigate(`${basePath}/analytics?personnel_id=${selectedPersonnel.id}`);
+                        }}
                         className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-md border border-blue-100 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                         title="Cetak Riwayat Lengkap"
                       >
@@ -787,8 +852,8 @@ export default function Personel() {
                                   const createdDate = formatDate(leave.created_at || new Date(), 'dd MMMM yyyy');
 
                                   return (
-                                    <div 
-                                      key={leave.id || idx} 
+                                    <div
+                                      key={leave.id || idx}
                                       className="bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all cursor-pointer hover:border-primary/50 group"
                                       onClick={() => setSelectedLeave(leave)}
                                     >
@@ -871,6 +936,37 @@ export default function Personel() {
               message: msg
             });
           }}
+        />
+
+        {/* Edit Personnel Modal */}
+        <EditPersonnelModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          personnel={selectedPersonnel}
+          onSuccess={(msg) => {
+            fetchPersonnel();
+            fetchStats();
+            fetchFilters();
+            setSelectedPersonnel(null);
+            addToast({
+              type: 'success',
+              title: 'Berhasil',
+              message: msg
+            });
+          }}
+        />
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={deleteConfirmOpen}
+          onClose={() => setDeleteConfirmOpen(false)}
+          onConfirm={handleDeletePersonnel}
+          title="Hapus Personel"
+          message={`Apakah Anda yakin ingin menghapus personel "${selectedPersonnel?.nama}"? Tindakan ini tidak dapat dibatalkan. Semua riwayat cuti terkait juga akan dihapus secara otomatis.`}
+          type="danger"
+          confirmText={deleteLoading ? "Menghapus..." : "Hapus"}
+          cancelText="Batal"
+          isLoading={deleteLoading}
         />
 
         {/* Leave Detail Modal */}

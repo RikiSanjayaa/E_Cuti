@@ -316,6 +316,109 @@ async def get_personnel_by_nrp(nrp: str, current_user: models.User = Depends(aut
     
     return personnel
 
+@router.put("/{personnel_id}", response_model=schemas.Personnel)
+async def update_personnel(
+    request: Request,
+    personnel_id: int,
+    personnel_update: schemas.PersonnelUpdate,
+    current_user: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(database.get_db)
+):
+    """Update a personnel record (admin only)"""
+    personnel = db.query(models.Personnel).filter(models.Personnel.id == personnel_id).first()
+    if not personnel:
+        raise HTTPException(status_code=404, detail="Personnel not found")
+    
+    # Check for NRP conflict if updating NRP
+    if personnel_update.nrp and personnel_update.nrp != personnel.nrp:
+        existing = db.query(models.Personnel).filter(
+            models.Personnel.nrp == personnel_update.nrp,
+            models.Personnel.id != personnel_id
+        ).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="NRP already exists for another personnel")
+    
+    # Update fields
+    update_data = personnel_update.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(personnel, field, value)
+    
+    db.commit()
+    db.refresh(personnel)
+    
+    # Calculate balances for response
+    personnel.balances = calculate_personnel_balances(db, personnel)
+    
+    # Log audit
+    auth.log_audit(
+        db,
+        current_user.id,
+        "UPDATE_PERSONNEL",
+        "Personnel Management",
+        personnel.nrp,
+        "Personnel",
+        f"Updated personnel: {personnel.nama}",
+        status="success",
+        ip_address=request.client.host,
+        user_agent=request.headers.get("user-agent")
+    )
+    
+    # Notify connected clients
+    await manager.notify_change(
+        entity="personnel",
+        action="update",
+        username=current_user.username,
+        entity_id=personnel.id,
+        details=f"Updated personnel {personnel.nama}"
+    )
+    
+    return personnel
+
+@router.delete("/{personnel_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_personnel(
+    request: Request,
+    personnel_id: int,
+    current_user: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(database.get_db)
+):
+    """Delete a personnel record (admin only)"""
+    personnel = db.query(models.Personnel).filter(models.Personnel.id == personnel_id).first()
+    if not personnel:
+        raise HTTPException(status_code=404, detail="Personnel not found")
+    
+    personnel_name = personnel.nama
+    personnel_nrp = personnel.nrp
+    
+
+    
+    db.delete(personnel)
+    db.commit()
+    
+    # Log audit
+    auth.log_audit(
+        db,
+        current_user.id,
+        "DELETE_PERSONNEL",
+        "Personnel Management",
+        personnel_nrp,
+        "Personnel",
+        f"Deleted personnel: {personnel_name}",
+        status="success",
+        ip_address=request.client.host,
+        user_agent=request.headers.get("user-agent")
+    )
+    
+    # Notify connected clients
+    await manager.notify_change(
+        entity="personnel",
+        action="delete",
+        username=current_user.username,
+        entity_id=personnel_id,
+        details=f"Deleted personnel {personnel_name}"
+    )
+    
+    return None
+
 @router.post("/import", status_code=status.HTTP_201_CREATED)
 async def import_personnel(file: UploadFile = File(...), current_user: models.User = Depends(auth.get_current_admin), db: Session = Depends(database.get_db)):
     content_type = file.content_type
