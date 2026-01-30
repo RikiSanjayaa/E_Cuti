@@ -18,15 +18,15 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
 
   const allNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: role === 'atasan' ? '/atasan' : '/admin', roles: ['admin', 'super_admin', 'atasan'] },
-    { id: 'requests', label: 'Riwayat Cuti', icon: Calendar, path: role === 'atasan' ? '/atasan/leaves' : '/admin/leaves', roles: ['admin', 'super_admin', 'atasan'] },
     { id: 'personel', label: 'Personel', icon: Users, path: role === 'atasan' ? '/atasan/personel' : '/admin/personel', roles: ['admin', 'super_admin', 'atasan'] },
+    { id: 'requests', label: 'Riwayat Cuti', icon: Calendar, path: role === 'atasan' ? '/atasan/leaves' : '/admin/leaves', roles: ['admin', 'super_admin', 'atasan'] },
     { id: 'analytics', label: 'Analitik', icon: BarChart3, path: role === 'atasan' ? '/atasan/analytics' : '/admin/analytics', roles: ['admin', 'super_admin', 'atasan'] },
     { id: 'audit', label: 'Log Audit', icon: Shield, path: '/admin/audit', roles: ['admin', 'super_admin'] },
     { id: 'users', label: 'Manajemen Pengguna', icon: UserCog, path: '/admin/users', roles: ['admin', 'super_admin'] },
     { id: 'leave-types', label: 'Jenis Cuti', icon: ClipboardList, path: '/admin/leave-types', roles: ['admin', 'super_admin'] },
   ];
 
-  // Filter items based on role
+
   const navItems = allNavItems.filter(item => {
     if (role === 'atasan') {
       return ['dashboard', 'requests', 'personel', 'analytics'].includes(item.id);
@@ -43,10 +43,10 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
 
   return (
     <>
-      {/* Mobile Overlay */}
+
       {isMobile && !isCollapsed && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 bg-black/50 z-30 transition-opacity"
           onClick={onClose}
         />
       )}
@@ -56,7 +56,7 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
         ${isCollapsed ? (isMobile ? '-translate-x-full' : 'w-20') : 'w-72'} 
         bg-card border-r border-border h-screen flex flex-col transition-all duration-300 ease-in-out
       `}>
-        {/* Header */}
+
         <div className={`h-20 flex items-center ${!isMobile && isCollapsed ? 'justify-center w-full' : 'px-6'} border-b border-border transition-all duration-300`}>
           <div className={`flex items-center overflow-hidden whitespace-nowrap w-full ${!isMobile && isCollapsed ? 'justify-center' : 'gap-4'}`}>
             <div className={`flex-shrink-0 w-10 h-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center transition-all duration-300`}>
@@ -79,7 +79,7 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
           </div>
         </div>
 
-        {/* Nav */}
+
         <nav className="flex-1 p-3 overflow-y-auto overflow-x-hidden">
           <ul className="space-y-1.5">
             {navItems.map((item) => {
@@ -114,7 +114,7 @@ export function Sidebar({ isCollapsed, role = 'admin', isMobile, onClose }) {
           </ul>
         </nav>
 
-        {/* Footer */}
+
         <div className={`p-4 border-t border-border overflow-hidden whitespace-nowrap transition-all duration-300 ${!isMobile && isCollapsed ? 'opacity-0 h-0 py-0' : 'opacity-100 h-auto'}`}>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">

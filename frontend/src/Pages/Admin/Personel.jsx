@@ -42,15 +42,15 @@ export default function Personel() {
   const [leaveHistory, setLeaveHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
-  // Import State
+
   const fileInputRef = useRef(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importResult, setImportResult] = useState(null);
 
-  // Add Personnel State
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Notification Modal State (for errors/info)
+
   const [modal, setModal] = useState({
     isOpen: false,
     type: 'info',
@@ -58,7 +58,7 @@ export default function Personel() {
     message: ''
   });
 
-  // Pagination & Sorting State
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
@@ -67,7 +67,7 @@ export default function Personel() {
   const [sortBy, setSortBy] = useState('nama');
   const [sortOrder, setSortOrder] = useState('asc');
 
-  // Filters State
+
   const [filterPangkat, setFilterPangkat] = useState('');
   const [filterJabatan, setFilterJabatan] = useState('');
   const [rankOptions, setRankOptions] = useState([]);
@@ -79,7 +79,7 @@ export default function Personel() {
     new_personnel: 0
   });
 
-  // Leave types for color lookup
+
   const [leaveTypes, setLeaveTypes] = useState([]);
 
   useEffect(() => {
@@ -129,7 +129,7 @@ export default function Personel() {
     fetchPersonnel();
   }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage, filterPangkat, filterJabatan]);
 
-  // Fetch Leave History when personel selected
+
   useEffect(() => {
     if (selectedPersonnel?.nrp) {
       setHistoryLoading(true);
@@ -277,7 +277,7 @@ export default function Personel() {
       : <ArrowDown className="w-3 h-3 ml-1 text-primary" />;
   };
 
-  const filteredPersonnel = personnel; // Direct assignment as filtering is server-side now
+  const filteredPersonnel = personnel;
 
   return (
     <div className="relative">
@@ -301,7 +301,7 @@ export default function Personel() {
         </div>
 
 
-        {/* Summary Cards */}
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Total Personel</p>
@@ -321,7 +321,7 @@ export default function Personel() {
           </div>
         </div>
 
-        {/* Filters and Actions */}
+
         <div className="bg-card border border-border rounded-lg p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
@@ -334,7 +334,7 @@ export default function Personel() {
                 className="w-full pl-9 pr-4 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
-            {/* Inline Filters */}
+
             <select
               value={filterPangkat}
               onChange={(e) => setFilterPangkat(e.target.value)}
@@ -390,7 +390,7 @@ export default function Personel() {
 
 
 
-        {/* Table */}
+
         <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -518,12 +518,12 @@ export default function Personel() {
         {selectedPersonnel && createPortal(
           <>
             <div
-              className="fixed inset-0 z-[100]"
+              className="fixed inset-0 z-[100] bg-black/20 transition-opacity duration-300"
               onClick={() => setSelectedPersonnel(null)}
             />
-            {/* Side Drawer Container - Fixed Right */}
+
             <div
-              className={`fixed inset-y-0 right-0 w-full md:w-[480px] bg-background dark:bg-card shadow-2xl transform transition-transform duration-300 ease-in-out z-[9999] ${selectedPersonnel ? 'translate-x-0' : 'translate-x-full'
+              className={`fixed inset-y-0 right-0 w-full md:w-[480px] bg-background dark:bg-card shadow-2xl transform transition-transform duration-300 ease-in-out z-[9999] flex flex-col ${selectedPersonnel ? 'translate-x-0' : 'translate-x-full'
                 }`}
             >
               <div className="flex items-center justify-between p-6 border-b border-border">
@@ -539,8 +539,7 @@ export default function Personel() {
                 </button>
               </div>
 
-              {/* Content Grid (Clean Minimalist Design) */}
-              <div className="px-6 pb-6 mt-2">
+              <div className="px-6 pb-6 mt-2 flex-1 overflow-y-auto">
 
                 <div className="grid grid-cols-2 gap-y-6 gap-x-4">
                   {/* NRP */}
@@ -674,7 +673,7 @@ export default function Personel() {
                               {/* Cards List */}
                               <div className="space-y-3">
                                 {leaves.map((leave, idx) => {
-                                  // Helper: Calculate End Date
+
                                   const startDate = new Date(leave.tanggal_mulai);
                                   const endDate = new Date(startDate);
                                   endDate.setDate(endDate.getDate() + (leave.jumlah_hari - 1));
@@ -682,7 +681,7 @@ export default function Personel() {
                                   // Helper: Format Date
                                   // Use standard format from utils
 
-                                  // Helper: ID formatting (Mock ID)
+
                                   const id = `LR-${year}-${String(leave.id || idx + 1).padStart(3, '0')}`;
                                   const createdDate = formatDate(leave.created_at || new Date(), 'dd MMMM yyyy');
 

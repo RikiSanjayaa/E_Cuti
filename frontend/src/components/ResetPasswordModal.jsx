@@ -44,7 +44,7 @@ export default function ResetPasswordModal({
   return createPortal(
     <>
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/40 z-50 animate-in fade-in duration-200"
         onClick={handleClose}
       />
 
