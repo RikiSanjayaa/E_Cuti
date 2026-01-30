@@ -82,8 +82,7 @@ export default function Dashboard() {
   ];
 
   const getStatusColor = (type) => {
-    // Basic mapping based on leave type or status if available
-    // For now using consistently green for created
+
     return 'text-green-600';
   };
 
@@ -113,7 +112,7 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Stats Grid */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
@@ -141,7 +140,7 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Recent Activity */}
+
       <div className="bg-card border border-border rounded-lg shadow-sm">
         <div className="px-6 py-4 border-b border-border">
           <h2 className="text-lg font-semibold text-foreground">Aktivitas Terbaru</h2>
@@ -186,7 +185,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Quick Stats - Hardcoded for demo visualization as backend doesn't provide this yet */}
+      {/* Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
           <h3 className="font-semibold text-foreground mb-4">Distribusi Jenis Cuti (Data Demo)</h3>

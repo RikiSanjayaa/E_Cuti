@@ -31,7 +31,7 @@ export default function Login() {
       localStorage.setItem('token', access_token);
       localStorage.setItem('role', role);
 
-      if (role === 'super_admin') {
+      if (role === 'super_admin' || role === 'admin') {
         navigate('/admin');
       } else if (role === 'atasan') {
         navigate('/atasan');

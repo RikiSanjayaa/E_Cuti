@@ -16,13 +16,17 @@ import AtasanLayout from './Layouts/AtasanLayout';
 import { NotificationProvider } from './lib/NotificationContext';
 import { ToastContainer } from './components/ui/Toast';
 
-// Mock Auth Guard (Replace with real JWT logic later)
-const ProtectedRoute = ({ role, children }) => {
+// Auth Guard
+const ProtectedRoute = ({ allowedRoles, children }) => {
   const token = localStorage.getItem('token');
   const userRole = localStorage.getItem('role');
 
   if (!token) return <Navigate to="/login" replace />;
-  if (role && userRole !== role) return <Navigate to="/login" replace />;
+
+  // Check if userRole is in the allowedRoles array
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/login" replace />;
+  }
 
   return children || <Outlet />;
 };
@@ -34,8 +38,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
 
-          {/* Admin Routes */}
-          <Route element={<ProtectedRoute role="super_admin"><AdminLayout /></ProtectedRoute>}>
+          {/* Admin Routes (Accessible by super_admin and admin) */}
+          <Route element={<ProtectedRoute allowedRoles={['super_admin', 'admin']}><AdminLayout /></ProtectedRoute>}>
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/leaves" element={<LeaveRecords />} />
             <Route path="/admin/personel" element={<Personel />} />
