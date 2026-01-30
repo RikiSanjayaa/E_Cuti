@@ -75,8 +75,10 @@ export default function Personel() {
 
   const [filterPangkat, setFilterPangkat] = useState('');
   const [filterJabatan, setFilterJabatan] = useState('');
+  const [filterBag, setFilterBag] = useState('');
   const [rankOptions, setRankOptions] = useState([]);
   const [jabatanOptions, setJabatanOptions] = useState([]);
+  const [bagOptions, setBagOptions] = useState([]);
   const [stats, setStats] = useState({
     total_personnel: 0,
     active_personnel: 0,
@@ -97,7 +99,7 @@ export default function Personel() {
   const handlePersonnelChange = useCallback(() => {
     fetchPersonnel();
     fetchStats();
-  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage, filterPangkat, filterJabatan]);
+  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage, filterPangkat, filterJabatan, filterBag]);
 
   useEntitySubscription('personnel', handlePersonnelChange);
 
@@ -133,6 +135,7 @@ export default function Personel() {
       });
       setRankOptions(response.data.pangkat || []);
       setJabatanOptions(response.data.jabatan || []);
+      setBagOptions(response.data.bag || []);
     } catch (error) {
       console.error("Failed to fetch filters:", error);
     }
@@ -140,7 +143,7 @@ export default function Personel() {
 
   useEffect(() => {
     fetchPersonnel();
-  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage, filterPangkat, filterJabatan]);
+  }, [currentPage, sortBy, sortOrder, searchQuery, itemsPerPage, filterPangkat, filterJabatan, filterBag]);
 
 
   useEffect(() => {
@@ -178,6 +181,7 @@ export default function Personel() {
       if (searchQuery) params.query = searchQuery;
       if (filterPangkat) params.pangkat = filterPangkat;
       if (filterJabatan) params.jabatan = filterJabatan;
+      if (filterBag) params.bag = filterBag;
 
       const response = await axios.get('/api/personnel/', {
         params,
@@ -207,7 +211,7 @@ export default function Personel() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterPangkat, filterJabatan]);
+  }, [searchQuery, filterPangkat, filterJabatan, filterBag]);
 
   const handleImport = async (e) => {
     const file = e.target.files[0];
@@ -251,7 +255,10 @@ export default function Personel() {
       const params = {
         query: searchQuery,
         sort_by: sortBy,
-        sort_order: sortOrder
+        sort_order: sortOrder,
+        pangkat: filterPangkat,
+        jabatan: filterJabatan,
+        bag: filterBag
       };
 
       const response = await axios.get('/api/personnel/export', {
@@ -373,6 +380,17 @@ export default function Personel() {
               ))}
             </select>
 
+            <select
+              value={filterBag}
+              onChange={(e) => setFilterBag(e.target.value)}
+              className="px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground min-w-[140px]"
+            >
+              <option value="">Semua Bagian</option>
+              {bagOptions.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+
             <div className="flex gap-2">
               {localStorage.getItem('role') !== 'atasan' && (
                 <>
@@ -448,6 +466,15 @@ export default function Personel() {
                       <SortIcon field="jabatan" />
                     </div>
                   </th>
+                  <th
+                    className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
+                    onClick={() => handleSort('bag')}
+                  >
+                    <div className="flex items-center">
+                      Bagian
+                      <SortIcon field="bag" />
+                    </div>
+                  </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Sisa Cuti
                   </th>
@@ -487,6 +514,9 @@ export default function Personel() {
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">
                         {p.jabatan}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {p.bag || '-'}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
                         {p.balances ? (
@@ -580,9 +610,15 @@ export default function Personel() {
                   </div>
 
                   {/* Jabatan */}
-                  <div className="col-span-2">
+                  <div>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Jabatan</p>
                     <p className="font-semibold text-sm text-foreground leading-snug">{selectedPersonnel.jabatan}</p>
+                  </div>
+
+                  {/* Bagian */}
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Bagian</p>
+                    <p className="font-semibold text-sm text-foreground leading-snug">{selectedPersonnel.bag || '-'}</p>
                   </div>
 
                   {/* Per-Type Balances */}

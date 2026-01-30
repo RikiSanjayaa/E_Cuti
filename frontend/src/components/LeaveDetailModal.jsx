@@ -40,6 +40,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
                                 <div className="flex flex-col text-sm text-muted-foreground mt-1">
                                     <span>NRP: {leave.personnel?.nrp}</span>
                                     <span>{leave.personnel?.pangkat} - {leave.personnel?.jabatan}</span>
+                                    {leave.personnel?.bag && <span>{leave.personnel?.bag}</span>}
                                 </div>
                             </div>
                         </div>

@@ -55,6 +55,7 @@ class Personnel(Base):
     nama = Column(String)
     pangkat = Column(String)
     jabatan = Column(String)
+    bag = Column(String, nullable=True)
 
     jenis_kelamin = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

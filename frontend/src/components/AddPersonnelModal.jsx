@@ -11,7 +11,8 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
     nrp: '',
     nama: '',
     pangkat: '',
-    jabatan: ''
+    jabatan: '',
+    bag: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -32,7 +33,7 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setFormData({ nrp: '', nama: '', pangkat: '', jabatan: '' });
+      setFormData({ nrp: '', nama: '', pangkat: '', jabatan: '', bag: '' });
       onSuccess("Personel berhasil ditambahkan!");
       onClose();
     } catch (err) {
@@ -127,6 +128,17 @@ export default function AddPersonnelModal({ isOpen, onClose, onSuccess }) {
                 className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-transparent text-foreground placeholder:text-muted-foreground"
                 placeholder="Contoh: BA UR TU"
                 required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bagian (Opsional)</label>
+              <input
+                type="text"
+                name="bag"
+                value={formData.bag}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-transparent text-foreground placeholder:text-muted-foreground"
+                placeholder="Contoh: BAG BEKUM"
               />
             </div>
           </div>
