@@ -16,7 +16,7 @@ import {
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatTimeAgo } from '@/utils/dateUtils';
-import { AddLeaveModal } from '../../components/AddLeaveModal';
+import { AddLeaveModal } from '@/components/AddLeaveModal';
 import { useEntitySubscription } from '@/lib/NotificationContext';
 import { Calendar } from "@/components/ui/calendar";
 import axios from 'axios';

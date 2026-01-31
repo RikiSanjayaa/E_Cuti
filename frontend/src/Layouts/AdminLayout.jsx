@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Sidebar } from '../components/Sidebar';
-import { Header } from '../components/Header';
-import { AddLeaveModal } from '../components/AddLeaveModal';
+import { Sidebar } from '@/components/Sidebar';
+import { Header } from '@/components/Header';
+import { AddLeaveModal } from '@/components/AddLeaveModal';
 import { Plus } from 'lucide-react';
 
 const AdminLayout = () => {

@@ -6,7 +6,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./polda_ntb.db")
+# Determine if running in Docker
+is_docker = os.path.exists("/.env")
+
+raw_url = os.getenv("DATABASE_URL", "")
+
+# Logic: Use SQLite if:
+# 1. No DATABASE_URL is set
+# 2. DATABASE_URL is set to the docker internal host (@db) but we are NOT in docker (local dev)
+if not raw_url or ("@db" in raw_url and not is_docker):
+    if "@db" in raw_url and not is_docker:
+        print("[Database] Detected local environment with Docker URL. Falling back to local SQLite.")
+    SQLALCHEMY_DATABASE_URL = "sqlite:///./polda_ntb.db"
+else:
+    SQLALCHEMY_DATABASE_URL = raw_url
 
 # check_same_thread=False is needed for SQLite
 connect_args = {}

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Calendar, AlertCircle, Users, Palette, ChevronDown, Check } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import axios from 'axios';
-import ConfirmationModal from '../../components/ConfirmationModal';
-import { PRESET_COLORS, getLeaveColorClass } from '../../utils/leaveUtils';
+import ConfirmationModal from '@/components/ConfirmationModal';
+import { PRESET_COLORS, getLeaveColorClass } from '@/utils/leaveUtils';
 import { useEntitySubscription, useNotifications } from '@/lib/NotificationContext';
 
 export default function LeaveTypeManagement() {

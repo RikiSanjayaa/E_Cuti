@@ -1,6 +1,6 @@
 import { Search, Filter, Download, Eye, Edit, Trash2, AlertTriangle, X, ArrowUpDown, ArrowUp, ArrowDown, Plus } from 'lucide-react';
-import { Pagination } from '../../components/Pagination';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import { Pagination } from '@/components/Pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { formatDateTime, formatDate } from '@/utils/dateUtils';
