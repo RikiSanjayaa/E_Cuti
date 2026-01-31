@@ -15,3 +15,4 @@ xlsxwriter
 requests
 websockets
 python-dotenv
+pymysql
