@@ -1,5 +1,5 @@
 import { Calendar, Download, FileSpreadsheet, FileText, Filter, Printer } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
