@@ -126,7 +126,7 @@ export function Header({ userRole, onToggleSidebar }) {
           >
             <Bell className="w-5 h-5 text-muted-foreground" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
@@ -141,7 +141,7 @@ export function Header({ userRole, onToggleSidebar }) {
                   <Bell className="w-4 h-4" />
                   Notifikasi
                   {unreadCount > 0 && (
-                    <span className="bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full">
+                    <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
                       {unreadCount}
                     </span>
                   )}

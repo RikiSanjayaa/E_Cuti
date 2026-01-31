@@ -342,18 +342,23 @@ export default function LeaveRecords() {
               {/* Created By */}
               <div className="flex-1 w-full">
                 <label className="text-[10px] text-muted-foreground mb-1 block">Dicatat Oleh</label>
-                <select
+                <Select
                   value={filterCreatedBy}
                   onChange={(e) => setFilterCreatedBy(e.target.value)}
-                  className="w-full px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-transparent h-[38px]"
                 >
-                  <option value="">Semua Admin</option>
-                  {adminUsers.map(admin => (
-                    <option key={admin.id} value={admin.id}>
-                      {admin.full_name || admin.username}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Semua Admin" />
+                  </SelectTrigger>
+                  <SelectContent>
+
+                    {adminUsers.map(admin => (
+                      <SelectItem key={admin.id} value={admin.id}>
+                        {admin.full_name || admin.username}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+
+                </Select>
               </div>
 
               {/* Reset Actions */}

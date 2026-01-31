@@ -389,7 +389,11 @@ export default function Dashboard() {
                   <p className="text-sm text-muted-foreground text-center py-4">Belum ada data.</p>
                 ) : (
                   statsData.top_frequent.slice(0, 5).map((person, index) => (
-                    <div key={index} className="flex items-center justify-between group">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between group cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-colors"
+                      onClick={() => navigate(`${basePath}/personel?search=${person.nrp}`)}
+                    >
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div className="w-8 h-8 rounded-full bg-muted/50 flex-shrink-0 flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                           <span className="text-xs font-bold">{index + 1}</span>

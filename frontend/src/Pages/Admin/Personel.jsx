@@ -42,7 +42,7 @@ const CopyButton = ({ text }) => {
 export default function Personel() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [personnel, setPersonnel] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPersonnel, setSelectedPersonnel] = useState(null);
