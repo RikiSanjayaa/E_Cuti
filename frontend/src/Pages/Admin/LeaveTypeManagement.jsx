@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Calendar, AlertCircle, Users, Palette, ChevronDown, Check } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import axios from 'axios';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { PRESET_COLORS, getLeaveColorClass } from '../../utils/leaveUtils';
@@ -422,7 +422,7 @@ export default function LeaveTypeManagement() {
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono bg-transparent text-foreground dark:[color-scheme:dark]"
                 />
                 <p className="text-xs text-muted-foreground">Kode unik untuk identifikasi internal (huruf kecil, tanpa spasi)</p>
-              </div> 
+              </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Kuota Default (Hari)</label>

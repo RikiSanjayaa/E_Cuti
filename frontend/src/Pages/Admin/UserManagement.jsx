@@ -1,5 +1,5 @@
 import { Search, UserPlus, Shield, Lock, Unlock, Key, Mail, MoreVertical, AlertCircle, CheckCircle, XCircle, Loader2, Eye, EyeOff, Briefcase, UserX, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/Select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Pagination } from '../../components/Pagination';
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
