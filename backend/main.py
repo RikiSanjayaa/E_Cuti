@@ -65,11 +65,14 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # CORS
-origins = [
-    "http://localhost:5173",  # Vite default
-    "http://localhost:3000",
-]
+# Get origins from env var, default to common development ports
+frontend_urls = os.getenv("FRONTEND_URL", "http://localhost:5173,http://localhost:3000")
+origins = [url.strip() for url in frontend_urls.split(",")]
 
 app.add_middleware(
     CORSMiddleware,

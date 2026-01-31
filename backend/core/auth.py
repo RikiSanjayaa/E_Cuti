@@ -8,11 +8,15 @@ from sqlalchemy.orm import Session
 from .database import get_db
 from backend.models import User
 from backend import schemas
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # SECRET KEY should be in env var in production
-SECRET_KEY = "polda-ntb-secret-key-change-me"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 day
+SECRET_KEY = os.getenv("SECRET_KEY", "polda-ntb-secret-key-change-me")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24)) # 1 day
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/token", auto_error=False)
