@@ -70,6 +70,7 @@ class LeaveHistory(Base):
     leave_type_id = Column(Integer, ForeignKey("leave_types.id"))
     jumlah_hari = Column(Integer)
     tanggal_mulai = Column(Date)
+    tanggal_selesai = Column(Date, nullable=True)
     alasan = Column(Text)
     file_path = Column(String(255), nullable=True)
     balance_remaining = Column(Integer, nullable=True) # Snapshot of balance after this leave

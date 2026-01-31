@@ -104,6 +104,7 @@ class LeaveCreate(BaseModel):
     leave_type_id: int
     jumlah_hari: int
     tanggal_mulai: date
+    tanggal_selesai: Optional[date] = None
     alasan: str
     
 class LeaveHistory(BaseModel):
@@ -112,6 +113,7 @@ class LeaveHistory(BaseModel):
     leave_type_id: int
     jumlah_hari: int
     tanggal_mulai: date
+    tanggal_selesai: Optional[date] = None
     alasan: str
     file_path: Optional[str] = None
     created_at: datetime

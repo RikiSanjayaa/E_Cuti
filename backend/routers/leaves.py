@@ -193,6 +193,7 @@ async def create_leave(
     leave_type_id: int = Form(...),
     jumlah_hari: int = Form(...),
     tanggal_mulai: date = Form(...),
+    tanggal_selesai: Optional[date] = Form(None),
     alasan: str = Form(...),
     file: Optional[UploadFile] = File(None),
     current_user: models.User = Depends(auth.get_current_admin),
@@ -260,6 +261,7 @@ async def create_leave(
         leave_type_id=leave_type_id,
         jumlah_hari=jumlah_hari,
         tanggal_mulai=tanggal_mulai,
+        tanggal_selesai=tanggal_selesai,
         alasan=alasan,
         file_path=file_path,
         created_by=current_user.id,
@@ -305,6 +307,7 @@ async def update_leave(
     leave_type_id: int = Form(...),
     jumlah_hari: int = Form(...),
     tanggal_mulai: date = Form(...),
+    tanggal_selesai: Optional[date] = Form(None),
     alasan: str = Form(...),
     file: Optional[UploadFile] = File(None),
     remove_existing_file: bool = Form(False),
@@ -360,6 +363,8 @@ async def update_leave(
     leave.leave_type_id = leave_type_id
     leave.jumlah_hari = jumlah_hari
     leave.tanggal_mulai = tanggal_mulai
+    if tanggal_selesai:
+        leave.tanggal_selesai = tanggal_selesai
     leave.alasan = alasan
     
     # Handle File Update/Removal

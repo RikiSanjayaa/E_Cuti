@@ -75,7 +75,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
                                     <Calendar className="w-3 h-3" /> Tanggal Selesai
                                 </p>
                                 <p className="font-medium">
-                                    {leave.tanggal_mulai ? formatDate(new Date(leave.tanggal_mulai).setDate(new Date(leave.tanggal_mulai).getDate() + (leave.jumlah_hari - 1))) : '-'}
+                                    {leave.tanggal_selesai ? formatDate(leave.tanggal_selesai) : (leave.tanggal_mulai ? formatDate(new Date(leave.tanggal_mulai).setDate(new Date(leave.tanggal_mulai).getDate() + (leave.jumlah_hari - 1))) : '-')}
                                 </p>
                             </div>
 

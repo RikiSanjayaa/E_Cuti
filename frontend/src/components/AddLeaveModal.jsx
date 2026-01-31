@@ -181,7 +181,9 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       } : null);
 
       // Calculate and set the finish date based on start date and working days
-      if (initialData.tanggal_mulai && initialData.jumlah_hari) {
+      if (initialData.tanggal_selesai) {
+        setFinishDate(initialData.tanggal_selesai);
+      } else if (initialData.tanggal_mulai && initialData.jumlah_hari) {
         const calculatedEndDate = calculateEndDate(initialData.tanggal_mulai, initialData.jumlah_hari);
         setFinishDate(calculatedEndDate);
       } else {
@@ -266,6 +268,9 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       formData.append('leave_type_id', leaveTypeId);
       formData.append('jumlah_hari', days);
       formData.append('tanggal_mulai', startDate);
+      if (finishDate) {
+        formData.append('tanggal_selesai', finishDate);
+      }
       formData.append('alasan', context);
 
       // Handle file: send new file if selected, and removal flag if existing should be removed

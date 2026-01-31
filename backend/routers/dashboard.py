@@ -106,7 +106,10 @@ async def get_dashboard_stats(current_user: models.User = Depends(auth.get_curre
     calendar_leaves_data = []
     for leave in recent_leaves:
         # Calculate end date
-        end_date = leave.tanggal_mulai + timedelta(days=leave.jumlah_hari - 1)
+        if leave.tanggal_selesai:
+            end_date = leave.tanggal_selesai
+        else:
+            end_date = leave.tanggal_mulai + timedelta(days=leave.jumlah_hari - 1)
         
         # Determine color
         color_name = "blue"

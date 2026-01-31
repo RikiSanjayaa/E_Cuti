@@ -522,7 +522,7 @@ export default function LeaveRecords() {
                       {formatSingleDate(leave.tanggal_mulai)}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {formatSingleDate(getEndDate(leave.tanggal_mulai, leave.jumlah_hari))}
+                      {leave.tanggal_selesai ? formatSingleDate(leave.tanggal_selesai) : formatSingleDate(getEndDate(leave.tanggal_mulai, leave.jumlah_hari))}
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
                       <div className="flex flex-col">
