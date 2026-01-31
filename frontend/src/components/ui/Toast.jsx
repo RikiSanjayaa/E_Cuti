@@ -1,63 +1,69 @@
 import { useNotifications } from '@/lib/NotificationContext';
-import { X, CheckCircle, AlertTriangle, Info, AlertCircle, RefreshCw } from 'lucide-react';
+import { X, CheckCircle, AlertTriangle, Info, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
 
 /**
  * Toast notification component
- * Displays real-time notifications with auto-dismiss
+ * Mobile-style notification: wide, compact, slides from top
  */
-export function Toast({ toast, onDismiss, onRefresh }) {
+export function Toast({ toast, onDismiss }) {
+  const [isExiting, setIsExiting] = useState(false);
+
   const iconMap = {
-    success: <CheckCircle className="w-5 h-5 text-emerald-500" />,
-    warning: <AlertTriangle className="w-5 h-5 text-amber-500" />,
-    error: <AlertCircle className="w-5 h-5 text-red-500" />,
-    info: <Info className="w-5 h-5 text-blue-500" />
+    success: <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />,
+    warning: <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />,
+    error: <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400" />,
+    info: <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
   };
 
   const bgMap = {
-    success: 'bg-emerald-50 border-emerald-200',
-    warning: 'bg-amber-50 border-amber-200',
-    error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200'
+    success: 'bg-emerald-50 border-emerald-300/50 dark:bg-emerald-950/90 dark:border-emerald-700/50',
+    warning: 'bg-amber-50 border-amber-300/50 dark:bg-amber-950/90 dark:border-amber-700/50',
+    error: 'bg-red-50 border-red-300/50 dark:bg-red-950/90 dark:border-red-700/50',
+    info: 'bg-blue-50 border-blue-300/50 dark:bg-blue-950/90 dark:border-blue-700/50'
+  };
+
+  const handleDismiss = () => {
+    setIsExiting(true);
+    setTimeout(() => onDismiss(toast.id), 200);
   };
 
   return (
     <div
-      className={`flex items-start gap-3 p-4 rounded-lg border shadow-lg animate-slide-in ${bgMap[toast.type] || bgMap.info}`}
-      style={{ minWidth: '320px', maxWidth: '420px' }}
+      className={`
+        flex items-center gap-3 px-4 py-2.5 rounded-xl border backdrop-blur-sm
+        shadow-lg shadow-black/5 dark:shadow-black/20
+        ${bgMap[toast.type] || bgMap.info}
+        ${isExiting ? 'animate-toast-out' : 'animate-toast-in'}
+      `}
+      style={{ width: 'min(90vw, 480px)' }}
     >
-      <div className="flex-shrink-0 mt-0.5">
+      <div className="flex-shrink-0">
         {iconMap[toast.type] || iconMap.info}
       </div>
 
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900">{toast.title}</p>
-        <p className="text-sm text-gray-600 mt-0.5">{toast.message}</p>
+      <div className="flex-1 min-w-0 flex items-center gap-2">
+        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+          {toast.title}
+        </span>
+        <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+          {toast.message}
+        </span>
       </div>
 
-      <div className="flex items-center gap-1">
-        {onRefresh && (
-          <button
-            onClick={() => onRefresh(toast)}
-            className="p-1.5 rounded-md hover:bg-gray-200/50 transition-colors"
-            title="Refresh data"
-          >
-            <RefreshCw className="w-4 h-4 text-gray-500" />
-          </button>
-        )}
-        <button
-          onClick={() => onDismiss(toast.id)}
-          className="p-1.5 rounded-md hover:bg-gray-200/50 transition-colors"
-        >
-          <X className="w-4 h-4 text-gray-500" />
-        </button>
-      </div>
+      <button
+        onClick={handleDismiss}
+        className="flex-shrink-0 p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+      >
+        <X className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+      </button>
     </div>
   );
 }
 
 /**
  * ToastContainer - Renders all active toast notifications
- * Positioned at top-right of screen
+ * Positioned at top-center of screen, mobile notification style
  */
 export function ToastContainer() {
   const { toasts, removeToast } = useNotifications();
@@ -65,13 +71,14 @@ export function ToastContainer() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-20 right-4 z-[9999] flex flex-col gap-3">
+    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 items-center pointer-events-none">
       {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          toast={toast}
-          onDismiss={removeToast}
-        />
+        <div key={toast.id} className="pointer-events-auto">
+          <Toast
+            toast={toast}
+            onDismiss={removeToast}
+          />
+        </div>
       ))}
     </div>
   );

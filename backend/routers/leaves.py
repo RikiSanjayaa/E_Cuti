@@ -296,6 +296,7 @@ async def create_leave(
     
     return new_leave
 
+@router.post("/{leave_id}", response_model=schemas.LeaveHistory)
 @router.put("/{leave_id}", response_model=schemas.LeaveHistory)
 async def update_leave(
     request: Request,
@@ -306,6 +307,7 @@ async def update_leave(
     tanggal_mulai: date = Form(...),
     alasan: str = Form(...),
     file: Optional[UploadFile] = File(None),
+    remove_existing_file: bool = Form(False),
     current_user: models.User = Depends(auth.get_current_admin),
     db: Session = Depends(database.get_db)
 ):
@@ -360,7 +362,20 @@ async def update_leave(
     leave.tanggal_mulai = tanggal_mulai
     leave.alasan = alasan
     
-    # Handle File Update
+    # Handle File Update/Removal
+    old_file_path = leave.file_path
+    
+    # If user explicitly requested to remove the file OR is replacing with a new one
+    if remove_existing_file or file:
+        # Delete old file from disk if it exists
+        if old_file_path and os.path.exists(old_file_path):
+            try:
+                os.remove(old_file_path)
+            except OSError:
+                pass  # Ignore deletion errors, continue with update
+        leave.file_path = None
+    
+    # Upload new file if provided
     if file:
         if file.content_type not in VALID_FILE_TYPES:
             raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPG, PNG, PDF")
@@ -413,6 +428,13 @@ async def delete_leave(
     leave = db.query(models.LeaveHistory).filter(models.LeaveHistory.id == leave_id).first()
     if not leave:
         raise HTTPException(status_code=404, detail="Leave record not found")
+    
+    # Delete attached file from disk if it exists
+    if leave.file_path and os.path.exists(leave.file_path):
+        try:
+            os.remove(leave.file_path)
+        except OSError:
+            pass  # Ignore deletion errors, continue with record deletion
     
     db.delete(leave)
     db.commit()

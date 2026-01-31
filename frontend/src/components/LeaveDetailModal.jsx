@@ -17,7 +17,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
                 onClick={onClose}
             />
 
-            <div 
+            <div
                 className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[90vh] bg-card dark:bg-neutral-900 rounded-lg shadow-2xl z-[10051] overflow-hidden animate-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
@@ -116,7 +116,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave }) {
                             <div className="space-y-1 pt-2">
                                 <p className="text-xs text-muted-foreground">Dokumen Bukti</p>
                                 <a
-                                    href={`http://localhost:8000/static/${leave.file_path.replace(/^uploads\//, '')}`}
+                                    href={`/api/static/${leave.file_path.replace(/^uploads\//, '')}`}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-md border border-blue-100 dark:border-blue-800 w-full"

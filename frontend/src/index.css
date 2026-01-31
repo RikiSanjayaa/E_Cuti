@@ -179,34 +179,33 @@
   }
 }
 
-/* Toast notification animations */
-@keyframes slide-in {
-  from {
-    transform: translateX(100%);
+/* Toast notification animations - slides from top */
+@keyframes toast-in {
+  0% {
+    transform: translateY(-100%);
     opacity: 0;
   }
-  to {
-    transform: translateX(0);
+  100% {
+    transform: translateY(0);
     opacity: 1;
   }
 }
 
-@keyframes slide-out {
-  from {
-    transform: translateX(0);
+@keyframes toast-out {
+  0% {
+    transform: translateY(0);
     opacity: 1;
   }
-  to {
-    transform: translateX(100%);
+  100% {
+    transform: translateY(-100%);
     opacity: 0;
   }
 }
 
-.animate-slide-in {
-  animation: slide-in 0.3s ease-out forwards;
+.animate-toast-in {
+  animation: toast-in 0.3s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
 }
 
-.animate-slide-out {
-  animation: slide-out 0.3s ease-in forwards;
+.animate-toast-out {
+  animation: toast-out 0.2s cubic-bezier(0.06, 0.71, 0.55, 1) forwards;
 }
-

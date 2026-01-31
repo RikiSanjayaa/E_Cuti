@@ -344,12 +344,7 @@ export default function Personel() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      addToast({
-        type: 'success',
-        title: 'Berhasil',
-        message: `Personel ${selectedPersonnel.nama} berhasil dihapus`
-      });
-
+      // Success notification is handled by WebSocket to avoid duplication
       setDeleteConfirmOpen(false);
       setSelectedPersonnel(null);
       fetchPersonnel();
@@ -926,15 +921,11 @@ export default function Personel() {
         <AddPersonnelModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
-          onSuccess={(msg) => {
+          onSuccess={() => {
             fetchPersonnel();
             fetchStats();
             fetchFilters();
-            addToast({
-              type: 'success',
-              title: 'Berhasil',
-              message: msg
-            });
+            // Success notification is handled by WebSocket to avoid duplication
           }}
         />
 
@@ -943,16 +934,12 @@ export default function Personel() {
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           personnel={selectedPersonnel}
-          onSuccess={(msg) => {
+          onSuccess={() => {
             fetchPersonnel();
             fetchStats();
             fetchFilters();
             setSelectedPersonnel(null);
-            addToast({
-              type: 'success',
-              title: 'Berhasil',
-              message: msg
-            });
+            // Success notification is handled by WebSocket to avoid duplication
           }}
         />
 

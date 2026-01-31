@@ -93,11 +93,7 @@ export default function UserManagement() {
       );
 
       setResetModal({ isOpen: false, userId: null, username: '', isLoading: false });
-      addToast({
-        type: 'success',
-        title: 'Berhasil',
-        message: 'Password berhasil diubah'
-      });
+      // Success notification is handled by WebSocket to avoid duplication
     } catch (error) {
       setResetModal({ isOpen: false, userId: null, username: '', isLoading: false });
       addToast({
@@ -122,11 +118,7 @@ export default function UserManagement() {
 
       setUsers(users.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
       setConfirmModal({ isOpen: false });
-      addToast({
-        type: 'success',
-        title: 'Berhasil',
-        message: `Status pengguna berhasil diubah ke ${newStatus === 'active' ? 'aktif' : 'nonaktif'}`
-      });
+      // Success notification is handled by WebSocket to avoid duplication
     } catch (error) {
       console.error('Failed to update status:', error);
       setConfirmModal({ isOpen: false });
@@ -229,11 +221,7 @@ export default function UserManagement() {
       setShowForm(false);
       setFormData({ username: '', full_name: '', role: 'admin', password: '', status: 'active' });
       fetchUsers();
-      addToast({
-        type: 'success',
-        title: 'Berhasil',
-        message: 'Pengguna berhasil ditambahkan'
-      });
+      // Success notification is handled by WebSocket to avoid duplication
     } catch (error) {
       setShowForm(false);
       addToast({

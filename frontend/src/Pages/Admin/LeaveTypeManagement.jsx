@@ -112,7 +112,6 @@ export default function LeaveTypeManagement() {
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
-      const successMessage = editingId ? 'Jenis cuti berhasil diperbarui' : 'Jenis cuti berhasil ditambahkan';
 
       if (editingId) {
         await axios.put(`/api/leave-types/${editingId}`, formData, { headers });
@@ -122,11 +121,7 @@ export default function LeaveTypeManagement() {
 
       fetchLeaveTypes();
       resetForm();
-      addToast({
-        type: 'success',
-        title: 'Berhasil',
-        message: successMessage
-      });
+      // Success notification is handled by WebSocket to avoid duplication
     } catch (error) {
       resetForm();
       addToast({
@@ -161,11 +156,7 @@ export default function LeaveTypeManagement() {
       });
       fetchLeaveTypes();
       setConfirmModal({ isOpen: false });
-      addToast({
-        type: 'success',
-        title: 'Berhasil',
-        message: 'Jenis cuti berhasil dinonaktifkan'
-      });
+      // Success notification is handled by WebSocket to avoid duplication
     } catch (error) {
       console.error('Failed to delete leave type:', error);
       setConfirmModal({ isOpen: false });
@@ -185,11 +176,7 @@ export default function LeaveTypeManagement() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchLeaveTypes();
-      addToast({
-        type: 'success',
-        title: 'Berhasil',
-        message: 'Jenis cuti berhasil diaktifkan kembali'
-      });
+      // Success notification is handled by WebSocket to avoid duplication
     } catch (error) {
       console.error('Failed to reactivate:', error);
       addToast({
@@ -422,7 +409,7 @@ export default function LeaveTypeManagement() {
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono bg-transparent text-foreground dark:[color-scheme:dark]"
                 />
                 <p className="text-xs text-muted-foreground">Kode unik untuk identifikasi internal (huruf kecil, tanpa spasi)</p>
-              </div> 
+              </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Kuota Default (Hari)</label>

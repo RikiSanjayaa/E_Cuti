@@ -86,7 +86,7 @@ app.add_middleware(
 os.makedirs("uploads/evidence", exist_ok=True)
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="uploads"), name="static")
+app.mount("/api/static", StaticFiles(directory="uploads"), name="static")
 
 from .routers import auth, personnel, leaves, dashboard, reports, audit, users, leave_types, holidays
 

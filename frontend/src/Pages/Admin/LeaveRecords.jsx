@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { formatDateTime, formatDate } from '@/utils/dateUtils';
-import { addDays } from 'date-fns';
+import { addDays, format, isWeekend } from 'date-fns';
 import { AddLeaveModal } from '@/components/AddLeaveModal';
 import { LeaveDetailModal } from '@/components/LeaveDetailModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
@@ -20,6 +20,7 @@ export default function LeaveRecords() {
 
   // Leave Types for filter dropdown
   const [leaveTypes, setLeaveTypes] = useState([]);
+  const [holidays, setHolidays] = useState([]);
 
   // Advanced Filters State
   const [showFilters, setShowFilters] = useState(false);
@@ -57,6 +58,7 @@ export default function LeaveRecords() {
   useEffect(() => {
     fetchAdmins();
     fetchLeaveTypes();
+    fetchHolidays();
   }, []);
 
   // Subscribe to real-time leave updates
@@ -88,6 +90,18 @@ export default function LeaveRecords() {
       setAdminUsers(admins);
     } catch (error) {
       console.error("Failed to fetch admins", error);
+    }
+  };
+
+  const fetchHolidays = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get('/api/holidays/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setHolidays(res.data);
+    } catch (error) {
+      console.error("Error fetching holidays:", error);
     }
   };
 
@@ -167,11 +181,7 @@ export default function LeaveRecords() {
       fetchLeaves();
       setIsDeleteModalOpen(false);
       setSelectedLeave(null);
-      addToast({
-        type: 'success',
-        title: 'Berhasil',
-        message: 'Data cuti berhasil dihapus'
-      });
+      // Success notification is handled by WebSocket to avoid duplication
     } catch (error) {
       console.error("Failed to delete leave:", error);
       setIsDeleteModalOpen(false);
@@ -191,9 +201,43 @@ export default function LeaveRecords() {
 
   // formatDateTime is imported directly
 
-  const getEndDate = (startDate, days) => {
-    if (!startDate) return null;
-    return addDays(new Date(startDate), days - 1);
+  // Robust calculateEndDate that aligns with how working days are counted
+  // (Inverse of calculateWorkingDays: Start + Days = End, skipping weekends/holidays)
+  const getEndDate = (start, daysCount) => {
+    if (!start || !daysCount || parseInt(daysCount) <= 0) return null;
+
+    // Parse start date safely
+    let currentDate = new Date(start);
+    if (isNaN(currentDate.getTime())) return null;
+
+    let daysAdded = 0;
+    const targetDays = parseInt(daysCount);
+    let lastWorkingDate = new Date(currentDate);
+
+    // If holidays are not loaded yet, fallback to simple addition to avoid crashing/empty
+    if (holidays.length === 0 && targetDays > 5) {
+      // Fallback or just return simple add
+      // return addDays(currentDate, targetDays - 1);
+      // Better to wait or use what we have (skip weekends at least)
+    }
+
+    let loops = 0;
+    while (daysAdded < targetDays && loops < 365) {
+      const formattedDate = format(currentDate, 'yyyy-MM-dd');
+
+      const isHol = holidays.some(h => h.date === formattedDate);
+
+      if (!isWeekend(currentDate) && !isHol) {
+        daysAdded++;
+        lastWorkingDate = new Date(currentDate);
+      }
+
+      // Prepare for next iteration
+      currentDate = addDays(currentDate, 1);
+      loops++;
+    }
+
+    return lastWorkingDate;
   };
 
 

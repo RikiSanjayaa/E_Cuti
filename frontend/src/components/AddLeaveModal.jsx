@@ -1,4 +1,4 @@
-import { X, FileText, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, FileText, User, AlertCircle, CheckCircle, File as FileIcon, Eye, Trash2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/Select";
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
@@ -6,6 +6,7 @@ import axios from 'axios';
 import { getLeaveColorClass } from '@/utils/leaveUtils';
 import { useNotifications } from '@/lib/NotificationContext';
 import { DatePicker } from '@/components/ui/date-picker';
+import { addDays, format, isWeekend } from 'date-fns';
 
 export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [nrp, setNrp] = useState('');
@@ -17,6 +18,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
   const [days, setDays] = useState('');
   const [context, setContext] = useState('');
   const [file, setFile] = useState(null);
+  const [removeExistingFile, setRemoveExistingFile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { addToast } = useNotifications();
@@ -51,7 +53,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       }
     };
 
-    fetchLeaveTypes();
     fetchLeaveTypes();
   }, [personel]);
 
@@ -103,7 +104,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
         count++;
       }
 
-      // Add 1 day safely
       current.setDate(current.getDate() + 1);
     }
 
@@ -112,7 +112,6 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
 
   useEffect(() => {
     if (startDate && finishDate) {
-      // Both dates provided - calculate working days between them
       const calculatedDays = calculateWorkingDays(startDate, finishDate);
       setDays(calculatedDays);
     } else if (startDate && !finishDate) {
@@ -121,17 +120,58 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     }
   }, [startDate, finishDate, holidays]);
 
+  // Helper function to calculate end date based on start date and working days
+  const calculateEndDate = (start, daysCount) => {
+    if (!start || !daysCount || parseInt(daysCount) <= 0) return '';
+
+    const parseDate = (dateStr) => {
+      const parts = dateStr.split('-');
+      return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    };
+
+    let currentDate = parseDate(start);
+    if (isNaN(currentDate.getTime())) return '';
+
+    let daysAdded = 0;
+    const targetDays = parseInt(daysCount);
+    let lastWorkingDate = new Date(currentDate);
+
+    let loops = 0;
+    while (daysAdded < targetDays && loops < 365) {
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const day = String(currentDate.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+
+      const dayOfWeek = currentDate.getDay();
+      const isWeekendDay = dayOfWeek === 0 || dayOfWeek === 6;
+      const isHoliday = holidays.some(h => h.date === formattedDate);
+
+      if (!isWeekendDay && !isHoliday) {
+        daysAdded++;
+        lastWorkingDate = new Date(currentDate);
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
+      loops++;
+    }
+
+    // Format as YYYY-MM-DD
+    const endYear = lastWorkingDate.getFullYear();
+    const endMonth = String(lastWorkingDate.getMonth() + 1).padStart(2, '0');
+    const endDay = String(lastWorkingDate.getDate()).padStart(2, '0');
+    return `${endYear}-${endMonth}-${endDay}`;
+  };
+
   useEffect(() => {
     if (initialData && isOpen) {
       setNrp(initialData.personnel?.nrp || '');
-      setLeaveTypeId(initialData.leave_type_id || '');
       setStartDate(initialData.tanggal_mulai || '');
-      setNrp(initialData.personnel?.nrp || '');
-      setLeaveTypeId(initialData.leave_type_id || '');
-      setStartDate(initialData.tanggal_mulai || '');
-      setFinishDate('');
-      setDays(initialData.jumlah_hari || '');
+      setRemoveExistingFile(false);
+      setDays(initialData.jumlah_hari?.toString() || '');
       setContext(initialData.alasan || '');
+
+      // Set personnel first so that leaveTypes can be fetched
       setPersonnel(initialData.personnel ? {
         name: initialData.personnel.nama,
         nrp: initialData.personnel.nrp,
@@ -139,10 +179,28 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
         gender: initialData.personnel.jenis_kelamin,
         balances: initialData.personnel.balances || {}
       } : null);
+
+      // Calculate and set the finish date based on start date and working days
+      if (initialData.tanggal_mulai && initialData.jumlah_hari) {
+        const calculatedEndDate = calculateEndDate(initialData.tanggal_mulai, initialData.jumlah_hari);
+        setFinishDate(calculatedEndDate);
+      } else {
+        setFinishDate('');
+      }
     } else if (!isOpen) {
       resetForm();
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, holidays]);
+
+  // Set leaveTypeId after leaveTypes have loaded (for edit mode)
+  useEffect(() => {
+    if (isEditMode && initialData && leaveTypes.length > 0 && !leaveTypeId) {
+      const typeId = initialData.leave_type_id || initialData.leave_type?.id;
+      if (typeId) {
+        setLeaveTypeId(String(typeId));
+      }
+    }
+  }, [isEditMode, initialData, leaveTypes]);
 
   const handlePersonnelSearch = async () => {
     if (!nrp || nrp.length < 4) {
@@ -190,6 +248,16 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!leaveTypeId) {
+      addToast({
+        type: 'error',
+        title: 'Validasi Gagal',
+        message: 'Mohon pilih jenis cuti terlebih dahulu'
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -199,14 +267,20 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
       formData.append('jumlah_hari', days);
       formData.append('tanggal_mulai', startDate);
       formData.append('alasan', context);
+
+      // Handle file: send new file if selected, and removal flag if existing should be removed
+      // Both can be true: user deletes existing file, then selects a new one
       if (file) {
         formData.append('file', file);
+      }
+      if (removeExistingFile) {
+        formData.append('remove_existing_file', 'true');
       }
 
       const token = localStorage.getItem('token');
 
       if (isEditMode) {
-        await axios.put(`/api/leaves/${initialData.id}`, formData, {
+        await axios.post(`/api/leaves/${initialData.id}`, formData, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -221,11 +295,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
 
       resetForm();
       onClose();
-      addToast({
-        type: 'success',
-        title: 'Berhasil',
-        message: isEditMode ? 'Data cuti berhasil diperbarui' : 'Data cuti berhasil ditambahkan'
-      });
+      // Success notification is handled by WebSocket to avoid duplication
     } catch (error) {
       console.error("Submission error:", error);
       const errorData = error.response?.data?.detail;
@@ -259,6 +329,7 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
     setDays('');
     setContext('');
     setFile(null);
+    setRemoveExistingFile(false);
     setLeaveTypes([]);
   };
 
@@ -507,12 +578,39 @@ export function AddLeaveModal({ isOpen, onClose, initialData = null }) {
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Dokumen Bukti (PDF/Gambar)
                 </label>
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-violet-900/20 dark:file:text-violet-300 dark:hover:file:bg-violet-900/30"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                />
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-violet-900/20 dark:file:text-violet-300 dark:hover:file:bg-violet-900/30"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  {isEditMode && initialData?.file_path && !removeExistingFile && (
+                    <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded-md border border-blue-100 dark:border-blue-800">
+                      <FileIcon className="w-4 h-4" />
+                      <span className="flex-1 truncate">
+                        {initialData.file_path.split('/').pop()}
+                      </span>
+                      <a
+                        href={`/api/static/${initialData.file_path.replace(/^uploads\//, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 hover:bg-blue-100 dark:hover:bg-blue-800 rounded"
+                        title="Lihat Dokumen"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setRemoveExistingFile(true)}
+                        className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 rounded transition-colors"
+                        title="Hapus Dokumen"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
