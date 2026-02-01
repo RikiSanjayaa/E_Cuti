@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Determine if running in Docker
-is_docker = os.path.exists("/.env")
+is_docker = os.path.exists("/.envdocker")
 
 raw_url = os.getenv("DATABASE_URL", "")
 
